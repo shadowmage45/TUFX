@@ -34,7 +34,7 @@ namespace TexturesUnlimitedFX
 
         public BloomEffect()
         {
-            //bloomMat = new Material(KSPShaderTools.TexturesUnlimitedLoader.getShader("Hidden/Post FX/Bloom"));
+            bloomMat = new Material(KSPShaderTools.TexturesUnlimitedLoader.getShader("Hidden/Post FX/Bloom"));
             stopwatch = new Stopwatch();
         }
 

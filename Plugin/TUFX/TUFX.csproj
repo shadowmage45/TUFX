@@ -42,6 +42,9 @@
     <Reference Include="System.Data" />
     <Reference Include="System.Net.Http" />
     <Reference Include="System.Xml" />
+    <Reference Include="TexturesUnlimited">
+      <HintPath>libs\TexturesUnlimited.dll</HintPath>
+    </Reference>
     <Reference Include="UnityEngine">
       <HintPath>libs\UnityEngine.dll</HintPath>
     </Reference>
@@ -54,13 +57,75 @@
     <Reference Include="UnityEngine.IMGUIModule">
       <HintPath>libs\UnityEngine.IMGUIModule.dll</HintPath>
     </Reference>
+    <Reference Include="UnityEngine.PhysicsModule">
+      <HintPath>libs\UnityEngine.PhysicsModule.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Addon\TexturesUnlimitedFXLoader.cs" />
     <Compile Include="Effect\BloomEffect.cs" />
     <Compile Include="Effect\EffectManager.cs" />
     <Compile Include="GUI\ConfigurationGUI.cs" />
+    <Compile Include="PostProcessing\Attributes\DisplayNameAttribute.cs" />
+    <Compile Include="PostProcessing\Attributes\MaxAttribute.cs" />
+    <Compile Include="PostProcessing\Attributes\MinAttribute.cs" />
+    <Compile Include="PostProcessing\Attributes\MinMaxAttribute.cs" />
+    <Compile Include="PostProcessing\Attributes\PostProcessAttribute.cs" />
+    <Compile Include="PostProcessing\Attributes\TrackballAttribute.cs" />
+    <Compile Include="PostProcessing\Effects\AmbientOcclusion.cs" />
+    <Compile Include="PostProcessing\Effects\AutoExposure.cs" />
+    <Compile Include="PostProcessing\Effects\Bloom.cs" />
+    <Compile Include="PostProcessing\Effects\ChromaticAberration.cs" />
+    <Compile Include="PostProcessing\Effects\ColorGrading.cs" />
+    <Compile Include="PostProcessing\Effects\DepthOfField.cs" />
+    <Compile Include="PostProcessing\Effects\Dithering.cs" />
+    <Compile Include="PostProcessing\Effects\FastApproximateAntialiasing.cs" />
+    <Compile Include="PostProcessing\Effects\Fog.cs" />
+    <Compile Include="PostProcessing\Effects\Grain.cs" />
+    <Compile Include="PostProcessing\Effects\LensDistortion.cs" />
+    <Compile Include="PostProcessing\Effects\MotionBlur.cs" />
+    <Compile Include="PostProcessing\Effects\MultiScaleVO.cs" />
+    <Compile Include="PostProcessing\Effects\ScalableAO.cs" />
+    <Compile Include="PostProcessing\Effects\ScreenSpaceReflections.cs" />
+    <Compile Include="PostProcessing\Effects\SubpixelMorphologicalAntialiasing.cs" />
+    <Compile Include="PostProcessing\Effects\TemporalAntialiasing.cs" />
+    <Compile Include="PostProcessing\Effects\Vignette.cs" />
+    <Compile Include="PostProcessing\Monitors\HistogramMonitor.cs" />
+    <Compile Include="PostProcessing\Monitors\LightMeterMonitor.cs" />
+    <Compile Include="PostProcessing\Monitors\Monitor.cs" />
+    <Compile Include="PostProcessing\Monitors\VectorscopeMonitor.cs" />
+    <Compile Include="PostProcessing\Monitors\WaveformMonitor.cs" />
+    <Compile Include="PostProcessing\ParameterOverride.cs" />
+    <Compile Include="PostProcessing\PostProcessBundle.cs" />
+    <Compile Include="PostProcessing\PostProcessDebug.cs" />
+    <Compile Include="PostProcessing\PostProcessDebugLayer.cs" />
+    <Compile Include="PostProcessing\PostProcessEffectRenderer.cs" />
+    <Compile Include="PostProcessing\PostProcessEffectSettings.cs" />
+    <Compile Include="PostProcessing\PostProcessEvent.cs" />
+    <Compile Include="PostProcessing\PostProcessLayer.cs" />
+    <Compile Include="PostProcessing\PostProcessManager.cs" />
+    <Compile Include="PostProcessing\PostProcessProfile.cs" />
+    <Compile Include="PostProcessing\PostProcessRenderContext.cs" />
+    <Compile Include="PostProcessing\PostProcessResources.cs" />
+    <Compile Include="PostProcessing\PostProcessVolume.cs" />
+    <Compile Include="PostProcessing\Utils\ColorUtilities.cs" />
+    <Compile Include="PostProcessing\Utils\HableCurve.cs" />
+    <Compile Include="PostProcessing\Utils\HaltonSeq.cs" />
+    <Compile Include="PostProcessing\Utils\LogHistogram.cs" />
+    <Compile Include="PostProcessing\Utils\MeshUtilities.cs" />
+    <Compile Include="PostProcessing\Utils\PropertySheet.cs" />
+    <Compile Include="PostProcessing\Utils\PropertySheetFactory.cs" />
+    <Compile Include="PostProcessing\Utils\RuntimeUtilities.cs" />
+    <Compile Include="PostProcessing\Utils\ShaderIDs.cs" />
+    <Compile Include="PostProcessing\Utils\Spline.cs" />
+    <Compile Include="PostProcessing\Utils\TargetPool.cs" />
+    <Compile Include="PostProcessing\Utils\TextureFormatUtilities.cs" />
+    <Compile Include="PostProcessing\Utils\TextureLerper.cs" />
+    <Compile Include="PostProcessing\Utils\XRSettings.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="PostProcessing\Unity.Postprocessing.Runtime.asmdef" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>

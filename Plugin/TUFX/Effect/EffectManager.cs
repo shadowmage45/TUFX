@@ -30,12 +30,12 @@ namespace TexturesUnlimitedFX
         public EffectManager()
         {
             bloom = new BloomEffect();
-            //finishMat = new Material(KSPShaderTools.TexturesUnlimitedLoader.getShader("TUFX/EffectsCombine"));
+            finishMat = new Material(KSPShaderTools.TexturesUnlimitedLoader.getShader("TUFX/EffectsCombine"));
         }
 
         public void OnRenderImage(RenderTexture source, RenderTexture dest)
         {
-            if (false)// bloomEnabled)
+            if (bloomEnabled)
             {
                 bloom.RenderEffect(finishMat, source);
                 Graphics.Blit(source, dest, finishMat);

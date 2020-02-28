@@ -56,40 +56,40 @@ namespace TexturesUnlimitedFX
 
         private void fixMaterials()
         {
-            Dictionary<string, string> shaderReplacements = new Dictionary<string, string>();
-            Dictionary<string, string> specShaderReplacements = new Dictionary<string, string>();
-            shaderReplacements.Add("KSP/Scenery/Diffuse", "KSP/Diffuse");
-            specShaderReplacements.Add("KSP/Scenery/Specular", "KSP/Specular");
-            shaderReplacements.Add("KSP/Scenery/Bumped", "KSP/Bumped");
-            specShaderReplacements.Add("KSP/Scenery/Bumped Specular", "KSP/Bumped Specular");
-            shaderReplacements.Add("KSP/Scenery/Emissive/Diffuse", "KSP/Emissive/Diffuse");
-            specShaderReplacements.Add("KSP/Scenery/Emissive/Specular", "KSP/Emissive/Specular");
-            specShaderReplacements.Add("KSP/Scenery/Emissive/Bumped Specular", "KSP/Emissive/Bumped Specular");
-            Material[] mats = Resources.FindObjectsOfTypeAll<Material>();
-            int len = mats.Length;
-            for (int i = 0; i < len; i++)
-            {
-                Material mat = mats[i];
-                if (mat.shader != null && mat.shader.name.StartsWith("KSP/Scenery"))
-                {
-                    mat.SetOverrideTag("RenderType", "Opaque");
-                    if (shaderReplacements.ContainsKey(mat.shader.name))
-                    {
-                        //mat.shader = KSPShaderTools.TexturesUnlimitedLoader.getShader(shaderReplacements[mat.shader.name]);
-                        //mat.shader = KSPShaderTools.TexturesUnlimitedLoader.getShader("TU/Specular");
-                        mat.SetColor("_GlossColor", Color.black);
-                        mat.SetFloat("_Smoothness", 0);
-                        //MonoBehaviour.print("\n"+KSPShaderTools.Debug.getMaterialPropertiesDebug(mat));
-                    }
-                    else if (specShaderReplacements.ContainsKey(mat.shader.name))
-                    {
-                        //mat.shader = KSPShaderTools.TexturesUnlimitedLoader.getShader("TU/Specular");
-                        mat.SetColor("_GlossColor", mat.GetColor("_SpecColor"));
-                        mat.EnableKeyword("TU_STOCK_SPEC");
-                        //mat.shader = KSPShaderTools.TexturesUnlimitedLoader.getShader(shaderReplacements[mat.shader.name]);
-                    }
-                }
-            }
+            //Dictionary<string, string> shaderReplacements = new Dictionary<string, string>();
+            //Dictionary<string, string> specShaderReplacements = new Dictionary<string, string>();
+            //shaderReplacements.Add("KSP/Scenery/Diffuse", "KSP/Diffuse");
+            //specShaderReplacements.Add("KSP/Scenery/Specular", "KSP/Specular");
+            //shaderReplacements.Add("KSP/Scenery/Bumped", "KSP/Bumped");
+            //specShaderReplacements.Add("KSP/Scenery/Bumped Specular", "KSP/Bumped Specular");
+            //shaderReplacements.Add("KSP/Scenery/Emissive/Diffuse", "KSP/Emissive/Diffuse");
+            //specShaderReplacements.Add("KSP/Scenery/Emissive/Specular", "KSP/Emissive/Specular");
+            //specShaderReplacements.Add("KSP/Scenery/Emissive/Bumped Specular", "KSP/Emissive/Bumped Specular");
+            //Material[] mats = Resources.FindObjectsOfTypeAll<Material>();
+            //int len = mats.Length;
+            //for (int i = 0; i < len; i++)
+            //{
+            //    Material mat = mats[i];
+            //    if (mat.shader != null && mat.shader.name.StartsWith("KSP/Scenery"))
+            //    {
+            //        mat.SetOverrideTag("RenderType", "Opaque");
+            //        if (shaderReplacements.ContainsKey(mat.shader.name))
+            //        {
+            //            //mat.shader = KSPShaderTools.TexturesUnlimitedLoader.getShader(shaderReplacements[mat.shader.name]);
+            //            //mat.shader = KSPShaderTools.TexturesUnlimitedLoader.getShader("TU/Specular");
+            //            mat.SetColor("_GlossColor", Color.black);
+            //            mat.SetFloat("_Smoothness", 0);
+            //            //MonoBehaviour.print("\n"+KSPShaderTools.Debug.getMaterialPropertiesDebug(mat));
+            //        }
+            //        else if (specShaderReplacements.ContainsKey(mat.shader.name))
+            //        {
+            //            //mat.shader = KSPShaderTools.TexturesUnlimitedLoader.getShader("TU/Specular");
+            //            mat.SetColor("_GlossColor", mat.GetColor("_SpecColor"));
+            //            mat.EnableKeyword("TU_STOCK_SPEC");
+            //            //mat.shader = KSPShaderTools.TexturesUnlimitedLoader.getShader(shaderReplacements[mat.shader.name]);
+            //        }
+            //    }
+            //}
         }
 
         public static void onHDRToggled()
