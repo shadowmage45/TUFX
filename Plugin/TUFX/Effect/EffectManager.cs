@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using UnityEngine;
+using UnityEngine.Rendering.PostProcessing;
 
 namespace TexturesUnlimitedFX
 {
@@ -31,6 +32,11 @@ namespace TexturesUnlimitedFX
         {
             bloom = new BloomEffect();
             finishMat = new Material(KSPShaderTools.TexturesUnlimitedLoader.getShader("TUFX/EffectsCombine"));
+            PostProcessResources res = TexturesUnlimitedFXLoader.INSTANCE.Resources;
+            PostProcessLayer layer = Camera.main.gameObject.AddOrGetComponent<PostProcessLayer>();
+            layer.Init(res);
+            PostProcessVolume volume = Camera.main.gameObject.AddOrGetComponent<PostProcessVolume>();
+            volume.isGlobal = true;
         }
 
         public void OnRenderImage(RenderTexture source, RenderTexture dest)

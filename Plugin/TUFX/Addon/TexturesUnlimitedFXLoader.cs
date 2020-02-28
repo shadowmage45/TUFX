@@ -4,6 +4,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using UnityEngine;
+using UnityEngine.Rendering.PostProcessing;
+using static KSPShaderTools.TexturesUnlimitedLoader;
 
 namespace TexturesUnlimitedFX
 {
@@ -17,6 +19,8 @@ namespace TexturesUnlimitedFX
         private ConfigurationGUI configGUI;
         private static ApplicationLauncherButton debugAppButton;
 
+        public PostProcessResources Resources { get; private set; }
+
         public void Start()
         {
             MonoBehaviour.print("TUFXLoader - Start()");
@@ -29,7 +33,49 @@ namespace TexturesUnlimitedFX
         {
             MonoBehaviour.print("TUFXLoader - MMPostLoad()");
             //grab references to shaders, register events?
+            //has TU run at this point -- are shaders available?
+            Resources = new PostProcessResources();
+            Resources.shaders = new PostProcessResources.Shaders();
+            Resources.computeShaders = new PostProcessResources.ComputeShaders();
+            Resources.blueNoise64 = null;//TODO
+            Resources.blueNoise256 = null;//TODO
+            Resources.smaaLuts = null;//TODO
+
+            #region REGION - Load standard Post Process Effect Shaders
+            Resources.shaders.bloom = getShader("Hidden/PostProcessing/Bloom");
+            Resources.shaders.copy = getShader("Hidden/PostProcessing/Copy");
+            Resources.shaders.copyStd = getShader("Hidden/PostProcessing/CopyStd");
+            Resources.shaders.copyStdFromDoubleWide = getShader("Hidden/PostProcessing/CopyStdFromDoubleWide");
+            Resources.shaders.copyStdFromTexArray = getShader("Hidden/PostProcessing/CopyStdFromTexArray");
+            Resources.shaders.deferredFog = getShader("Hidden/PostProcessing/DeferredFog");
+            Resources.shaders.depthOfField = getShader("Hidden/PostProcessing/DepthOfField");
+            Resources.shaders.discardAlpha = getShader("Hidden/PostProcessing/DiscardAlpha");
+            Resources.shaders.finalPass = getShader("Hidden/PostProcessing/FinalPass");
+            Resources.shaders.gammaHistogram = getShader("Hidden/PostProcessing/Debug/Histogram");
+            Resources.shaders.grainBaker = getShader("Hidden/PostProcessing/GrainBaker");
+            Resources.shaders.lightMeter = getShader("Hidden/PostProcessing/Debug/LightMeter");
+            Resources.shaders.lut2DBaker = getShader("Hidden/PostProcessing/Lut2DBaker");
+            Resources.shaders.motionBlur = getShader("Hidden/PostProcessing/MotionBlur");
+            Resources.shaders.multiScaleAO = getShader("Hidden/PostProcessing/MultiScaleVO");//TODO -- find this shader (only can see MultiScaleVO)
+            Resources.shaders.scalableAO = getShader("Hidden/PostProcessing/ScalableAO");
+            Resources.shaders.screenSpaceReflections = getShader("Hidden/PostProcessing/ScreenSpaceReflections");
+            Resources.shaders.subpixelMorphologicalAntialiasing = getShader("Hidden/PostProcessing/SubpixelMorphologicalAntialiasing");
+            Resources.shaders.temporalAntialiasing = getShader("Hidden/PostProcessing/TemporalAntialiasing");
+            Resources.shaders.texture2dLerp = getShader("Hidden/PostProcessing/Texture2DLerp");
+            Resources.shaders.uber = getShader("Hidden/PostProcessing/Uber");
+            Resources.shaders.vectorscope = getShader("Hidden/PostProcessing/Debug/Vectorscope");
+            Resources.shaders.waveform = getShader("Hidden/PostProcessing/Debug/Waveform");
+            #endregion
+
+            #region REGION - Load compute shaders
+            //TODO -- will TU even load compute shaders out of the asset bundle?
+            //TODO -- how the F are these named by Unity?
+            Resources.computeShaders.autoExposure = getComputeShader("AutoExposure");
+            //TODO -- finish instantiating compute shaders...
+            #endregion
         }
+
+        private ComputeShader getComputeShader(string name) { return null; }//TODO -- load compute shaders in TU, make available through getXXX methods...
 
         private void onSceneChange(GameScenes scene)
         {
