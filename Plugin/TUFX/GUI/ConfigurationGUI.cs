@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using UnityEngine;
 
-namespace TexturesUnlimitedFX
+namespace TUFX
 {
 
     public class ConfigurationGUI : MonoBehaviour
@@ -21,11 +21,11 @@ namespace TexturesUnlimitedFX
         {
             try
             {
-                windowRect = GUI.Window(windowID, windowRect, updateWindow, "SSTUReflectionDebug");
+                windowRect = GUI.Window(windowID, windowRect, updateWindow, "TUFXSettings");
             }
             catch (Exception e)
             {
-                MonoBehaviour.print("Caught exception while rendering SSTUReflectionDebug GUI");
+                MonoBehaviour.print("Caught exception while rendering TUFX Settings UI");
                 MonoBehaviour.print(e.Message);
                 MonoBehaviour.print(System.Environment.StackTrace);
             }
@@ -39,14 +39,23 @@ namespace TexturesUnlimitedFX
                 EffectManager.hdrEnabled = hdr;
                 TexturesUnlimitedFXLoader.onHDRToggled();
             }
-            EffectManager.bloomEnabled = addButtonRowToggle("BloomEnabled", EffectManager.bloomEnabled);
-            EffectManager.bloomIntensity = addSliderRow("BloomIntensity", EffectManager.bloomIntensity, 0, 10);
-            EffectManager.bloomRadius = addSliderRow("BloomRad", EffectManager.bloomRadius, 0, 8);
-            EffectManager.linearThreshold = addSliderRow("Threshold", EffectManager.linearThreshold, 0, 2);
-            EffectManager.softKnee = addSliderRow("SoftKnee", EffectManager.softKnee, 0, 1);
-            EffectManager.antiFlicker = addButtonRowToggle("Anti Flicker", EffectManager.antiFlicker);
-            addLabelRow("Bloom time(ms): " + EffectManager.bloomEffectTime);
-            addLabelRow("Bloom avg(ms): " + (EffectManager.bloomAverageTime / 60d));
+            addLabelRow("----------Ambient Occlusion----------");
+            EffectManager.ambientOcclusion.enabled.value = addButtonRowToggle("AO Enabled", EffectManager.ambientOcclusion.enabled);
+            if (EffectManager.ambientOcclusion.enabled.value)
+            {
+                EffectManager.ambientOcclusion.intensity.value = addSliderRow("Intensity", EffectManager.ambientOcclusion.intensity.value, 0, 2);
+                EffectManager.ambientOcclusion.thicknessModifier.value = addSliderRow("Thickness", EffectManager.ambientOcclusion.thicknessModifier.value, 0, 2);
+                EffectManager.ambientOcclusion.ambientOnly.value = addButtonRowToggle("Ambient Only", EffectManager.ambientOcclusion.ambientOnly.value);
+            }
+            addLabelRow("----------Bloom----------");
+            EffectManager.bloom.enabled.value = addButtonRowToggle("Bloom Enabled", EffectManager.bloom.enabled);
+            if (EffectManager.bloom.enabled)
+            {
+                EffectManager.bloom.intensity.value = addSliderRow("Intensity", EffectManager.bloom.intensity.value, 0, 5);
+                EffectManager.bloom.threshold.value = addSliderRow("Threshold", EffectManager.bloom.threshold.value, 0, 1);
+                EffectManager.bloom.softKnee.value = addSliderRow("Soft Knee", EffectManager.bloom.softKnee.value, 0, 1);
+                EffectManager.bloom.diffusion.value = addSliderRow("Diffusion", EffectManager.bloom.diffusion.value, 0, 10);
+            }
             GUI.DragWindow();
         }
 

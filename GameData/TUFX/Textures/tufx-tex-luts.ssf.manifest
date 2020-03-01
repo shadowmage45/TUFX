@@ -1,0 +1,20 @@
+ManifestFileVersion: 0
+CRC: 1077793829
+Hashes:
+  AssetFileHash:
+    serializedVersion: 2
+    Hash: 1e411a7192580af9768389e3d8cb9959
+  TypeTreeHash:
+    serializedVersion: 2
+    Hash: f19fbf085e00d23fbc8d6cf7b345590b
+HashAppended: 0
+ClassTypes:
+- Class: 28
+  Script: {instanceID: 0}
+Assets:
+- Packages/com.unity.postprocessing/PostProcessing/Textures/Spectral LUTs/SpectralLut_PurpleGreen.tga
+- Packages/com.unity.postprocessing/PostProcessing/Textures/Spectral LUTs/SpectralLut_RedBlue.tga
+- Packages/com.unity.postprocessing/PostProcessing/Textures/LUTs/NeutralLdrLut.png
+- Packages/com.unity.postprocessing/PostProcessing/Textures/Spectral LUTs/SpectralLut_BlueRed.tga
+- Packages/com.unity.postprocessing/PostProcessing/Textures/Spectral LUTs/SpectralLut_GreenPurple.tga
+Dependencies: []

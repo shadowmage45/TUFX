@@ -5,9 +5,8 @@ using System.Linq;
 using System.Text;
 using UnityEngine;
 using UnityEngine.Rendering.PostProcessing;
-using static KSPShaderTools.TexturesUnlimitedLoader;
 
-namespace TexturesUnlimitedFX
+namespace TUFX
 {
 
     [KSPAddon(KSPAddon.Startup.Instantly, true)]
@@ -15,9 +14,12 @@ namespace TexturesUnlimitedFX
     {
 
         public static TexturesUnlimitedFXLoader INSTANCE;
-
+        private static ApplicationLauncherButton configAppButton;
         private ConfigurationGUI configGUI;
-        private static ApplicationLauncherButton debugAppButton;
+
+        private Dictionary<string, Shader> shaders = new Dictionary<string, Shader>();
+        private Dictionary<string, ComputeShader> computeShaders = new Dictionary<string, ComputeShader>();
+        private Dictionary<string, Texture2D> textures = new Dictionary<string, Texture2D>();
 
         public PostProcessResources Resources { get; private set; }
 
@@ -31,15 +33,30 @@ namespace TexturesUnlimitedFX
         
         public void ModuleManagerPostLoad()
         {
-            MonoBehaviour.print("TUFXLoader - MMPostLoad()");
-            //grab references to shaders, register events?
-            //has TU run at this point -- are shaders available?
-            Resources = new PostProcessResources();
+            Log.log("TUFXLoader - MMPostLoad()");
+
+            Resources = ScriptableObject.CreateInstance<PostProcessResources>();
             Resources.shaders = new PostProcessResources.Shaders();
             Resources.computeShaders = new PostProcessResources.ComputeShaders();
-            Resources.blueNoise64 = null;//TODO
-            Resources.blueNoise256 = null;//TODO
-            Resources.smaaLuts = null;//TODO
+            Resources.blueNoise64 = new Texture2D[64];
+            Resources.blueNoise256 = new Texture2D[8];
+            Resources.smaaLuts = new PostProcessResources.SMAALuts();
+
+            //previously this did not work... but appears to with these bundles/Unity version
+            AssetBundle bundle = AssetBundle.LoadFromFile(KSPUtil.ApplicationRootPath+"GameData/TUFX/Shaders/tufx-universal.ssf");
+            Shader[] shaders = bundle.LoadAllAssets<Shader>();
+            int len = shaders.Length;
+            for (int i = 0; i < len; i++)
+            {
+                if (!this.shaders.ContainsKey(shaders[i].name)) { this.shaders.Add(shaders[i].name, shaders[i]); }
+            }
+            ComputeShader[] compShaders = bundle.LoadAllAssets<ComputeShader>();
+            len = compShaders.Length;
+            for (int i = 0; i < len; i++)
+            {
+                if (!this.computeShaders.ContainsKey(compShaders[i].name)) { this.computeShaders.Add(compShaders[i].name, compShaders[i]); }
+            }
+            bundle.Unload(false);
 
             #region REGION - Load standard Post Process Effect Shaders
             Resources.shaders.bloom = getShader("Hidden/PostProcessing/Bloom");
@@ -51,31 +68,92 @@ namespace TexturesUnlimitedFX
             Resources.shaders.depthOfField = getShader("Hidden/PostProcessing/DepthOfField");
             Resources.shaders.discardAlpha = getShader("Hidden/PostProcessing/DiscardAlpha");
             Resources.shaders.finalPass = getShader("Hidden/PostProcessing/FinalPass");
-            Resources.shaders.gammaHistogram = getShader("Hidden/PostProcessing/Debug/Histogram");
+            Resources.shaders.gammaHistogram = getShader("Hidden/PostProcessing/Debug/Histogram");//TODO - part of debug shaders?
             Resources.shaders.grainBaker = getShader("Hidden/PostProcessing/GrainBaker");
-            Resources.shaders.lightMeter = getShader("Hidden/PostProcessing/Debug/LightMeter");
+            Resources.shaders.lightMeter = getShader("Hidden/PostProcessing/Debug/LightMeter");//TODO - part of debug shaders?
             Resources.shaders.lut2DBaker = getShader("Hidden/PostProcessing/Lut2DBaker");
             Resources.shaders.motionBlur = getShader("Hidden/PostProcessing/MotionBlur");
-            Resources.shaders.multiScaleAO = getShader("Hidden/PostProcessing/MultiScaleVO");//TODO -- find this shader (only can see MultiScaleVO)
+            Resources.shaders.multiScaleAO = getShader("Hidden/PostProcessing/MultiScaleVO");
             Resources.shaders.scalableAO = getShader("Hidden/PostProcessing/ScalableAO");
             Resources.shaders.screenSpaceReflections = getShader("Hidden/PostProcessing/ScreenSpaceReflections");
             Resources.shaders.subpixelMorphologicalAntialiasing = getShader("Hidden/PostProcessing/SubpixelMorphologicalAntialiasing");
             Resources.shaders.temporalAntialiasing = getShader("Hidden/PostProcessing/TemporalAntialiasing");
             Resources.shaders.texture2dLerp = getShader("Hidden/PostProcessing/Texture2DLerp");
             Resources.shaders.uber = getShader("Hidden/PostProcessing/Uber");
-            Resources.shaders.vectorscope = getShader("Hidden/PostProcessing/Debug/Vectorscope");
-            Resources.shaders.waveform = getShader("Hidden/PostProcessing/Debug/Waveform");
+            Resources.shaders.vectorscope = getShader("Hidden/PostProcessing/Debug/Vectorscope");//TODO - part of debug shaders?
+            Resources.shaders.waveform = getShader("Hidden/PostProcessing/Debug/Waveform");//TODO - part of debug shaders?
             #endregion
 
             #region REGION - Load compute shaders
-            //TODO -- will TU even load compute shaders out of the asset bundle?
-            //TODO -- how the F are these named by Unity?
             Resources.computeShaders.autoExposure = getComputeShader("AutoExposure");
-            //TODO -- finish instantiating compute shaders...
+            Resources.computeShaders.exposureHistogram = getComputeShader("ExposureHistogram");
+            Resources.computeShaders.gammaHistogram = getComputeShader("GammaHistogram");//TODO - part of debug shaders?
+            Resources.computeShaders.gaussianDownsample = getComputeShader("GaussianDownsample");
+            Resources.computeShaders.lut3DBaker = getComputeShader("Lut3DBaker");
+            Resources.computeShaders.multiScaleAODownsample1 = getComputeShader("MultiScaleVODownsample1");
+            Resources.computeShaders.multiScaleAODownsample2 = getComputeShader("MultiScaleVODownsample2");
+            Resources.computeShaders.multiScaleAORender = getComputeShader("MultiScaleVORender");
+            Resources.computeShaders.multiScaleAOUpsample = getComputeShader("MultiScaleVOUpsample");
+            Resources.computeShaders.texture3dLerp = getComputeShader("Texture3DLerp");
+            Resources.computeShaders.vectorscope = getComputeShader("Vectorscope");//TODO - part of debug shaders?
+            Resources.computeShaders.waveform = getComputeShader("Waveform");//TODO - part of debug shaders?
+            #endregion
+
+            #region REGION - Load textures
+            bundle = AssetBundle.LoadFromFile(KSPUtil.ApplicationRootPath + "GameData/TUFX/Textures/tufx-tex-bluenoise64.ssf");
+            Texture2D[] tex = bundle.LoadAllAssets<Texture2D>();
+            len = tex.Length;
+            for (int i = 0; i < len; i++)
+            {
+                string idxStr = tex[i].name.Substring(tex[i].name.Length - 2).Replace("_", "");
+                int idx = int.Parse(idxStr);
+                Resources.blueNoise64[idx] = tex[i];
+            }
+            bundle.Unload(false);
+
+            bundle = AssetBundle.LoadFromFile(KSPUtil.ApplicationRootPath + "GameData/TUFX/Textures/tufx-tex-bluenoise256.ssf");
+            tex = bundle.LoadAllAssets<Texture2D>();
+            len = tex.Length;
+            for (int i = 0; i < len; i++)
+            {
+                string idxStr = tex[i].name.Substring(tex[i].name.Length - 2).Replace("_", "");
+                int idx = int.Parse(idxStr);
+                Resources.blueNoise256[idx] = tex[i];
+            }
+            bundle.Unload(false);
+
+            bundle = AssetBundle.LoadFromFile(KSPUtil.ApplicationRootPath + "GameData/TUFX/Textures/tufx-tex-lensdirt.ssf");
+            tex = bundle.LoadAllAssets<Texture2D>();
+            len = tex.Length;
+            for (int i = 0; i < len; i++)
+            {
+                textures.Add(tex[i].name, tex[i]);
+            }
+            bundle.Unload(false);
+
+            bundle = AssetBundle.LoadFromFile(KSPUtil.ApplicationRootPath + "GameData/TUFX/Textures/tufx-tex-smaa.ssf");
+            tex = bundle.LoadAllAssets<Texture2D>();
+            len = tex.Length;
+            for (int i = 0; i < len; i++)
+            {
+                if (tex[i].name == "AreaTex") { Resources.smaaLuts.area = tex[i]; }
+                else { Resources.smaaLuts.search = tex[i]; }
+            }
+            bundle.Unload(false);
             #endregion
         }
 
-        private ComputeShader getComputeShader(string name) { return null; }//TODO -- load compute shaders in TU, make available through getXXX methods...
+        private Shader getShader(string name)
+        {
+            shaders.TryGetValue(name, out Shader s);
+            return s;
+        }
+
+        private ComputeShader getComputeShader(string name)
+        {
+            computeShaders.TryGetValue(name, out ComputeShader s);
+            return s;
+        }
 
         private void onSceneChange(GameScenes scene)
         {
@@ -83,70 +161,32 @@ namespace TexturesUnlimitedFX
             if (scene == GameScenes.FLIGHT)
             {
                 Texture2D tex;
-                if (debugAppButton == null)//static reference; track if the button was EVER created, as KSP keeps them even if the addon is destroyed
+                if (configAppButton == null)//static reference; track if the button was EVER created, as KSP keeps them even if the addon is destroyed
                 {
                     //create a new button
                     tex = GameDatabase.Instance.GetTexture("Squad/PartList/SimpleIcons/RDIcon_fuelSystems-highPerformance", false);
-                    debugAppButton = ApplicationLauncher.Instance.AddModApplication(debugGuiEnable, debugGuiDisable, null, null, null, null, ApplicationLauncher.AppScenes.FLIGHT | ApplicationLauncher.AppScenes.SPH | ApplicationLauncher.AppScenes.VAB, tex);
+                    configAppButton = ApplicationLauncher.Instance.AddModApplication(configGuiEnable, configGuiDisable, null, null, null, null, ApplicationLauncher.AppScenes.FLIGHT | ApplicationLauncher.AppScenes.SPH | ApplicationLauncher.AppScenes.VAB, tex);
                 }
-                else if (debugAppButton != null)
+                else if (configAppButton != null)
                 {
                     //reseat callback refs to the ones from THIS instance of the KSPAddon (old refs were stale, pointing to methods for a deleted class instance)
-                    debugAppButton.onTrue = debugGuiEnable;
-                    debugAppButton.onFalse = debugGuiDisable;
+                    configAppButton.onTrue = configGuiEnable;
+                    configAppButton.onFalse = configGuiDisable;
                 }
-                EffectManager effect = Camera.main.gameObject.AddOrGetComponent<EffectManager>();
-                //fixMaterials();
+                EffectManager effect = this.gameObject.AddOrGetComponent<EffectManager>();
             }
-        }
-
-        private void fixMaterials()
-        {
-            //Dictionary<string, string> shaderReplacements = new Dictionary<string, string>();
-            //Dictionary<string, string> specShaderReplacements = new Dictionary<string, string>();
-            //shaderReplacements.Add("KSP/Scenery/Diffuse", "KSP/Diffuse");
-            //specShaderReplacements.Add("KSP/Scenery/Specular", "KSP/Specular");
-            //shaderReplacements.Add("KSP/Scenery/Bumped", "KSP/Bumped");
-            //specShaderReplacements.Add("KSP/Scenery/Bumped Specular", "KSP/Bumped Specular");
-            //shaderReplacements.Add("KSP/Scenery/Emissive/Diffuse", "KSP/Emissive/Diffuse");
-            //specShaderReplacements.Add("KSP/Scenery/Emissive/Specular", "KSP/Emissive/Specular");
-            //specShaderReplacements.Add("KSP/Scenery/Emissive/Bumped Specular", "KSP/Emissive/Bumped Specular");
-            //Material[] mats = Resources.FindObjectsOfTypeAll<Material>();
-            //int len = mats.Length;
-            //for (int i = 0; i < len; i++)
-            //{
-            //    Material mat = mats[i];
-            //    if (mat.shader != null && mat.shader.name.StartsWith("KSP/Scenery"))
-            //    {
-            //        mat.SetOverrideTag("RenderType", "Opaque");
-            //        if (shaderReplacements.ContainsKey(mat.shader.name))
-            //        {
-            //            //mat.shader = KSPShaderTools.TexturesUnlimitedLoader.getShader(shaderReplacements[mat.shader.name]);
-            //            //mat.shader = KSPShaderTools.TexturesUnlimitedLoader.getShader("TU/Specular");
-            //            mat.SetColor("_GlossColor", Color.black);
-            //            mat.SetFloat("_Smoothness", 0);
-            //            //MonoBehaviour.print("\n"+KSPShaderTools.Debug.getMaterialPropertiesDebug(mat));
-            //        }
-            //        else if (specShaderReplacements.ContainsKey(mat.shader.name))
-            //        {
-            //            //mat.shader = KSPShaderTools.TexturesUnlimitedLoader.getShader("TU/Specular");
-            //            mat.SetColor("_GlossColor", mat.GetColor("_SpecColor"));
-            //            mat.EnableKeyword("TU_STOCK_SPEC");
-            //            //mat.shader = KSPShaderTools.TexturesUnlimitedLoader.getShader(shaderReplacements[mat.shader.name]);
-            //        }
-            //    }
-            //}
         }
 
         public static void onHDRToggled()
         {
-            MonoBehaviour.print("Toggling HDR");
+            Log.debug("Toggling HDR");
             Camera[] cams = GameObject.FindObjectsOfType<Camera>();
             int len = cams.Length;
-            MonoBehaviour.print("Found cameras: " + len);
+            Log.debug("Found cameras: " + len);
             for (int i = 0; i < len; i++)
             {
-                MonoBehaviour.print("Camera: " + cams[i].name);
+                Log.debug("Camera: " + cams[i].name);
+                //TODO -- other KSP 3d cameras (not UI)
                 if (cams[i].name == "Camera 00" || cams[i].name == "Camera 01")
                 {
                     cams[i].allowHDR = EffectManager.hdrEnabled;
@@ -154,7 +194,7 @@ namespace TexturesUnlimitedFX
             }
         }
 
-        private void debugGuiEnable()
+        private void configGuiEnable()
         {
             if (configGUI == null)
             {
@@ -162,7 +202,7 @@ namespace TexturesUnlimitedFX
             }
         }
 
-        public void debugGuiDisable()
+        public void configGuiDisable()
         {
             if (configGUI != null)
             {
