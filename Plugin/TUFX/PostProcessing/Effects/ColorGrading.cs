@@ -1,5 +1,5 @@
 using System;
-
+using TUFX;
 using UnityEngine.Experimental.Rendering;
 
 namespace UnityEngine.Rendering.PostProcessing
@@ -75,7 +75,7 @@ namespace UnityEngine.Rendering.PostProcessing
     /// <summary>
     /// This class holds settings for the Color Grading effect.
     /// </summary>
-    // TODO: Could use some refactoring, too much duplicated code here
+    //  Could use some refactoring, too much duplicated code here
     [Serializable]
     [PostProcess(typeof(ColorGradingRenderer), "Unity/Color Grading")]
     public sealed class ColorGrading : PostProcessEffectSettings
@@ -385,6 +385,92 @@ namespace UnityEngine.Rendering.PostProcessing
 
             return enabled.value;
         }
+
+        public override void Load(ConfigNode config)
+        {
+            if (config.HasValue("GradingMode")) { gradingMode.Override(config.GetEnumValue<GradingMode>("GradingMode", typeof(GradingMode))); }
+            loadTextureParameter(config, "ExternalLut", externalLut);
+            if (config.HasValue("Tonemapper")) { tonemapper.Override(config.GetEnumValue<Tonemapper>("Tonemapper", typeof(Tonemapper))); }
+            loadFloatParameter(config, "ToneCurveToeStrength", toneCurveToeStrength);
+            loadFloatParameter(config, "ToneCurveToeLength", toneCurveToeLength);
+            loadFloatParameter(config, "ToneCurveShoulderStrength", toneCurveShoulderStrength);
+            loadFloatParameter(config, "ToneCurveShoulderLength", toneCurveShoulderLength);
+            loadFloatParameter(config, "ToneCurveShoulderAngle", toneCurveShoulderAngle);
+            loadFloatParameter(config, "ToneCurveGamma", toneCurveGamma);
+            loadTextureParameter(config, "LDRLut", ldrLut);
+            loadFloatParameter(config, "LDRLutContribution", ldrLutContribution);
+            loadFloatParameter(config, "Temperature", temperature);
+            loadFloatParameter(config, "Tint", tint);
+            loadColorParameter(config, "ColorFilter", colorFilter);
+            loadFloatParameter(config, "HueShift", hueShift);
+            loadFloatParameter(config, "Saturation", saturation);
+            loadFloatParameter(config, "Brightness", brightness);
+            loadFloatParameter(config, "PostExposure", postExposure);
+            loadFloatParameter(config, "Contrast", contrast);
+            loadFloatParameter(config, "MixerRedOutRedIn", mixerRedOutRedIn);
+            loadFloatParameter(config, "MixerRedOutGreenIn", mixerRedOutGreenIn);
+            loadFloatParameter(config, "MixerRedOutBlueIn", mixerRedOutBlueIn);
+            loadFloatParameter(config, "MixerGreenOutRedIn", mixerGreenOutRedIn);
+            loadFloatParameter(config, "MixerGreenOutGreenIn", mixerGreenOutGreenIn);
+            loadFloatParameter(config, "MixerGreenOutBlueIn", mixerGreenOutBlueIn);
+            loadFloatParameter(config, "MixerBlueOutRedIn", mixerBlueOutRedIn);
+            loadFloatParameter(config, "MixerBlueOutGreenIn", mixerBlueOutGreenIn);
+            loadFloatParameter(config, "MixerBlueOutBlueIn", mixerBlueOutBlueIn);
+            loadVector4Parameter(config, "Lift", lift);
+            loadVector4Parameter(config, "Gain", gain);
+            loadSplineParameter(config, "MasterCurve", masterCurve);
+            loadSplineParameter(config, "RedCurve", redCurve);
+            loadSplineParameter(config, "GreenCurve", greenCurve);
+            loadSplineParameter(config, "BlueCurve", blueCurve);
+            loadSplineParameter(config, "HueVsHueCurve", hueVsHueCurve);
+            loadSplineParameter(config, "HueVsSatCurve", hueVsSatCurve);
+            loadSplineParameter(config, "SatVsSatCurve", satVsSatCurve);
+            loadSplineParameter(config, "LumVsSatCurve", lumVsSatCurve);
+        }
+
+        public override void Save(ConfigNode config)
+        {
+            saveEnumParameter(config, "GradingMode", gradingMode);
+            saveTextureParameter(config, "ExternalLut", externalLut);
+            saveEnumParameter(config, "Tonemapper", tonemapper);
+            saveFloatParameter(config, "ToneCurveToeStrength", toneCurveToeStrength);
+            saveFloatParameter(config, "ToneCurveToeLength", toneCurveToeLength);
+            saveFloatParameter(config, "ToneCurveShoulderStrength", toneCurveShoulderStrength);
+            saveFloatParameter(config, "ToneCurveShoulderLength", toneCurveShoulderLength);
+            saveFloatParameter(config, "ToneCurveShoulderAngle", toneCurveShoulderAngle);
+            saveFloatParameter(config, "ToneCurveGamma", toneCurveGamma);
+            saveTextureParameter(config, "LDRLut", ldrLut);
+            saveFloatParameter(config, "LDRLutContribution", ldrLutContribution);
+            saveFloatParameter(config, "Temperature", temperature);
+            saveFloatParameter(config, "Tint", tint);
+            saveColorParameter(config, "ColorFilter", colorFilter);
+            saveFloatParameter(config, "HueShift", hueShift);
+            saveFloatParameter(config, "Saturation", saturation);
+            saveFloatParameter(config, "Brightness", brightness);
+            saveFloatParameter(config, "PostExposure", postExposure);
+            saveFloatParameter(config, "Contrast", contrast);
+            saveFloatParameter(config, "MixerRedOutRedIn", mixerRedOutRedIn);
+            saveFloatParameter(config, "MixerRedOutGreenIn", mixerRedOutGreenIn);
+            saveFloatParameter(config, "MixerRedOutBlueIn", mixerRedOutBlueIn);
+            saveFloatParameter(config, "MixerGreenOutRedIn", mixerGreenOutRedIn);
+            saveFloatParameter(config, "MixerGreenOutGreenIn", mixerGreenOutGreenIn);
+            saveFloatParameter(config, "MixerGreenOutBlueIn", mixerGreenOutBlueIn);
+            saveFloatParameter(config, "MixerBlueOutRedIn", mixerBlueOutRedIn);
+            saveFloatParameter(config, "MixerBlueOutGreenIn", mixerBlueOutGreenIn);
+            saveFloatParameter(config, "MixerBlueOutBlueIn", mixerBlueOutBlueIn);
+            saveVector4Parameter(config, "Lift", lift);
+            saveVector4Parameter(config, "Gamma", gamma);
+            saveVector4Parameter(config, "Gain", gain);
+            saveSplineParameter(config, "MasterCurve", masterCurve);
+            saveSplineParameter(config, "RedCurve", redCurve);
+            saveSplineParameter(config, "GreenCurve", greenCurve);
+            saveSplineParameter(config, "BlueCurve", blueCurve);
+            saveSplineParameter(config, "HueVsHueCurve", hueVsHueCurve);
+            saveSplineParameter(config, "HueVsSatCurve", hueVsSatCurve);
+            saveSplineParameter(config, "SatVsSatCurve", satVsSatCurve);
+            saveSplineParameter(config, "LumVsSatCurve", lumVsSatCurve);
+        }
+
     }
 
 #if UNITY_2017_1_OR_NEWER
@@ -447,7 +533,7 @@ namespace UnityEngine.Rendering.PostProcessing
 
         // HDR color pipeline is rendered to a 3D lut; it requires Texture3D & compute shaders
         // support - Desktop / Consoles / Some high-end mobiles
-        // TODO: Use ShaderIDs for compute once the compatible APIs go in
+        // Use ShaderIDs for compute once the compatible APIs go in
         void RenderHDRPipeline3D(PostProcessRenderContext context)
         {
             // Unfortunately because AnimationCurve doesn't implement GetHashCode and we don't have

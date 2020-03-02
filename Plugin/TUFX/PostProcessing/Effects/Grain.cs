@@ -1,4 +1,5 @@
 using System;
+using TUFX;
 
 namespace UnityEngine.Rendering.PostProcessing
 {
@@ -38,6 +39,22 @@ namespace UnityEngine.Rendering.PostProcessing
         {
             return enabled.value
                 && intensity.value > 0f;
+        }
+
+        public override void Load(ConfigNode config)
+        {
+            loadBoolParameter(config, "Colored", colored);
+            loadFloatParameter(config, "Intensity", intensity);
+            loadFloatParameter(config, "Size", size);
+            loadFloatParameter(config, "LumContrib", lumContrib);
+        }
+
+        public override void Save(ConfigNode config)
+        {
+            saveBoolParameter(config, "Colored", colored);
+            saveFloatParameter(config, "Intensity", intensity);
+            saveFloatParameter(config, "Size", size);
+            saveFloatParameter(config, "LumContrib", lumContrib);
         }
     }
 

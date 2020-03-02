@@ -21,6 +21,12 @@ namespace TUFX
         private Dictionary<string, ComputeShader> computeShaders = new Dictionary<string, ComputeShader>();
         private Dictionary<string, Texture2D> textures = new Dictionary<string, Texture2D>();
 
+        private Dictionary<string, TUFXProfile> profiles = new Dictionary<string, TUFXProfile>();
+
+        /// <summary>
+        /// Reference to the Unity Post Processing 'Resources' class.  Used to store references to the shaders and textures used by the post-processing system internals.
+        /// Does not include references to the 'included' but 'external' resources such as the built-in lens-dirt textures or any custom LUTs.
+        /// </summary>
         public PostProcessResources Resources { get; private set; }
 
         public void Start()
@@ -35,6 +41,30 @@ namespace TUFX
         {
             Log.log("TUFXLoader - MMPostLoad()");
 
+            //only load resources once.  In case of MM reload...
+            if (Resources == null)
+            {
+                loadResources();
+            }
+            profiles.Clear();
+            ConfigNode[] profileConfigs = GameDatabase.Instance.GetConfigNodes("TUFX_PROFILE");
+            int len = profileConfigs.Length;
+            for (int i = 0; i < len; i++)
+            {
+                TUFXProfile profile = new TUFXProfile(profileConfigs[i]);
+                if (!profiles.ContainsKey(profile.ProfileName))
+                {
+                    profiles.Add(profile.ProfileName, profile);
+                }
+                else
+                {
+                    Log.exception("TUFX Profiles already contains profile for name: " + profile.ProfileName + ".  This is the result of a duplicate configuration; please check your configurations and remove any duplicates.");
+                }
+            }
+        }
+
+        private void loadResources()
+        {
             Resources = ScriptableObject.CreateInstance<PostProcessResources>();
             Resources.shaders = new PostProcessResources.Shaders();
             Resources.computeShaders = new PostProcessResources.ComputeShaders();
@@ -43,7 +73,7 @@ namespace TUFX
             Resources.smaaLuts = new PostProcessResources.SMAALuts();
 
             //previously this did not work... but appears to with these bundles/Unity version
-            AssetBundle bundle = AssetBundle.LoadFromFile(KSPUtil.ApplicationRootPath+"GameData/TUFX/Shaders/tufx-universal.ssf");
+            AssetBundle bundle = AssetBundle.LoadFromFile(KSPUtil.ApplicationRootPath + "GameData/TUFX/Shaders/tufx-universal.ssf");
             Shader[] shaders = bundle.LoadAllAssets<Shader>();
             int len = shaders.Length;
             for (int i = 0; i < len; i++)
@@ -155,10 +185,23 @@ namespace TUFX
             return s;
         }
 
+        public Texture2D getTexture(string name)
+        {
+            textures.TryGetValue(name, out Texture2D tex);
+            return tex;
+        }
+
+        public bool isBuiltinTexture(Texture2D tex)
+        {
+            return textures.Values.Contains(tex);
+        }
+
         private void onSceneChange(GameScenes scene)
         {
-            MonoBehaviour.print("TUFXLoader - onSceneChange()");            
-            if (scene == GameScenes.FLIGHT)
+            Log.debug("TUFXLoader - onSceneChange()");
+
+            Log.debug("TUFX - Updating AppLauncher button...");
+            if (scene == GameScenes.FLIGHT || scene == GameScenes.SPACECENTER || scene == GameScenes.EDITOR)
             {
                 Texture2D tex;
                 if (configAppButton == null)//static reference; track if the button was EVER created, as KSP keeps them even if the addon is destroyed
@@ -173,7 +216,59 @@ namespace TUFX
                     configAppButton.onTrue = configGuiEnable;
                     configAppButton.onFalse = configGuiDisable;
                 }
-                EffectManager effect = this.gameObject.AddOrGetComponent<EffectManager>();
+            }
+
+            string profileName = string.Empty;
+            switch (scene)
+            {
+                case GameScenes.LOADING:
+                    break;
+                case GameScenes.LOADINGBUFFER:
+                    break;
+                case GameScenes.MAINMENU:
+                    break;
+                case GameScenes.SETTINGS:
+                    break;
+                case GameScenes.CREDITS:
+                    break;
+                case GameScenes.SPACECENTER:
+                    profileName = HighLogic.CurrentGame.Parameters.CustomParams<TUFXGameSettings>().SpaceCenterSceneProfile;
+                    break;
+                case GameScenes.EDITOR:
+                    profileName = HighLogic.CurrentGame.Parameters.CustomParams<TUFXGameSettings>().EditorSceneProfile;
+                    break;
+                case GameScenes.FLIGHT:
+                    profileName = HighLogic.CurrentGame.Parameters.CustomParams<TUFXGameSettings>().FlightSceneProfile;
+                    break;
+                case GameScenes.TRACKSTATION:
+                    break;
+                case GameScenes.PSYSTEM:
+                    break;
+                case GameScenes.MISSIONBUILDER:
+                    break;
+                default:
+                    break;
+            }
+            Log.debug("TUFX - Enabling profile for current scene: " + scene + " profile: " + profileName);
+
+            if (!string.IsNullOrEmpty(profileName) && profiles.ContainsKey(profileName))
+            {
+                TUFXProfile profile = profiles[profileName];
+
+                PostProcessLayer layer = Camera.main.gameObject.AddOrGetComponent<PostProcessLayer>();
+                layer.Init(Resources);
+                layer.volumeLayer = ~0;//everything
+                PostProcessVolume volume = Camera.main.gameObject.AddOrGetComponent<PostProcessVolume>();
+                volume.isGlobal = true;
+                volume.priority = 100;
+
+                PostProcessProfile ppp = ScriptableObject.CreateInstance<PostProcessProfile>();
+                volume.sharedProfile = ppp;
+                profile.Enable(volume);
+            }
+            else
+            {
+                //discard existing data...
             }
         }
 
@@ -189,7 +284,8 @@ namespace TUFX
                 //TODO -- other KSP 3d cameras (not UI)
                 if (cams[i].name == "Camera 00" || cams[i].name == "Camera 01")
                 {
-                    cams[i].allowHDR = EffectManager.hdrEnabled;
+                    //cams[i].allowHDR = EffectManager.hdrEnabled;
+                    //TODO -- re-add HDR effect storage somewhere
                 }
             }
         }

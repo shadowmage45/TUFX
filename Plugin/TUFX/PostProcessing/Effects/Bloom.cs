@@ -1,5 +1,6 @@
 using System;
 using UnityEngine.Serialization;
+using TUFX;
 
 namespace UnityEngine.Rendering.PostProcessing
 {
@@ -91,6 +92,34 @@ namespace UnityEngine.Rendering.PostProcessing
             return enabled.value
                 && intensity.value > 0f;
         }
+
+        public override void Load(ConfigNode config)
+        {
+            loadFloatParameter(config, "Intensity", intensity);
+            loadFloatParameter(config, "Threshold", threshold);
+            loadFloatParameter(config, "SoftKnee", softKnee);
+            loadFloatParameter(config, "Clamp", clamp);
+            loadFloatParameter(config, "AnamorphicRatio", anamorphicRatio);
+            loadColorParameter(config, "Color", color);
+            loadBoolParameter(config, "FastMode", fastMode);
+            loadTextureParameter(config, "DirtTexture", dirtTexture);
+            loadFloatParameter(config, "DirtIntensity", dirtIntensity);
+        }
+
+        public override void Save(ConfigNode config)
+        {
+            saveFloatParameter(config, "Intensity", intensity);
+            saveFloatParameter(config, "Threshold", threshold);
+            saveFloatParameter(config, "SoftKnee", softKnee);
+            saveFloatParameter(config, "Clamp", clamp);
+            saveFloatParameter(config, "Diffusion", diffusion);
+            saveFloatParameter(config, "AnamorphicRatio", anamorphicRatio);
+            saveColorParameter(config, "Color", color);
+            saveBoolParameter(config, "FastMode", fastMode);
+            saveTextureParameter(config, "DirtTexture", dirtTexture);
+            saveFloatParameter(config, "DirtIntensity", dirtIntensity);
+        }
+
     }
 
 #if UNITY_2017_1_OR_NEWER

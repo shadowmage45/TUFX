@@ -1,4 +1,5 @@
 using System;
+using TUFX;
 
 namespace UnityEngine.Rendering.PostProcessing
 {
@@ -75,12 +76,29 @@ namespace UnityEngine.Rendering.PostProcessing
             return enabled.value
                 && SystemInfo.graphicsShaderLevel >= 35;
         }
+
+        public override void Load(ConfigNode config)
+        {
+            loadFloatParameter(config, "FocusDistance", focusDistance);
+            loadFloatParameter(config, "Aperture", aperture);
+            loadFloatParameter(config, "FocalLength", focalLength);
+            loadEnumParameter(config, "KernelSize", kernelSize, typeof(KernelSize));
+        }
+
+        public override void Save(ConfigNode config)
+        {
+            saveFloatParameter(config, "FocusDistance", focusDistance);
+            saveFloatParameter(config, "Aperture", aperture);
+            saveFloatParameter(config, "FocalLength", focalLength);
+            saveEnumParameter(config, "KernelSize", kernelSize);
+        }
+
     }
 
 #if UNITY_2017_1_OR_NEWER
     [UnityEngine.Scripting.Preserve]
 #endif
-    // TODO: Doesn't play nice with alpha propagation, see if it can be fixed without killing performances
+    // Doesn't play nice with alpha propagation, see if it can be fixed without killing performances
     internal sealed class DepthOfFieldRenderer : PostProcessEffectRenderer<DepthOfField>
     {
         enum Pass
@@ -105,7 +123,7 @@ namespace UnityEngine.Rendering.PostProcessing
         int[] m_HistoryPingPong = new int[k_NumEyes];
 
         // Height of the 35mm full-frame format (36mm x 24mm)
-        // TODO: Should be set by a physical camera
+        // Should be set by a physical camera
         const float k_FilmHeight = 0.024f;
 
         public DepthOfFieldRenderer()

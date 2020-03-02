@@ -1,5 +1,6 @@
 using System;
 using UnityEngine.Serialization;
+using TUFX;
 
 namespace UnityEngine.Rendering.PostProcessing
 {
@@ -34,6 +35,20 @@ namespace UnityEngine.Rendering.PostProcessing
         {
             return enabled.value
                 && intensity.value > 0f;
+        }
+
+        public override void Load(ConfigNode config)
+        {
+            loadTextureParameter(config, "SpectralLut", spectralLut);
+            loadFloatParameter(config, "Intensity", intensity);
+            loadBoolParameter(config, "FastMode", fastMode);
+        }
+
+        public override void Save(ConfigNode config)
+        {
+            saveTextureParameter(config, "SpectralLut", spectralLut);
+            saveFloatParameter(config, "Intensity", intensity);
+            saveBoolParameter(config, "FastMode", fastMode);
         }
     }
 

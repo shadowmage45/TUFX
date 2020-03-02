@@ -1,4 +1,5 @@
 using System;
+using TUFX;
 
 namespace UnityEngine.Rendering.PostProcessing
 {
@@ -55,6 +56,27 @@ namespace UnityEngine.Rendering.PostProcessing
                 && (intensityX > 0f || intensityY > 0f)
                 && !RuntimeUtilities.isVREnabled;
         }
+
+        public override void Load(ConfigNode config)
+        {
+            loadFloatParameter(config, "Intensity", intensity);
+            loadFloatParameter(config, "IntensityX", intensityX);
+            loadFloatParameter(config, "IntensityY", intensityY);
+            loadFloatParameter(config, "CenterX", centerX);
+            loadFloatParameter(config, "CenterY", centerY);
+            loadFloatParameter(config, "Scale", scale);
+        }
+
+        public override void Save(ConfigNode config)
+        {
+            saveFloatParameter(config, "Intensity", intensity);
+            saveFloatParameter(config, "IntensityX", intensityX);
+            saveFloatParameter(config, "IntensityY", intensityY);
+            saveFloatParameter(config, "CenterX", centerX);
+            saveFloatParameter(config, "CenterY", centerY);
+            saveFloatParameter(config, "Scale", scale);
+        }
+
     }
 
 #if UNITY_2017_1_OR_NEWER

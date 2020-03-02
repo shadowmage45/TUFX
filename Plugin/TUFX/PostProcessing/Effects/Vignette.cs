@@ -1,4 +1,5 @@
 using System;
+using TUFX;
 
 namespace UnityEngine.Rendering.PostProcessing
 {
@@ -92,6 +93,33 @@ namespace UnityEngine.Rendering.PostProcessing
                 && ((mode.value == VignetteMode.Classic && intensity.value > 0f)
                 ||  (mode.value == VignetteMode.Masked && opacity.value > 0f && mask.value != null));
         }
+
+        public override void Load(ConfigNode config)
+        {
+            loadEnumParameter(config, "Mode", mode, typeof(VignetteMode));
+            loadColorParameter(config, "Color", color);
+            loadVector2Parameter(config, "Center", center);
+            loadFloatParameter(config, "Intensity", intensity);
+            loadFloatParameter(config, "Smoothness", smoothness);
+            loadFloatParameter(config, "Roundness", roundness);
+            loadBoolParameter(config, "Rounded", rounded);
+            loadTextureParameter(config, "Mask", mask);
+            loadFloatParameter(config, "Opacity", opacity);
+        }
+
+        public override void Save(ConfigNode config)
+        {
+            saveEnumParameter(config, "Mode", mode);
+            saveColorParameter(config, "Color", color);
+            saveVector2Parameter(config, "Center", center);
+            saveFloatParameter(config, "Intensity", intensity);
+            saveFloatParameter(config, "Smoothness", smoothness);
+            saveFloatParameter(config, "Roundness", roundness);
+            saveBoolParameter(config, "Rounded", rounded);
+            saveTextureParameter(config, "Mask", mask);
+            saveFloatParameter(config, "Opacity", opacity);
+        }
+
     }
 
 #if UNITY_2017_1_OR_NEWER

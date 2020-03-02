@@ -33,29 +33,29 @@ namespace TUFX
 
         private void updateWindow(int id)
         {
-            bool hdr = addButtonRowToggle("HDR", EffectManager.hdrEnabled);
-            if (hdr != EffectManager.hdrEnabled)
-            {
-                EffectManager.hdrEnabled = hdr;
-                TexturesUnlimitedFXLoader.onHDRToggled();
-            }
-            addLabelRow("----------Ambient Occlusion----------");
-            EffectManager.ambientOcclusion.enabled.value = addButtonRowToggle("AO Enabled", EffectManager.ambientOcclusion.enabled);
-            if (EffectManager.ambientOcclusion.enabled.value)
-            {
-                EffectManager.ambientOcclusion.intensity.value = addSliderRow("Intensity", EffectManager.ambientOcclusion.intensity.value, 0, 2);
-                EffectManager.ambientOcclusion.thicknessModifier.value = addSliderRow("Thickness", EffectManager.ambientOcclusion.thicknessModifier.value, 0, 2);
-                EffectManager.ambientOcclusion.ambientOnly.value = addButtonRowToggle("Ambient Only", EffectManager.ambientOcclusion.ambientOnly.value);
-            }
-            addLabelRow("----------Bloom----------");
-            EffectManager.bloom.enabled.value = addButtonRowToggle("Bloom Enabled", EffectManager.bloom.enabled);
-            if (EffectManager.bloom.enabled)
-            {
-                EffectManager.bloom.intensity.value = addSliderRow("Intensity", EffectManager.bloom.intensity.value, 0, 5);
-                EffectManager.bloom.threshold.value = addSliderRow("Threshold", EffectManager.bloom.threshold.value, 0, 1);
-                EffectManager.bloom.softKnee.value = addSliderRow("Soft Knee", EffectManager.bloom.softKnee.value, 0, 1);
-                EffectManager.bloom.diffusion.value = addSliderRow("Diffusion", EffectManager.bloom.diffusion.value, 0, 10);
-            }
+            //bool hdr = addButtonRowToggle("HDR", EffectManager.hdrEnabled);
+            //if (hdr != EffectManager.hdrEnabled)
+            //{
+            //    EffectManager.hdrEnabled = hdr;
+            //    TexturesUnlimitedFXLoader.onHDRToggled();
+            //}
+            //addLabelRow("----------Ambient Occlusion----------");
+            //EffectManager.ambientOcclusion.enabled.value = addButtonRowToggle("AO Enabled", EffectManager.ambientOcclusion.enabled);
+            //if (EffectManager.ambientOcclusion.enabled.value)
+            //{
+            //    EffectManager.ambientOcclusion.intensity.value = addSliderRow("Intensity", EffectManager.ambientOcclusion.intensity.value, 0, 2);
+            //    EffectManager.ambientOcclusion.thicknessModifier.value = addSliderRow("Thickness", EffectManager.ambientOcclusion.thicknessModifier.value, 0, 2);
+            //    EffectManager.ambientOcclusion.ambientOnly.value = addButtonRowToggle("Ambient Only", EffectManager.ambientOcclusion.ambientOnly.value);
+            //}
+            //addLabelRow("----------Bloom----------");
+            //EffectManager.bloom.enabled.value = addButtonRowToggle("Bloom Enabled", EffectManager.bloom.enabled);
+            //if (EffectManager.bloom.enabled)
+            //{
+            //    EffectManager.bloom.intensity.value = addSliderRow("Intensity", EffectManager.bloom.intensity.value, 0, 5);
+            //    EffectManager.bloom.threshold.value = addSliderRow("Threshold", EffectManager.bloom.threshold.value, 0, 1);
+            //    EffectManager.bloom.softKnee.value = addSliderRow("Soft Knee", EffectManager.bloom.softKnee.value, 0, 1);
+            //    EffectManager.bloom.diffusion.value = addSliderRow("Diffusion", EffectManager.bloom.diffusion.value, 0, 10);
+            //}
             GUI.DragWindow();
         }
 

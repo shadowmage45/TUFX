@@ -1,4 +1,5 @@
 using System;
+using TUFX;
 
 namespace UnityEngine.Rendering.PostProcessing
 {
@@ -36,6 +37,19 @@ namespace UnityEngine.Rendering.PostProcessing
                 && RenderTextureFormat.RGHalf.IsSupported()
                 && !RuntimeUtilities.isVREnabled;
         }
+
+        public override void Load(ConfigNode config)
+        {
+            loadFloatParameter(config, "ShutterAngle", shutterAngle);
+            loadIntParameter(config, "SampleCount", sampleCount);
+        }
+
+        public override void Save(ConfigNode config)
+        {
+            saveFloatParameter(config, "ShutterAngle", shutterAngle);
+            saveIntParameter(config, "SampleCount", sampleCount);
+        }
+
     }
 
 #if UNITY_2017_1_OR_NEWER

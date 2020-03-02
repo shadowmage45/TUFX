@@ -1,4 +1,5 @@
 using System;
+using TUFX;
 
 namespace UnityEngine.Rendering.PostProcessing
 {
@@ -85,6 +86,29 @@ namespace UnityEngine.Rendering.PostProcessing
                 && context.resources.computeShaders.autoExposure
                 && context.resources.computeShaders.exposureHistogram;
         }
+
+        public override void Load(ConfigNode config)
+        {
+            loadVector2Parameter(config, "Filtering", filtering);
+            loadFloatParameter(config, "MinLuminance", minLuminance);
+            loadFloatParameter(config, "MaxLuminance", maxLuminance);
+            loadFloatParameter(config, "KeyValue", keyValue);
+            loadEnumParameter(config, "EyeAdaption", eyeAdaptation, typeof(EyeAdaptation));
+            loadFloatParameter(config, "SpeedUp", speedUp);
+            loadFloatParameter(config, "SpeedDown", speedDown);
+        }
+
+        public override void Save(ConfigNode config)
+        {
+            saveVector2Parameter(config, "Filtering", filtering);
+            saveFloatParameter(config, "MinLuminance", minLuminance);
+            saveFloatParameter(config, "MaxLuminance", maxLuminance);
+            saveFloatParameter(config, "KeyValue", keyValue);
+            saveEnumParameter(config, "EyeAdaption", eyeAdaptation);
+            saveFloatParameter(config, "SpeedUp", speedUp);
+            saveFloatParameter(config, "SpeedDown", speedDown);
+        }
+
     }
 
 #if UNITY_2017_1_OR_NEWER

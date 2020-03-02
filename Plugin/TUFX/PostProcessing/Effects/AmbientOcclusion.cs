@@ -1,4 +1,5 @@
 using System;
+using TUFX;
 
 namespace UnityEngine.Rendering.PostProcessing
 {
@@ -196,6 +197,37 @@ namespace UnityEngine.Rendering.PostProcessing
 
             return state;
         }
+
+        public override void Load(ConfigNode config)
+        {
+            loadEnumParameter(config, "Mode", mode, typeof(AmbientOcclusionMode));
+            loadFloatParameter(config, "Intensity", intensity);
+            loadColorParameter(config, "Color", color);
+            loadBoolParameter(config, "AmbientOnly", ambientOnly);
+            loadFloatParameter(config, "NoiseFilterTolerance", noiseFilterTolerance);
+            loadFloatParameter(config, "BlurTolerance", blurTolerance);
+            loadFloatParameter(config, "UpsampleTolerance", upsampleTolerance);
+            loadFloatParameter(config, "ThicknessModifier", thicknessModifier);
+            loadFloatParameter(config, "DirectLightingStrength", directLightingStrength);
+            loadFloatParameter(config, "Radius", radius);
+            loadEnumParameter(config, "Quality", quality, typeof(AmbientOcclusionQuality));
+        }
+
+        public override void Save(ConfigNode config)
+        {
+            saveEnumParameter(config, "Mode", mode);
+            saveFloatParameter(config, "Intensity", intensity);
+            saveColorParameter(config, "Color", color);
+            saveBoolParameter(config, "AmbientOnly", ambientOnly);
+            saveFloatParameter(config, "NoiseFilterTolerance", noiseFilterTolerance);
+            saveFloatParameter(config, "BlurTolerance", blurTolerance);
+            saveFloatParameter(config, "UpsampleTolerance", upsampleTolerance);
+            saveFloatParameter(config, "ThicknessModifier", thicknessModifier);
+            saveFloatParameter(config, "DirectLightingStrength", directLightingStrength);
+            saveFloatParameter(config, "Radius", radius);
+            saveEnumParameter(config, "Quality", quality);
+        }
+
     }
 
     internal interface IAmbientOcclusionMethod

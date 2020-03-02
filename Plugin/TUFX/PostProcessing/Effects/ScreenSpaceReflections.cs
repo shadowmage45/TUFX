@@ -109,6 +109,17 @@ namespace UnityEngine.Rendering.PostProcessing
                 && context.resources.shaders.screenSpaceReflections.isSupported
                 && context.resources.computeShaders.gaussianDownsample;
         }
+
+        public override void Load(ConfigNode config)
+        {
+            //NOOP -- SSR not usable in KSP as it requires deferred rendering
+        }
+
+        public override void Save(ConfigNode config)
+        {
+            //NOOP -- SSR not usable in KSP as it requires deferred rendering
+        }
+
     }
 
 #if UNITY_2017_1_OR_NEWER

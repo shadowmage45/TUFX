@@ -2,6 +2,8 @@ using System;
 using System.Collections.ObjectModel;
 using System.Reflection;
 using System.Linq;
+using TUFX;
+using System.Collections.Generic;
 
 namespace UnityEngine.Rendering.PostProcessing
 {
@@ -28,7 +30,7 @@ namespace UnityEngine.Rendering.PostProcessing
     /// </code>
     /// </example>
     [Serializable]
-    public class PostProcessEffectSettings : ScriptableObject
+    public abstract class PostProcessEffectSettings : ScriptableObject
     {
         /// <summary>
         /// The active state of the set of parameter defined in this class.
@@ -117,5 +119,164 @@ namespace UnityEngine.Rendering.PostProcessing
                 return hash;
             }
         }
+
+        #region REGION - Custom Load and Save methods and utility functions
+
+        public abstract void Load(ConfigNode config);
+
+        public abstract void Save(ConfigNode config);
+
+        internal void loadBoolParameter(ConfigNode node, string name, ParameterOverride<bool> param)
+        {
+            if (node.HasValue(name)) { param.Override(node.GetBoolValue(name));
+ }
+        }
+
+        internal void loadIntParameter(ConfigNode node, string name, ParameterOverride<int> param)
+        {
+            if (node.HasValue(name)) { param.Override(node.GetIntValue(name)); }
+        }
+
+        internal void loadFloatParameter(ConfigNode node, string name, ParameterOverride<float> param)
+        {
+            if (node.HasValue(name)) { param.Override(node.GetFloatValue(name)); }
+        }
+
+        internal void loadEnumParameter<T>(ConfigNode node, string name, ParameterOverride<T> param, Type enumType)
+        {
+            if (node.HasValue(name))
+            {
+                param.Override((T)Enum.Parse(enumType, node.GetStringValue(name)));
+            }
+        }
+
+        internal void loadTextureParameter(ConfigNode node, string name, ParameterOverride<Texture> param)
+        {
+            if (!node.HasValue(name))
+            {
+                return;
+            }
+            string texName = node.GetValue(name);
+            Texture2D texture = null;
+            if (texName.StartsWith("BUILTIN:"))
+            {
+                texName = texName.Substring(8);
+                texture = TexturesUnlimitedFXLoader.INSTANCE.getTexture(texName);
+            }
+            else if (texName.StartsWith("LOADED:"))
+            {
+                texName = texName.Substring(7);
+                texture = GameDatabase.Instance.GetTexture(texName, false);
+            }
+            if (texture != null)
+            {
+                param.Override(texture);
+            }
+        }
+
+        internal void loadColorParameter(ConfigNode node, string name, ParameterOverride<Color> param)
+        {
+            if (node.HasValue(name)) { param.Override(node.getColor(name)); }
+        }
+
+        internal void loadVector2Parameter(ConfigNode node, string name, ParameterOverride<Vector2> param)
+        {
+            if (node.HasValue(name)) { param.Override(ConfigNode.ParseVector2(node.GetValue(name))); }
+        }
+
+        internal void loadVector4Parameter(ConfigNode node, string name, ParameterOverride<Vector4> param)
+        {
+            if (node.HasValue(name)) { param.Override(ConfigNode.ParseVector4(node.GetValue(name))); }
+        }
+
+        internal void loadSplineParameter(ConfigNode node, string name, ParameterOverride<Spline> param)
+        {
+            ConfigNode splineNode = node.GetNode("SPLINE", "name", name);
+            string[] keys = splineNode.GetValues("key");
+            List<Keyframe> frames = new List<Keyframe>();
+            int len = keys.Length;
+            for (int i = 0; i < len; i++)
+            {
+                float[] vals = Utils.safeParseFloatArray(keys[i]);
+                Keyframe frame = new Keyframe(vals[0], vals[1], vals[2], vals[3], vals[4], vals[5]);
+                frames.Add(frame);
+            }
+            frames.Sort((a, b) => { return a.time.CompareTo(b.time); });
+            Spline spline = new Spline(new AnimationCurve(frames.ToArray()), 0f, false, new Vector2(0f, 1f));
+            param.Override(spline);
+        }
+
+        internal void saveBoolParameter(ConfigNode node, string name, ParameterOverride<bool> param)
+        {
+            if (param.overrideState) { node.SetValue(name, param.value); }
+        }
+
+        internal void saveIntParameter(ConfigNode node, string name, ParameterOverride<int> param)
+        {
+            if (param.overrideState) { node.SetValue(name, param.value); }
+        }
+
+        internal void saveFloatParameter(ConfigNode node, string name, ParameterOverride<float> param)
+        {
+            if (param.overrideState) { node.SetValue(name, param.value); }
+        }
+
+        internal void saveTextureParameter(ConfigNode node, string name, ParameterOverride<Texture> param)
+        {
+            if (!param.overrideState) { return; }
+            Texture2D tex = (Texture2D)param.value;
+            string texName = string.Empty;
+            if (TexturesUnlimitedFXLoader.INSTANCE.isBuiltinTexture(tex))
+            {
+                texName = "BUILTIN:" + tex.name;
+            }
+            else
+            {
+                GameDatabase.TextureInfo info = GameDatabase.Instance.databaseTexture.FirstOrDefault(m => m.texture == tex);
+                texName = "LOADED:" + info.file.url;//TODO -- is this the correct path to *re-load the texture?
+            }
+            node.SetValue(name, texName);
+        }
+
+        internal void saveColorParameter(ConfigNode node, string name, ParameterOverride<Color> param)
+        {
+            if (param.overrideState) { node.SetValue(name, param.value); }
+        }
+
+        internal void saveEnumParameter<T>(ConfigNode node, string name, ParameterOverride<T> param)
+        {
+            if (param.overrideState) { node.SetValue(name, param.value.ToString()); }
+        }
+
+        internal void saveSplineParameter(ConfigNode node, string name, ParameterOverride<Spline> param)
+        {
+            ConfigNode splineNode = new ConfigNode("SPLINE");
+            splineNode.SetValue("name", name);
+            Spline spline = param.value;
+            AnimationCurve animCurve = spline.curve;
+            Keyframe[] keys = animCurve.keys;
+            int len = keys.Length;
+            string val;
+            for (int i = 0; i < len; i++)
+            {
+                val = keys[i].time + "," + keys[i].value + "," + keys[i].inTangent + "," + keys[i].outTangent + "," + keys[i].inWeight + "," + keys[i].outWeight;
+                splineNode.AddValue("key", val);
+            }
+            node.AddNode(splineNode);
+        }
+
+        internal void saveVector2Parameter(ConfigNode node, string name, ParameterOverride<Vector2> param)
+        {
+            if (param.overrideState) { node.SetValue(name, ConfigNode.WriteVector(param.value)); }
+        }
+
+        internal void saveVector4Parameter(ConfigNode node, string name, ParameterOverride<Vector4> param)
+        {
+            if (param.overrideState) { node.SetValue(name, ConfigNode.WriteVector(param.value)); }
+        }
+
+        #endregion
+
     }
+
 }
