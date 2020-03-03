@@ -12,9 +12,9 @@ namespace TUFX
 
         public override string Title => "TUFX Profile Settings";
 
-        public override string DisplaySection => "TUFX-DisplaySection";
+        public override string DisplaySection => "TUFX-DisplaySection(TODO)";
 
-        public override string Section => "TUFX-Section";
+        public override string Section => "TUFX-Section(TODO)";
 
         public override int SectionOrder => 1;
 
@@ -22,20 +22,23 @@ namespace TUFX
 
         public override bool HasPresets => false;
 
-        [GameParameters.CustomStringParameterUI("TUFX Profiles - Must be selected through profile editor.", gameMode = GameParameters.GameMode.ANY, lines = 1, toolTip = "Only shown here to enable per-save-game persistence.")]
+        [GameParameters.CustomStringParameterUI("TUFX Profiles - Must be selected through in-game profile editor.", gameMode = GameParameters.GameMode.ANY, lines = 3, toolTip = "Profiles only shown here to enable per-save-game persistence.")]
         public string WarningLabel = string.Empty;
 
         [GameParameters.CustomStringParameterUI("Flight Scene Profile: ", gameMode = GameParameters.GameMode.ANY, lines = 1, toolTip = "Active Profile in the Flight Scene")]
-        public string FlightSceneProfile = string.Empty;
-
-        [GameParameters.CustomStringParameterUI("Editor Scene Profile: ", gameMode = GameParameters.GameMode.ANY, lines = 1, toolTip = "Active Profile in the Editor Scene")]
-        public string EditorSceneProfile = string.Empty;
+        public string FlightSceneProfile = "Default-Flight";
 
         [GameParameters.CustomStringParameterUI("Map Scene Profile: ", gameMode = GameParameters.GameMode.ANY, lines = 1, toolTip = "Active Profile in the Map Scene")]
-        public string MapSceneProfile = string.Empty;
+        public string MapSceneProfile = "Default-Flight";
 
-        [GameParameters.CustomStringParameterUI("Space Center Scene Profile: ", gameMode = GameParameters.GameMode.ANY, lines = 1, toolTip = "Active Profile in the Space Center Scene")]
-        public string SpaceCenterSceneProfile = string.Empty;
+        [GameParameters.CustomStringParameterUI("Editor Scene Profile: ", gameMode = GameParameters.GameMode.ANY, lines = 1, toolTip = "Active Profile in the Editor Scene")]
+        public string EditorSceneProfile = "Default-Editor";
+
+        [GameParameters.CustomStringParameterUI("Space Center Profile: ", gameMode = GameParameters.GameMode.ANY, lines = 1, toolTip = "Active Profile in the Space Center Scene")]
+        public string SpaceCenterSceneProfile = "Default-KSC";
+
+        [GameParameters.CustomStringParameterUI("Tracking Station Profile: ", gameMode = GameParameters.GameMode.ANY, lines = 1, toolTip = "Active Profile in the Tracking Station Scene")]
+        public string TrackingStationProfile = "Default-Tracking";
 
     }
 

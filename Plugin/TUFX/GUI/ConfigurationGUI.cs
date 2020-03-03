@@ -11,10 +11,26 @@ namespace TUFX
     {
         private static Rect windowRect = new Rect(Screen.width - 900, 40, 800, 600);
         private int windowID = 0;
+        private Vector2 scrollPos = new Vector2();
+
+        private List<string> profileNames = new List<string>();
+        private string currentProfile = string.Empty;
+        private GameScenes currentScene = GameScenes.LOADING;
 
         public void Awake()
         {
             windowID = GetInstanceID();
+            profileNames.Clear();
+            profileNames.AddRange(TexturesUnlimitedFXLoader.INSTANCE.Profiles.Keys);
+            currentScene = HighLogic.LoadedScene;
+            if (currentScene == GameScenes.EDITOR) { currentProfile = HighLogic.CurrentGame.Parameters.CustomParams<TUFXGameSettings>().EditorSceneProfile; }
+            else if (currentScene == GameScenes.FLIGHT) { currentProfile = HighLogic.CurrentGame.Parameters.CustomParams<TUFXGameSettings>().FlightSceneProfile; }
+            else if (currentScene == GameScenes.SPACECENTER) { currentProfile = HighLogic.CurrentGame.Parameters.CustomParams<TUFXGameSettings>().SpaceCenterSceneProfile; }
+            else if (currentScene == GameScenes.TRACKSTATION) { currentProfile = HighLogic.CurrentGame.Parameters.CustomParams<TUFXGameSettings>().TrackingStationProfile; }
+            else
+            {
+                //TODO -- throw unsupported operation exception -- incorrect game scene
+            }
         }
 
         public void OnGUI()
@@ -33,29 +49,24 @@ namespace TUFX
 
         private void updateWindow(int id)
         {
-            //bool hdr = addButtonRowToggle("HDR", EffectManager.hdrEnabled);
-            //if (hdr != EffectManager.hdrEnabled)
-            //{
-            //    EffectManager.hdrEnabled = hdr;
-            //    TexturesUnlimitedFXLoader.onHDRToggled();
-            //}
-            //addLabelRow("----------Ambient Occlusion----------");
-            //EffectManager.ambientOcclusion.enabled.value = addButtonRowToggle("AO Enabled", EffectManager.ambientOcclusion.enabled);
-            //if (EffectManager.ambientOcclusion.enabled.value)
-            //{
-            //    EffectManager.ambientOcclusion.intensity.value = addSliderRow("Intensity", EffectManager.ambientOcclusion.intensity.value, 0, 2);
-            //    EffectManager.ambientOcclusion.thicknessModifier.value = addSliderRow("Thickness", EffectManager.ambientOcclusion.thicknessModifier.value, 0, 2);
-            //    EffectManager.ambientOcclusion.ambientOnly.value = addButtonRowToggle("Ambient Only", EffectManager.ambientOcclusion.ambientOnly.value);
-            //}
-            //addLabelRow("----------Bloom----------");
-            //EffectManager.bloom.enabled.value = addButtonRowToggle("Bloom Enabled", EffectManager.bloom.enabled);
-            //if (EffectManager.bloom.enabled)
-            //{
-            //    EffectManager.bloom.intensity.value = addSliderRow("Intensity", EffectManager.bloom.intensity.value, 0, 5);
-            //    EffectManager.bloom.threshold.value = addSliderRow("Threshold", EffectManager.bloom.threshold.value, 0, 1);
-            //    EffectManager.bloom.softKnee.value = addSliderRow("Soft Knee", EffectManager.bloom.softKnee.value, 0, 1);
-            //    EffectManager.bloom.diffusion.value = addSliderRow("Diffusion", EffectManager.bloom.diffusion.value, 0, 10);
-            //}
+            addLabelRow("Current Scene: " + currentScene);
+            addLabelRow("Current Profile: " + currentProfile);
+            addLabelRow("Select a new profile for current scene: ");
+            GUILayout.BeginScrollView(scrollPos);
+            GUILayout.BeginVertical();
+            int len = profileNames.Count;
+            for (int i = 0; i < len; i++)
+            {
+                GUILayout.BeginHorizontal();
+                if (GUILayout.Button("Profile: " + profileNames[i]))
+                {
+                    Log.debug("Profile Selected: " + profileNames[i]);
+                    TexturesUnlimitedFXLoader.INSTANCE.enableProfile(profileNames[i]);
+                }
+                GUILayout.EndHorizontal();
+            }
+            GUILayout.EndVertical();
+            GUILayout.EndScrollView();
             GUI.DragWindow();
         }
 

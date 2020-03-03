@@ -306,7 +306,7 @@ namespace TUFX
         public static T GetEnumValue<T>(this ConfigNode node, string name, Type enumType)
         {
             string value = node.GetStringValue(name);
-            return (T)Enum.Parse(enumType, name);
+            return (T)Enum.Parse(enumType, value);
         }
         #endregion
 

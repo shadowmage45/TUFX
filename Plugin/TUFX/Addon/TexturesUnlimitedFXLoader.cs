@@ -21,7 +21,11 @@ namespace TUFX
         private Dictionary<string, ComputeShader> computeShaders = new Dictionary<string, ComputeShader>();
         private Dictionary<string, Texture2D> textures = new Dictionary<string, Texture2D>();
 
-        private Dictionary<string, TUFXProfile> profiles = new Dictionary<string, TUFXProfile>();
+        private PostProcessLayer layer;
+        private PostProcessVolume volume;
+        private GameScenes previousScene=GameScenes.LOADING;
+
+        public Dictionary<string, TUFXProfile> Profiles { get; private set; } = new Dictionary<string, TUFXProfile>();
 
         /// <summary>
         /// Reference to the Unity Post Processing 'Resources' class.  Used to store references to the shaders and textures used by the post-processing system internals.
@@ -46,15 +50,15 @@ namespace TUFX
             {
                 loadResources();
             }
-            profiles.Clear();
+            Profiles.Clear();
             ConfigNode[] profileConfigs = GameDatabase.Instance.GetConfigNodes("TUFX_PROFILE");
             int len = profileConfigs.Length;
             for (int i = 0; i < len; i++)
             {
                 TUFXProfile profile = new TUFXProfile(profileConfigs[i]);
-                if (!profiles.ContainsKey(profile.ProfileName))
+                if (!Profiles.ContainsKey(profile.ProfileName))
                 {
-                    profiles.Add(profile.ProfileName, profile);
+                    Profiles.Add(profile.ProfileName, profile);
                 }
                 else
                 {
@@ -241,6 +245,7 @@ namespace TUFX
                     profileName = HighLogic.CurrentGame.Parameters.CustomParams<TUFXGameSettings>().FlightSceneProfile;
                     break;
                 case GameScenes.TRACKSTATION:
+                    profileName = HighLogic.CurrentGame.Parameters.CustomParams<TUFXGameSettings>().TrackingStationProfile;
                     break;
                 case GameScenes.PSYSTEM:
                     break;
@@ -250,26 +255,55 @@ namespace TUFX
                     break;
             }
             Log.debug("TUFX - Enabling profile for current scene: " + scene + " profile: " + profileName);
+            enableProfile(profileName);
+        }
 
-            if (!string.IsNullOrEmpty(profileName) && profiles.ContainsKey(profileName))
+        public void enableProfile(string profileName)
+        {
+            if (previousScene != HighLogic.LoadedScene)
             {
-                TUFXProfile profile = profiles[profileName];
-
-                PostProcessLayer layer = Camera.main.gameObject.AddOrGetComponent<PostProcessLayer>();
+                if (volume != null)
+                {
+                    Log.log("Destroying existing PostProcessVolume.");
+                    Component.DestroyImmediate(layer);
+                    UnityEngine.Object.DestroyImmediate(volume.sharedProfile);
+                    UnityEngine.Object.DestroyImmediate(volume);
+                    layer = null;
+                    volume = null;
+                }
+                previousScene = HighLogic.LoadedScene;
+            }
+            //TODO re-use volume, layer, profile(?) if the scene has not changed (same camera object/etc)
+            if (!string.IsNullOrEmpty(profileName) && Profiles.ContainsKey(profileName))
+            {
+                Log.log("Enabling profile: " + profileName + ".  Current GameScene: " + HighLogic.LoadedScene);
+                TUFXProfile tufxProfile = Profiles[profileName];
+                layer = Camera.main.gameObject.AddOrGetComponent<PostProcessLayer>();
                 layer.Init(Resources);
-                layer.volumeLayer = ~0;//everything
-                PostProcessVolume volume = Camera.main.gameObject.AddOrGetComponent<PostProcessVolume>();
+                layer.volumeLayer = ~0;//everything //TODO -- fix layer assignment...
+                volume = Camera.main.gameObject.AddOrGetComponent<PostProcessVolume>();
                 volume.isGlobal = true;
                 volume.priority = 100;
-
-                PostProcessProfile ppp = ScriptableObject.CreateInstance<PostProcessProfile>();
-                volume.sharedProfile = ppp;
-                profile.Enable(volume);
+                if (volume.sharedProfile == null)
+                {
+                    volume.sharedProfile = tufxProfile.GetPostProcessProfile();
+                }
+                else
+                {
+                    volume.sharedProfile.settings.Clear();
+                    tufxProfile.Enable(volume);
+                }
+                Log.log("Profile enabled: " + profileName);
+            }
+            else if (string.IsNullOrEmpty(profileName))
+            {
+                Log.log("Clearing current profile for scene: " + HighLogic.LoadedScene);
             }
             else
             {
-                //discard existing data...
+                Log.exception("Profile load was requested for: " + profileName + ", but no profile exists for that name.");
             }
+
         }
 
         public static void onHDRToggled()
