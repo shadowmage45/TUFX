@@ -203,6 +203,11 @@ namespace TUFX
             return profile;
         }
 
+        public T GetSettingsFor<T>() where T : PostProcessEffectSettings
+        {
+            return (T)Settings.FirstOrDefault(m => m is T);
+        }
+
     }
 
 }

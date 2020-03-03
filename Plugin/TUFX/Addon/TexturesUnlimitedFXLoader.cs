@@ -24,6 +24,9 @@ namespace TUFX
         private PostProcessLayer layer;
         private PostProcessVolume volume;
         private GameScenes previousScene=GameScenes.LOADING;
+        private bool isMapScene;
+        private bool wasMapScene;
+        private Camera previousCamera;
 
         public Dictionary<string, TUFXProfile> Profiles { get; private set; } = new Dictionary<string, TUFXProfile>();
 
@@ -38,7 +41,9 @@ namespace TUFX
             MonoBehaviour.print("TUFXLoader - Start()");
             INSTANCE = this;
             DontDestroyOnLoad(this);
-            GameEvents.onLevelWasLoaded.Add(new EventData<GameScenes>.OnEvent(onSceneChange));
+            GameEvents.onLevelWasLoaded.Add(new EventData<GameScenes>.OnEvent(onLevelLoaded));
+            GameEvents.OnMapEntered.Add(new EventVoid.OnEvent(mapEntered));
+            GameEvents.OnMapExited.Add(new EventVoid.OnEvent(mapExited));
         }
         
         public void ModuleManagerPostLoad()
@@ -200,40 +205,98 @@ namespace TUFX
             return textures.Values.Contains(tex);
         }
 
-        private void onSceneChange(GameScenes scene)
+        /// <summary>
+        /// Callback for when a scene has been fully loaded.
+        /// </summary>
+        /// <param name="scene"></param>
+        private void onLevelLoaded(GameScenes scene)
         {
-            Log.debug("TUFXLoader - onSceneChange()");
+            Log.debug("TUFXLoader - onLevelLoaded( "+scene+" )");
 
             Log.debug("TUFX - Updating AppLauncher button...");
-            if (scene == GameScenes.FLIGHT || scene == GameScenes.SPACECENTER || scene == GameScenes.EDITOR)
+            if (scene == GameScenes.FLIGHT || scene == GameScenes.SPACECENTER || scene == GameScenes.EDITOR || scene == GameScenes.TRACKSTATION)
             {
                 Texture2D tex;
                 if (configAppButton == null)//static reference; track if the button was EVER created, as KSP keeps them even if the addon is destroyed
                 {
-                    //create a new button
-                    tex = GameDatabase.Instance.GetTexture("Squad/PartList/SimpleIcons/RDIcon_fuelSystems-highPerformance", false);
-                    configAppButton = ApplicationLauncher.Instance.AddModApplication(configGuiEnable, configGuiDisable, null, null, null, null, ApplicationLauncher.AppScenes.FLIGHT | ApplicationLauncher.AppScenes.SPH | ApplicationLauncher.AppScenes.VAB, tex);
+                    //Create a new button
+                    tex = GameDatabase.Instance.GetTexture("TUFX/Assets/TUFX-Icon1", false);
+                    configAppButton = ApplicationLauncher.Instance.AddModApplication(configGuiEnable, configGuiDisable, null, null, null, null, ApplicationLauncher.AppScenes.FLIGHT | ApplicationLauncher.AppScenes.SPH | ApplicationLauncher.AppScenes.VAB | ApplicationLauncher.AppScenes.SPACECENTER | ApplicationLauncher.AppScenes.TRACKSTATION | ApplicationLauncher.AppScenes.MAPVIEW, tex);
                 }
                 else if (configAppButton != null)
                 {
-                    //reseat callback refs to the ones from THIS instance of the KSPAddon (old refs were stale, pointing to methods for a deleted class instance)
+                    //Reseat the buttons' callback method references.  Should not be needed for this implementation, as this is a persistent AddOn.
                     configAppButton.onTrue = configGuiEnable;
                     configAppButton.onFalse = configGuiDisable;
                 }
             }
+            else if (configAppButton != null)
+            {
+                ApplicationLauncher.Instance.RemoveModApplication(configAppButton);
+            }
+            //on scene change, reset the map-scene flag
+            isMapScene = scene == GameScenes.TRACKSTATION;
+            enableProfileForCurrentScene();
+        }
 
-            string profileName = string.Empty;
+        private void mapEntered()
+        {
+            Log.debug("Map view entered ( " + HighLogic.LoadedScene + " ).\n" + System.Environment.StackTrace);
+            Log.debug("Main camera: " + Camera.main?.GetHashCode());
+            Log.debug("Flight camera: " + FlightCamera.fetch?.mainCamera?.GetHashCode());
+            Log.debug("Editor camera: " + EditorCamera.Instance?.cam?.GetHashCode());
+            Log.debug("Planetarium Camera: " + PlanetariumCamera.Camera?.GetHashCode());
+            isMapScene = true;
+            enableProfileForCurrentScene();
+        }
+
+        private void mapExited()
+        {
+            Log.debug("Map view closed ( "+HighLogic.LoadedScene+" ).\n" + System.Environment.StackTrace);
+            Log.debug("Main camera: " + Camera.main?.GetHashCode());
+            Log.debug("Flight camera: " + FlightCamera.fetch?.mainCamera?.GetHashCode());
+            Log.debug("Editor camera: " + EditorCamera.Instance?.cam?.GetHashCode());
+            Log.debug("Planetarium Camera: " + PlanetariumCamera.Camera?.GetHashCode());            
+            isMapScene = false;
+            enableProfileForCurrentScene();
+        }
+
+        public void setProfileForScene(string profile, GameScenes scene, bool enableNow = false)
+        {
             switch (scene)
             {
-                case GameScenes.LOADING:
+                case GameScenes.SPACECENTER:
+                    HighLogic.CurrentGame.Parameters.CustomParams<TUFXGameSettings>().SpaceCenterSceneProfile = profile;
                     break;
-                case GameScenes.LOADINGBUFFER:
+                case GameScenes.EDITOR:
+                    HighLogic.CurrentGame.Parameters.CustomParams<TUFXGameSettings>().EditorSceneProfile = profile;
                     break;
+                case GameScenes.FLIGHT:
+                    if (isMapScene)
+                    {
+                        HighLogic.CurrentGame.Parameters.CustomParams<TUFXGameSettings>().MapSceneProfile = profile;
+                    }
+                    else
+                    {
+                        HighLogic.CurrentGame.Parameters.CustomParams<TUFXGameSettings>().FlightSceneProfile = profile;
+                    }
+                    break;
+                case GameScenes.TRACKSTATION:
+                    HighLogic.CurrentGame.Parameters.CustomParams<TUFXGameSettings>().TrackingStationProfile = profile;
+                    break;
+            }
+            if (enableNow)
+            {
+                enableProfile(profile);
+            }
+        }
+
+        public void enableProfileForCurrentScene()
+        {
+            string profileName = string.Empty;
+            switch (HighLogic.LoadedScene)
+            {
                 case GameScenes.MAINMENU:
-                    break;
-                case GameScenes.SETTINGS:
-                    break;
-                case GameScenes.CREDITS:
                     break;
                 case GameScenes.SPACECENTER:
                     profileName = HighLogic.CurrentGame.Parameters.CustomParams<TUFXGameSettings>().SpaceCenterSceneProfile;
@@ -242,29 +305,47 @@ namespace TUFX
                     profileName = HighLogic.CurrentGame.Parameters.CustomParams<TUFXGameSettings>().EditorSceneProfile;
                     break;
                 case GameScenes.FLIGHT:
-                    profileName = HighLogic.CurrentGame.Parameters.CustomParams<TUFXGameSettings>().FlightSceneProfile;
+                    if (isMapScene)
+                    {
+                        profileName = HighLogic.CurrentGame.Parameters.CustomParams<TUFXGameSettings>().MapSceneProfile;
+                    }
+                    else
+                    {
+                        profileName = HighLogic.CurrentGame.Parameters.CustomParams<TUFXGameSettings>().FlightSceneProfile;
+                    }
                     break;
                 case GameScenes.TRACKSTATION:
                     profileName = HighLogic.CurrentGame.Parameters.CustomParams<TUFXGameSettings>().TrackingStationProfile;
                     break;
-                case GameScenes.PSYSTEM:
-                    break;
-                case GameScenes.MISSIONBUILDER:
-                    break;
-                default:
-                    break;
             }
-            Log.debug("TUFX - Enabling profile for current scene: " + scene + " profile: " + profileName);
+            Log.debug("TUFX - Enabling profile for current scene: " + HighLogic.LoadedScene + " map: " + isMapScene + " profile: " + profileName);
             enableProfile(profileName);
         }
 
+        private Camera getActiveCamera()
+        {
+            Camera activeCam = Camera.main;
+            if (HighLogic.LoadedScene == GameScenes.TRACKSTATION) { activeCam = PlanetariumCamera.Camera; }
+            else if (HighLogic.LoadedScene == GameScenes.EDITOR) { activeCam = EditorCamera.Instance.cam; }
+            else if (HighLogic.LoadedScene == GameScenes.FLIGHT) { activeCam = isMapScene ? PlanetariumCamera.Camera : FlightCamera.fetch.mainCamera; }
+            return activeCam;
+        }
+
+        /// <summary>
+        /// Enables the input profile for the currently rendering scene (menu, ksc, editor, tracking, flight, flight-map)
+        /// </summary>
+        /// <param name="profileName"></param>
         public void enableProfile(string profileName)
         {
-            if (previousScene != HighLogic.LoadedScene)
+            Camera activeCam = getActiveCamera();
+            Log.debug("TUFX: enableProfile( " + profileName + " )  scene: ( "+HighLogic.LoadedScene+" ) map: ( "+isMapScene+" ) camera: ( "+activeCam?.name+" )");
+            Log.debug(System.Environment.StackTrace);
+            if (previousCamera != activeCam)// previousScene != HighLogic.LoadedScene || isMapScene != wasMapScene)
             {
+                Log.log("Detected change of active camera; recreating post-process objects.");
                 if (volume != null)
                 {
-                    Log.log("Destroying existing PostProcessVolume.");
+                    Log.log("Destroying existing PostProcessVolume (from previous camera).");
                     Component.DestroyImmediate(layer);
                     UnityEngine.Object.DestroyImmediate(volume.sharedProfile);
                     UnityEngine.Object.DestroyImmediate(volume);
@@ -272,18 +353,26 @@ namespace TUFX
                     volume = null;
                 }
                 previousScene = HighLogic.LoadedScene;
+                wasMapScene = isMapScene;
+                previousCamera = activeCam;
             }
-            //TODO re-use volume, layer, profile(?) if the scene has not changed (same camera object/etc)
+
+            Log.debug("Active Camera (hashcode): " + activeCam?.GetHashCode());
+
             if (!string.IsNullOrEmpty(profileName) && Profiles.ContainsKey(profileName))
             {
                 Log.log("Enabling profile: " + profileName + ".  Current GameScene: " + HighLogic.LoadedScene);
                 TUFXProfile tufxProfile = Profiles[profileName];
-                layer = Camera.main.gameObject.AddOrGetComponent<PostProcessLayer>();
+                Log.debug("Profile (hashcode): " + tufxProfile?.GetHashCode() + " :: "+tufxProfile?.ProfileName);
+                
+                layer = activeCam.gameObject.AddOrGetComponent<PostProcessLayer>();
                 layer.Init(Resources);
                 layer.volumeLayer = ~0;//everything //TODO -- fix layer assignment...
-                volume = Camera.main.gameObject.AddOrGetComponent<PostProcessVolume>();
+                Log.debug("Layer: " + layer?.GetHashCode());
+                volume = activeCam.gameObject.AddOrGetComponent<PostProcessVolume>();
                 volume.isGlobal = true;
                 volume.priority = 100;
+                Log.debug("Volume: " + volume.GetHashCode());
                 if (volume.sharedProfile == null)
                 {
                     volume.sharedProfile = tufxProfile.GetPostProcessProfile();

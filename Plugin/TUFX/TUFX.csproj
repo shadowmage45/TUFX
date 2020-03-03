@@ -124,10 +124,12 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="PostProcessing\Unity.Postprocessing.Runtime.asmdef" />
+    <None Include="readme.md" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PostBuildEvent>copy "$(TargetPath)" "$(SolutionDir)\..\GameData\TUFX\Plugins\$(TargetFileName)"
+copy "$(TargetDir)\$(SolutionName).pdb"  "$(SolutionDir)\..\GameData\TUFX\Plugins\$(SolutionName).pdb"
 </PostBuildEvent>
   </PropertyGroup>
 </Project>
