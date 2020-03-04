@@ -28,6 +28,10 @@ namespace TUFX
         private bool wasMapScene;
         private Camera previousCamera;
 
+        private TUFXProfile currentProfile;
+        public TUFXProfile CurrentProfile => currentProfile;
+        public string CurrentProfileName => currentProfile==null ? string.Empty : currentProfile.ProfileName;
+
         public Dictionary<string, TUFXProfile> Profiles { get; private set; } = new Dictionary<string, TUFXProfile>();
 
         /// <summary>
@@ -324,9 +328,9 @@ namespace TUFX
 
         private Camera getActiveCamera()
         {
-            Camera activeCam = Camera.main;
+            Camera activeCam = null;
             if (HighLogic.LoadedScene == GameScenes.TRACKSTATION) { activeCam = PlanetariumCamera.Camera; }
-            else if (HighLogic.LoadedScene == GameScenes.EDITOR) { activeCam = EditorCamera.Instance.cam; }
+            else if (HighLogic.LoadedScene == GameScenes.EDITOR) { activeCam = null; }// EditorCamera.Instance.cam; } // TODO referencing this camera screws up the editor scene... (incorrect matrix? wrong camera ref?)
             else if (HighLogic.LoadedScene == GameScenes.FLIGHT) { activeCam = isMapScene ? PlanetariumCamera.Camera : FlightCamera.fetch.mainCamera; }
             return activeCam;
         }
@@ -337,6 +341,7 @@ namespace TUFX
         /// <param name="profileName"></param>
         public void enableProfile(string profileName)
         {
+            currentProfile = null;
             Camera activeCam = getActiveCamera();
             Log.debug("TUFX: enableProfile( " + profileName + " )  scene: ( "+HighLogic.LoadedScene+" ) map: ( "+isMapScene+" ) camera: ( "+activeCam?.name+" )");
             Log.debug(System.Environment.StackTrace);
@@ -358,8 +363,11 @@ namespace TUFX
             }
 
             Log.debug("Active Camera (hashcode): " + activeCam?.GetHashCode());
-
-            if (!string.IsNullOrEmpty(profileName) && Profiles.ContainsKey(profileName))
+            if (activeCam == null)
+            {
+                Log.log("Active camera was null.  Skipping profile setup for scene: " + HighLogic.LoadedScene);
+            }
+            else if (!string.IsNullOrEmpty(profileName) && Profiles.ContainsKey(profileName))
             {
                 Log.log("Enabling profile: " + profileName + ".  Current GameScene: " + HighLogic.LoadedScene);
                 TUFXProfile tufxProfile = Profiles[profileName];
@@ -383,6 +391,7 @@ namespace TUFX
                     tufxProfile.Enable(volume);
                 }
                 Log.log("Profile enabled: " + profileName);
+                currentProfile = tufxProfile;
             }
             else if (string.IsNullOrEmpty(profileName))
             {
