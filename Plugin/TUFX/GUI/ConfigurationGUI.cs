@@ -18,8 +18,6 @@ namespace TUFX
         private Vector2 editScrollPos = new Vector2();
 
         private List<string> profileNames = new List<string>();
-        private GameScenes currentScene = GameScenes.LOADING;
-
         private Dictionary<string, string> propertyStringStorage = new Dictionary<string, string>();
         private Dictionary<string, float> propertyFloatStorage = new Dictionary<string, float>();
         private Dictionary<string, bool> effectBoolStorage = new Dictionary<string, bool>();
@@ -31,7 +29,6 @@ namespace TUFX
             windowID = GetInstanceID();
             profileNames.Clear();
             profileNames.AddRange(TexturesUnlimitedFXLoader.INSTANCE.Profiles.Keys);
-            currentScene = HighLogic.LoadedScene;
         }
 
         public void OnGUI()
@@ -90,7 +87,7 @@ namespace TUFX
 
         private void renderSelectionWindow()
         {
-            AddLabelRow("Current Scene: " + currentScene +" map view active: " + MapView.MapIsEnabled);
+            AddLabelRow("Current Scene: " + HighLogic.LoadedScene +" map view active: " + MapView.MapIsEnabled);
             AddLabelRow("Current Profile: " + TexturesUnlimitedFXLoader.INSTANCE.CurrentProfileName);
             AddLabelRow("Select a new profile for current scene: ");
             scrollPos = GUILayout.BeginScrollView(scrollPos);
@@ -103,7 +100,7 @@ namespace TUFX
                 {
                     string newProfileName = profileNames[i];
                     Log.debug("Profile Selected: " + newProfileName);
-                    TexturesUnlimitedFXLoader.INSTANCE.setProfileForScene(newProfileName, currentScene, true);
+                    TexturesUnlimitedFXLoader.INSTANCE.setProfileForScene(newProfileName, HighLogic.LoadedScene, true);
                 }
                 GUILayout.EndHorizontal();
             }
