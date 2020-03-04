@@ -331,6 +331,7 @@ namespace TUFX
             Camera activeCam = null;
             if (HighLogic.LoadedScene == GameScenes.TRACKSTATION) { activeCam = PlanetariumCamera.Camera; }
             else if (HighLogic.LoadedScene == GameScenes.EDITOR) { activeCam = null; }// EditorCamera.Instance.cam; } // TODO referencing this camera screws up the editor scene... (incorrect matrix? wrong camera ref?)
+            else if (HighLogic.LoadedScene == GameScenes.SPACECENTER) { activeCam = Camera.main; }//TODO -- verify this is the correct camera?
             else if (HighLogic.LoadedScene == GameScenes.FLIGHT) { activeCam = isMapScene ? PlanetariumCamera.Camera : FlightCamera.fetch.mainCamera; }
             return activeCam;
         }
