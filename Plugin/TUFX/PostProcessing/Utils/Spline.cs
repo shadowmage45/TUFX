@@ -31,8 +31,12 @@ namespace UnityEngine.Rendering.PostProcessing
         [SerializeField]
         float m_ZeroValue;
 
+        public float ZeroValue => m_ZeroValue;
+
         [SerializeField]
         float m_Range;
+
+        public float Range => m_Range;
 
         AnimationCurve m_InternalLoopingCurve;
 
