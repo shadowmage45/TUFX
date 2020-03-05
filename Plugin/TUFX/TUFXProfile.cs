@@ -117,14 +117,14 @@ namespace TUFX
         /// <param name="node"></param>
         public void SaveProfile(ConfigNode node)
         {
-            node.SetValue("name", ProfileName);
+            node.SetValue("name", ProfileName, "Current profile name.  Please make copies of the default profiles and specify a new name if you wish to update settings.", true);
             int len = Settings.Count;
             for (int i = 0; i < len; i++)
             {
                 if (Settings[i].enabled)
                 {
                     ConfigNode effectNode = new ConfigNode("EFFECT");
-                    effectNode.SetValue("name", TUFXProfileManager.GetBuiltinEffect(Settings[i]).ToString());
+                    effectNode.SetValue("name", TUFXProfileManager.GetBuiltinEffect(Settings[i]).ToString(), true);
                     Settings[i].Save(effectNode);
                     node.AddNode(effectNode);
                 }
@@ -139,14 +139,14 @@ namespace TUFX
         /// <param name="node"></param>
         public static void SaveProfile(PostProcessProfile profile, ConfigNode node)
         {
-            node.SetValue("name", profile.name);
+            node.SetValue("name", profile.name, true);
             int len = profile.settings.Count;
             for (int i = 0; i < len; i++)
             {
                 if (profile.settings[i].enabled)
                 {
                     ConfigNode effectNode = new ConfigNode("EFFECT");
-                    effectNode.SetValue("name", TUFXProfileManager.GetBuiltinEffect(profile.settings[i]).ToString());
+                    effectNode.SetValue("name", TUFXProfileManager.GetBuiltinEffect(profile.settings[i]).ToString(), true);
                     profile.settings[i].Save(effectNode);
                     node.AddNode(effectNode);
                 }

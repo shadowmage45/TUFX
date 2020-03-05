@@ -128,8 +128,7 @@ namespace UnityEngine.Rendering.PostProcessing
 
         internal void loadBoolParameter(ConfigNode node, string name, ParameterOverride<bool> param)
         {
-            if (node.HasValue(name)) { param.Override(node.GetBoolValue(name));
- }
+            if (node.HasValue(name)) { param.Override(node.GetBoolValue(name)); }
         }
 
         internal void loadIntParameter(ConfigNode node, string name, ParameterOverride<int> param)
@@ -156,6 +155,7 @@ namespace UnityEngine.Rendering.PostProcessing
             {
                 return;
             }
+            //TODO -- find better method for texture references...
             string texName = node.GetValue(name);
             Texture2D texture = null;
             if (texName.StartsWith("BUILTIN:"))
@@ -191,6 +191,7 @@ namespace UnityEngine.Rendering.PostProcessing
 
         internal void loadSplineParameter(ConfigNode node, string name, ParameterOverride<Spline> param)
         {
+            //TODO -- load zero point and range values
             ConfigNode splineNode = node.GetNode("SPLINE", "name", name);
             string[] keys = splineNode.GetValues("key");
             List<Keyframe> frames = new List<Keyframe>();
@@ -208,22 +209,23 @@ namespace UnityEngine.Rendering.PostProcessing
 
         internal void saveBoolParameter(ConfigNode node, string name, ParameterOverride<bool> param)
         {
-            if (param.overrideState) { node.SetValue(name, param.value); }
+            if (param.overrideState) { node.SetValue(name, param.value, true); }
         }
 
         internal void saveIntParameter(ConfigNode node, string name, ParameterOverride<int> param)
         {
-            if (param.overrideState) { node.SetValue(name, param.value); }
+            if (param.overrideState) { node.SetValue(name, param.value, true); }
         }
 
         internal void saveFloatParameter(ConfigNode node, string name, ParameterOverride<float> param)
         {
-            if (param.overrideState) { node.SetValue(name, param.value); }
+            if (param.overrideState) { node.SetValue(name, param.value, true); }
         }
 
         internal void saveTextureParameter(ConfigNode node, string name, ParameterOverride<Texture> param)
         {
             if (!param.overrideState) { return; }
+            //TODO -- find better method for texture references...
             Texture2D tex = (Texture2D)param.value;
             string texName = string.Empty;
             if (TexturesUnlimitedFXLoader.INSTANCE.isBuiltinTexture(tex))
@@ -240,16 +242,17 @@ namespace UnityEngine.Rendering.PostProcessing
 
         internal void saveColorParameter(ConfigNode node, string name, ParameterOverride<Color> param)
         {
-            if (param.overrideState) { node.SetValue(name, param.value); }
+            if (param.overrideState) { node.SetValue(name, param.value, true); }
         }
 
         internal void saveEnumParameter<T>(ConfigNode node, string name, ParameterOverride<T> param)
         {
-            if (param.overrideState) { node.SetValue(name, param.value.ToString()); }
+            if (param.overrideState) { node.SetValue(name, param.value.ToString(), true); }
         }
 
         internal void saveSplineParameter(ConfigNode node, string name, ParameterOverride<Spline> param)
         {
+            //TODO -- save the zero value and range of the spline
             ConfigNode splineNode = new ConfigNode("SPLINE");
             splineNode.SetValue("name", name);
             Spline spline = param.value;
@@ -267,12 +270,12 @@ namespace UnityEngine.Rendering.PostProcessing
 
         internal void saveVector2Parameter(ConfigNode node, string name, ParameterOverride<Vector2> param)
         {
-            if (param.overrideState) { node.SetValue(name, ConfigNode.WriteVector(param.value)); }
+            if (param.overrideState) { node.SetValue(name, ConfigNode.WriteVector(param.value), true); }
         }
 
         internal void saveVector4Parameter(ConfigNode node, string name, ParameterOverride<Vector4> param)
         {
-            if (param.overrideState) { node.SetValue(name, ConfigNode.WriteVector(param.value)); }
+            if (param.overrideState) { node.SetValue(name, ConfigNode.WriteVector(param.value), true); }
         }
 
         #endregion
