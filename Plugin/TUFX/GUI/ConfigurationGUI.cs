@@ -12,11 +12,14 @@ namespace TUFX
     public class ConfigurationGUI : MonoBehaviour
     {
 
-        private static Rect windowRect = new Rect(Screen.width - 900, 40, 800, 600);
+        private static Rect windowRect = new Rect(Screen.width - 900, 40, 805, 600);
         private int windowID = 0;
         private Vector2 scrollPos = new Vector2();
         private Vector2 editScrollPos = new Vector2();
 
+        /// <summary>
+        /// Cached list of all profile names currently loaded at the time the GUI was created.
+        /// </summary>
         private List<string> profileNames = new List<string>();
         private Dictionary<string, string> propertyStringStorage = new Dictionary<string, string>();
         private Dictionary<string, float> propertyFloatStorage = new Dictionary<string, float>();
@@ -67,7 +70,7 @@ namespace TUFX
             }
             else
             {
-                GUILayout.Label("Edit Configuration", GUILayout.Width(100));
+                GUILayout.Label("Edit", GUILayout.Width(100));
                 if (GUILayout.Button("Change to Select Mode", GUILayout.Width(200)))
                 {
                     this.selectionMode = true;
@@ -100,7 +103,7 @@ namespace TUFX
                 {
                     string newProfileName = profileNames[i];
                     Log.debug("Profile Selected: " + newProfileName);
-                    TexturesUnlimitedFXLoader.INSTANCE.setProfileForScene(newProfileName, HighLogic.LoadedScene, true);
+                    TexturesUnlimitedFXLoader.INSTANCE.setProfileForScene(newProfileName, HighLogic.LoadedScene, MapView.MapIsEnabled, true);
                 }
                 GUILayout.EndHorizontal();
             }
@@ -382,7 +385,7 @@ namespace TUFX
                     showProps = true;
                     effectBoolStorage.Add(hash, true);
                 }
-                if (GUILayout.Button((showProps ? "Hide Props" : "Show Props"), GUILayout.Width(100)))
+                if (GUILayout.Button((showProps ? "Hide Props" : "Show Props"), GUILayout.Width(110)))
                 {
                     showProps = !showProps;
                     effectBoolStorage[hash] = showProps;
@@ -430,14 +433,14 @@ namespace TUFX
                 {
                     param.overrideState = false;
                 }
-                if (GUILayout.Button("<", GUILayout.Width(50)))
+                if (GUILayout.Button("<", GUILayout.Width(110)))
                 {
                     index--;
                     if (index < 0) { index = values.Length - 1; }
                     param.Override(values[index]);
                 }
-                GUILayout.Label(value.ToString(), GUILayout.Width(340));
-                if (GUILayout.Button(">", GUILayout.Width(50)))
+                GUILayout.Label(value.ToString(), GUILayout.Width(220));
+                if (GUILayout.Button(">", GUILayout.Width(110)))
                 {
                     index++;
                     if (index >= values.Length) { index = 0; }
@@ -465,7 +468,7 @@ namespace TUFX
                 {
                     param.overrideState = false;
                 }
-                if (GUILayout.Button(param.value.ToString(), GUILayout.Width(100)))
+                if (GUILayout.Button(param.value.ToString(), GUILayout.Width(110)))
                 {
                     param.value = !param.value;
                 }
@@ -502,7 +505,7 @@ namespace TUFX
                     textValue = param.value.ToString();
                     propertyStringStorage.Add(hash, textValue);
                 }
-                string newValue = GUILayout.TextArea(textValue, GUILayout.Width(100));
+                string newValue = GUILayout.TextArea(textValue, GUILayout.Width(110));
                 if (newValue != textValue)
                 {
                     textValue = newValue;
@@ -517,7 +520,7 @@ namespace TUFX
                     sliderValue = param.value;
                     propertyFloatStorage[hash] = sliderValue;
                 }
-                float sliderValue2 = GUILayout.HorizontalSlider(sliderValue, min, max, GUILayout.Width(340));
+                float sliderValue2 = GUILayout.HorizontalSlider(sliderValue, min, max, GUILayout.Width(330));
                 if (sliderValue2 != sliderValue)
                 {
                     param.Override((int)sliderValue2);
@@ -558,7 +561,7 @@ namespace TUFX
                     textValue = param.value.ToString();
                     propertyStringStorage.Add(hash, textValue);
                 }
-                string newValue = GUILayout.TextArea(textValue, GUILayout.Width(100));
+                string newValue = GUILayout.TextArea(textValue, GUILayout.Width(110));
                 if (newValue != textValue)
                 {
                     textValue = newValue;
@@ -568,7 +571,7 @@ namespace TUFX
                     }
                     propertyStringStorage[hash] = textValue;
                 }
-                float sliderValue = GUILayout.HorizontalSlider(param.value, min, max, GUILayout.Width(340));
+                float sliderValue = GUILayout.HorizontalSlider(param.value, min, max, GUILayout.Width(330));
                 if (sliderValue != param.value)
                 {
                     param.Override(sliderValue);
@@ -626,7 +629,7 @@ namespace TUFX
                 curTextVal = val.ToString();
                 propertyStringStorage.Add(key, curTextVal);
             }
-            string newValue = GUILayout.TextArea(curTextVal, GUILayout.Width(100));
+            string newValue = GUILayout.TextArea(curTextVal, GUILayout.Width(110));
             if (newValue != curTextVal)
             {
                 curTextVal = newValue;

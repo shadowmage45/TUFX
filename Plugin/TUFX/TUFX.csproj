@@ -61,6 +61,8 @@
   <ItemGroup>
     <Compile Include="Addon\TexturesUnlimitedFXLoader.cs" />
     <Compile Include="GUI\ConfigurationGUI.cs" />
+    <Compile Include="GUI\SplineConfigurationGUI.cs" />
+    <Compile Include="GUI\TextureSelectionGUI.cs" />
     <Compile Include="PostProcessing\Attributes\DisplayNameAttribute.cs" />
     <Compile Include="PostProcessing\Attributes\MaxAttribute.cs" />
     <Compile Include="PostProcessing\Attributes\MinAttribute.cs" />

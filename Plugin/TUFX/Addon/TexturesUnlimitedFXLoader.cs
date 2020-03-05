@@ -9,17 +9,27 @@ using UnityEngine.Rendering.PostProcessing;
 namespace TUFX
 {
 
+    /// <summary>
+    /// The main KSPAddon that holds profile loading and handling logic, resource reference storage,
+    /// provides the public functions to update and enable profiles, and manages ApplicationLauncher button and GUI spawning.
+    /// </summary>
     [KSPAddon(KSPAddon.Startup.Instantly, true)]
     public class TexturesUnlimitedFXLoader : MonoBehaviour
     {
 
-        public static TexturesUnlimitedFXLoader INSTANCE;
+        internal static TexturesUnlimitedFXLoader INSTANCE;
         private static ApplicationLauncherButton configAppButton;
         private ConfigurationGUI configGUI;
 
         private Dictionary<string, Shader> shaders = new Dictionary<string, Shader>();
         private Dictionary<string, ComputeShader> computeShaders = new Dictionary<string, ComputeShader>();
         private Dictionary<string, Texture2D> textures = new Dictionary<string, Texture2D>();
+
+        /// <summary>
+        /// The currently loaded profiles.
+        /// This will be cleared and reset whenever ModuleManagerPostLoad() is called (e.g. in-game config reload).
+        /// </summary>
+        internal Dictionary<string, TUFXProfile> Profiles { get; private set; } = new Dictionary<string, TUFXProfile>();
 
         private PostProcessLayer layer;
         private PostProcessVolume volume;
@@ -28,11 +38,18 @@ namespace TUFX
         private bool wasMapScene;
         private Camera previousCamera;
 
+        /// <summary>
+        /// The currently active profile.  Private field to enforce use of the 'setProfileForScene' method.
+        /// </summary>
         private TUFXProfile currentProfile;
-        public TUFXProfile CurrentProfile => currentProfile;
-        public string CurrentProfileName => currentProfile==null ? string.Empty : currentProfile.ProfileName;
-
-        public Dictionary<string, TUFXProfile> Profiles { get; private set; } = new Dictionary<string, TUFXProfile>();
+        /// <summary>
+        /// Return a reference to the currently active profile.  To update the current profile, use the <see cref="setProfileForScene(string name, GameScenes scene, bool map, bool apply)"/> method.
+        /// </summary>
+        internal TUFXProfile CurrentProfile => currentProfile;
+        /// <summary>
+        /// Return the name of the currently active profile.
+        /// </summary>
+        internal string CurrentProfileName => currentProfile==null ? string.Empty : currentProfile.ProfileName;
 
         /// <summary>
         /// Reference to the Unity Post Processing 'Resources' class.  Used to store references to the shaders and textures used by the post-processing system internals.
@@ -59,7 +76,11 @@ namespace TUFX
             {
                 loadResources();
             }
+            //discard the existing profile reference, if any
+            currentProfile = null;
+            //clear profiles in case of in-game reload
             Profiles.Clear();
+            //grab all profiles detected in global scope config nodes, load them into local storage
             ConfigNode[] profileConfigs = GameDatabase.Instance.GetConfigNodes("TUFX_PROFILE");
             int len = profileConfigs.Length;
             for (int i = 0; i < len; i++)
@@ -74,8 +95,17 @@ namespace TUFX
                     Log.exception("TUFX Profiles already contains profile for name: " + profile.ProfileName + ".  This is the result of a duplicate configuration; please check your configurations and remove any duplicates.");
                 }
             }
+            //If configs are reloaded via module-manager from the space center scene... reload and reapply the currently selected profile from game persistence data
+            //if for some reason that profile does not exist, nothing will be applied and an error will be logged.
+            if (HighLogic.LoadedScene == GameScenes.SPACECENTER)
+            {
+                enableProfileForCurrentScene();
+            }
         }
 
+        /// <summary>
+        /// Loads the mandatory shaders and textures required by the post-processing stack codebase and effects from the AssetBundles included in the mod.
+        /// </summary>
         private void loadResources()
         {
             Resources = ScriptableObject.CreateInstance<PostProcessResources>();
@@ -186,25 +216,45 @@ namespace TUFX
             #endregion
         }
 
+        /// <summary>
+        /// Internal function to retrieve a shader from the dictionary, by name.  These names will include the package level prefixing, e.g. 'Unity/Foo/Bar/ShaderName'
+        /// </summary>
+        /// <param name="name"></param>
+        /// <returns></returns>
         private Shader getShader(string name)
         {
             shaders.TryGetValue(name, out Shader s);
             return s;
         }
 
+        /// <summary>
+        /// Internal function to retrieve a compute shader from the dictionary, by name
+        /// </summary>
+        /// <param name="name"></param>
+        /// <returns></returns>
         private ComputeShader getComputeShader(string name)
         {
             computeShaders.TryGetValue(name, out ComputeShader s);
             return s;
         }
 
-        public Texture2D getTexture(string name)
+        /// <summary>
+        /// Attempts to retrieve a built-in texture by name.  The list of built-in textures is limited to lens dirt and a few LUTs; only those textures that were included in the Unity Post Process Package.
+        /// </summary>
+        /// <param name="name"></param>
+        /// <returns></returns>
+        internal Texture2D getTexture(string name)
         {
             textures.TryGetValue(name, out Texture2D tex);
             return tex;
         }
 
-        public bool isBuiltinTexture(Texture2D tex)
+        /// <summary>
+        /// Returns true if the input texture is present in the list of built-in textures that were loaded from asset bundles.
+        /// </summary>
+        /// <param name="tex"></param>
+        /// <returns></returns>
+        internal bool isBuiltinTexture(Texture2D tex)
         {
             return textures.Values.Contains(tex);
         }
@@ -217,9 +267,9 @@ namespace TUFX
         {
             Log.debug("TUFXLoader - onLevelLoaded( "+scene+" )");
 
-            Log.debug("TUFX - Updating AppLauncher button...");
             if (scene == GameScenes.FLIGHT || scene == GameScenes.SPACECENTER || scene == GameScenes.EDITOR || scene == GameScenes.TRACKSTATION)
             {
+                Log.debug("TUFX - Updating AppLauncher button...");
                 Texture2D tex;
                 if (configAppButton == null)//static reference; track if the button was EVER created, as KSP keeps them even if the addon is destroyed
                 {
@@ -236,13 +286,19 @@ namespace TUFX
             }
             else if (configAppButton != null)
             {
+                Log.debug("TUFX - Removing AppLauncher button...");
                 ApplicationLauncher.Instance.RemoveModApplication(configAppButton);
             }
             //on scene change, reset the map-scene flag
+            //scene change into flight-scene is never directly into map mode, so this will only be true if the current scene is the tracking station
             isMapScene = scene == GameScenes.TRACKSTATION;
+            //finally, enable the profile for the current scene
             enableProfileForCurrentScene();
         }
 
+        /// <summary>
+        /// GameEvents Callback for when map view has been entered.
+        /// </summary>
         private void mapEntered()
         {
             Log.debug("Map view entered ( " + HighLogic.LoadedScene + " ).\n" + System.Environment.StackTrace);
@@ -251,9 +307,17 @@ namespace TUFX
             Log.debug("Editor camera: " + EditorCamera.Instance?.cam?.GetHashCode());
             Log.debug("Planetarium Camera: " + PlanetariumCamera.Camera?.GetHashCode());
             isMapScene = true;
-            enableProfileForCurrentScene();
+            //tracking station will ALSO call this method when entered, so ensure to
+            //only update profile if mapEntered() was called from elsewhere (only flight?)
+            if (HighLogic.LoadedScene != GameScenes.TRACKSTATION)//this could also simply be 'if scene==flight'....
+            {
+                enableProfileForCurrentScene();
+            }
         }
 
+        /// <summary>
+        /// GameEvents Callback for when map view has been exited.
+        /// </summary>
         private void mapExited()
         {
             Log.debug("Map view closed ( "+HighLogic.LoadedScene+" ).\n" + System.Environment.StackTrace);
@@ -262,10 +326,24 @@ namespace TUFX
             Log.debug("Editor camera: " + EditorCamera.Instance?.cam?.GetHashCode());
             Log.debug("Planetarium Camera: " + PlanetariumCamera.Camera?.GetHashCode());            
             isMapScene = false;
-            enableProfileForCurrentScene();
+            //tracking station will ALSO call this method when exited, so ensure to
+            //only update profile if mapExited() was called from elsewhere (only flight?)
+            if (HighLogic.LoadedScene != GameScenes.TRACKSTATION)//this could also simply be 'if scene==flight'....
+            {
+                enableProfileForCurrentScene();
+            }
         }
 
-        public void setProfileForScene(string profile, GameScenes scene, bool enableNow = false)
+        /// <summary>
+        /// Public method to specify a new profile name for the input game scene (and map view setting, in the case of flight-scene).
+        /// This will udpate the game persistence data with the name specified, and optionally enable the profile now.
+        /// //TODO -- support main-menu post-processing profile.
+        /// </summary>
+        /// <param name="profile"></param>
+        /// <param name="scene">the game scene to which the new profile should be applied</param>
+        /// <param name="isMapScene">Update the 'flight map scene' if this is true and scene==flight</param>
+        /// <param name="enableNow">True to enable the profile for the current scene</param>
+        internal void setProfileForScene(string profile, GameScenes scene, bool isMapScene, bool enableNow = false)
         {
             switch (scene)
             {
@@ -295,7 +373,11 @@ namespace TUFX
             }
         }
 
-        public void enableProfileForCurrentScene()
+        /// <summary>
+        /// Looks up the profile for the current scene from the game persistence data and attempts to enable it.
+        /// //TODO -- support main-menu post-processing profile.
+        /// </summary>
+        internal void enableProfileForCurrentScene()
         {
             string profileName = string.Empty;
             switch (HighLogic.LoadedScene)
@@ -326,13 +408,19 @@ namespace TUFX
             enableProfile(profileName);
         }
 
+        /// <summary>
+        /// Helper method to return a reference to the active camera object.
+        /// </summary>
+        /// <returns></returns>
         private Camera getActiveCamera()
         {
             Camera activeCam = null;
             if (HighLogic.LoadedScene == GameScenes.TRACKSTATION) { activeCam = PlanetariumCamera.Camera; }
-            else if (HighLogic.LoadedScene == GameScenes.EDITOR) { activeCam = null; }// EditorCamera.Instance.cam; } // TODO referencing this camera screws up the editor scene... (incorrect matrix? wrong camera ref?)
+            //else if (HighLogic.LoadedScene == GameScenes.EDITOR) { activeCam = null; }// EditorCamera.Instance.cam; } // TODO simply referencing this camera screws up the editor scene... (incorrect matrix? wrong camera ref? is this a UI camera?)
+            //else if (HighLogic.LoadedScene == GameScenes.EDITOR) { activeCam = null; }// Camera.main; }//TODO -- this one isn't the right camera either....
             else if (HighLogic.LoadedScene == GameScenes.SPACECENTER) { activeCam = Camera.main; }//TODO -- verify this is the correct camera?
             else if (HighLogic.LoadedScene == GameScenes.FLIGHT) { activeCam = isMapScene ? PlanetariumCamera.Camera : FlightCamera.fetch.mainCamera; }
+            else { Log.exception("Could not locate camera for scene: " + HighLogic.LoadedScene); }
             return activeCam;
         }
 
@@ -340,7 +428,7 @@ namespace TUFX
         /// Enables the input profile for the currently rendering scene (menu, ksc, editor, tracking, flight, flight-map)
         /// </summary>
         /// <param name="profileName"></param>
-        public void enableProfile(string profileName)
+        internal void enableProfile(string profileName)
         {
             currentProfile = null;
             Camera activeCam = getActiveCamera();
@@ -405,7 +493,12 @@ namespace TUFX
 
         }
 
-        public static void onHDRToggled()
+        /// <summary>
+        /// Internal method to be used by the debug GUI to enable HDR on the KSP cameras.  This apparently still causes a few rendering issues, and will need further investigation
+        /// before the feature can be re-enabled.
+        /// </summary>
+        [Obsolete("Unused and unusable pending investigation of rending issues.")]
+        internal static void onHDRToggled()
         {
             Log.debug("Toggling HDR");
             Camera[] cams = GameObject.FindObjectsOfType<Camera>();
@@ -423,6 +516,9 @@ namespace TUFX
             }
         }
 
+        /// <summary>
+        /// Callback for when the ApplicationLauncher button is clicked.
+        /// </summary>
         private void configGuiEnable()
         {
             if (configGUI == null)
@@ -431,12 +527,18 @@ namespace TUFX
             }
         }
 
-        public void configGuiDisable()
+        /// <summary>
+        /// Callback for when the ApplicationLauncher button is clicked.  Can also be called from within the GUI itself from a 'Close' button.
+        /// </summary>
+        internal void configGuiDisable()
         {
             if (configGUI != null)
             {
                 GameObject.Destroy(configGUI);
+                configGUI = null;
             }
+            //TODO -- manually toggle the state of the applicationlauncher button?  Do those even have state toggles?
+            //configAppButton.//something
         }
 
     }
