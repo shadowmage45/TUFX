@@ -541,6 +541,23 @@ namespace TUFX
             //configAppButton.//something
         }
 
+        internal void exportCurrentProfile()
+        {
+            //TODO
+        }
+
+        internal void exportAllProfiles()
+        {
+            //TODO
+        }
+
+        private StringBuilder exportProfile(TUFXProfile profile, StringBuilder builder = null)
+        {
+            if (builder == null) { builder = new StringBuilder(); }
+            //TODO
+            return builder;
+        }
+
     }
 
 }

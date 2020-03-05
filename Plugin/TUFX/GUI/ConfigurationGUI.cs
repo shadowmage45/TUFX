@@ -76,6 +76,16 @@ namespace TUFX
                     this.selectionMode = true;
                 }
             }
+            if (GUILayout.Button("Export Selected", GUILayout.Width(170)))
+            {
+                TexturesUnlimitedFXLoader.INSTANCE.exportCurrentProfile();
+                ScreenMessages.PostScreenMessage("<color=orange>Exported selected profile to KSP.log</color>", 5f, ScreenMessageStyle.UPPER_LEFT);
+            }
+            if (GUILayout.Button("Export All"))
+            {
+                TexturesUnlimitedFXLoader.INSTANCE.exportAllProfiles();
+                ScreenMessages.PostScreenMessage("<color=orange>Exported all profiles to KSP.log</color>", 5f, ScreenMessageStyle.UPPER_LEFT);
+            }
             GUILayout.EndHorizontal();
             if (selectionMode)
             {
@@ -113,6 +123,9 @@ namespace TUFX
 
         private void renderConfigurationWindow()
         {
+            //if no profile is selected, disable the edit mode
+            //there are cases where there can be no active profile if the default profiles were removed or edited out of the persistence data
+            //should generally not occur, but just in case...
             if (TexturesUnlimitedFXLoader.INSTANCE.CurrentProfile == null)
             {
                 GUILayout.BeginHorizontal();
@@ -120,6 +133,13 @@ namespace TUFX
                 GUILayout.EndHorizontal();
                 return;
             }
+            //display big ugly warning that changes made here are NOT permanent
+            Color c = GUI.contentColor;
+            GUI.contentColor = Color.red;
+            GUILayout.BeginHorizontal();
+            GUILayout.Label("Changes made in-game are not persistent.  You must export the profile and update the config files to make the changes permanent.");
+            GUILayout.EndHorizontal();
+            GUI.contentColor = c;
             editScrollPos = GUILayout.BeginScrollView(editScrollPos, false, true);
             renderAmbientOcclusionSettings();
             renderAutoExposureSettings();
@@ -703,6 +723,26 @@ namespace TUFX
         private void AddTextureParameter(string label, ParameterOverride<Texture> param)//TODO
         {
             GUILayout.BeginHorizontal();
+            GUILayout.Label(label, GUILayout.Width(200));
+            bool enabled = param.overrideState;
+            if (enabled)
+            {
+                if (GUILayout.Button("Disable", GUILayout.Width(100)))
+                {
+                    param.overrideState = false;
+                }
+                if (GUILayout.Button(param.value?.name, GUILayout.Width(440)))
+                {
+                    //TODO
+                }
+            }
+            else
+            {
+                if (GUILayout.Button("Enable", GUILayout.Width(100)))
+                {
+                    param.overrideState = true;
+                }
+            }
             GUILayout.Label("TODO - Texture parameter.");
             GUILayout.EndHorizontal();
         }
