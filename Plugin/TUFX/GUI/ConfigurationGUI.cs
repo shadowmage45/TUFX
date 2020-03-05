@@ -743,7 +743,6 @@ namespace TUFX
                     param.overrideState = true;
                 }
             }
-            GUILayout.Label("TODO - Texture parameter.");
             GUILayout.EndHorizontal();
         }
 

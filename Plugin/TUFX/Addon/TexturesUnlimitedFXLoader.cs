@@ -541,20 +541,47 @@ namespace TUFX
             //configAppButton.//something
         }
 
+        /// <summary>
+        /// Exports the current/active profile to the log in KSP-CFG format.
+        /// </summary>
         internal void exportCurrentProfile()
         {
-            //TODO
+            if (currentProfile != null)
+            {
+                StringBuilder builder = exportProfile(currentProfile);
+                Log.log("Export of profile: " + CurrentProfileName + "\n" + builder.ToString());
+            }
         }
 
+        /// <summary>
+        /// Exports all of the loaded profiles to the log in KSP-CFG format.
+        /// </summary>
         internal void exportAllProfiles()
         {
-            //TODO
+            StringBuilder builder = new StringBuilder();
+            builder.AppendLine("Export of all profiles:");
+            TUFXProfile[] profiles = Profiles.Values.ToArray();
+            int len = profiles.Length;
+            for (int i = 0; i < len; i++)
+            {
+                exportProfile(profiles[i], builder);
+            }
+            Log.log(builder.ToString());
         }
 
+        /// <summary>
+        /// Adds the config-node string representation to the input string builder, and returns the builder when finished.  If the input builder is null, a new instance will be created and returned.
+        /// </summary>
+        /// <param name="profile"></param>
+        /// <param name="builder"></param>
+        /// <returns></returns>
         private StringBuilder exportProfile(TUFXProfile profile, StringBuilder builder = null)
         {
             if (builder == null) { builder = new StringBuilder(); }
-            //TODO
+            ConfigNode node = new ConfigNode("TUFX_PROFILE");
+            profile.SaveProfile(node);
+            builder.Append(node.ToString());
+            builder.AppendLine();
             return builder;
         }
 

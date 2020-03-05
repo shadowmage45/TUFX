@@ -117,7 +117,14 @@ namespace TUFX
         /// <param name="node"></param>
         public void SaveProfile(ConfigNode node)
         {
-            node.SetValue("name", ProfileName, "Current profile name.  Please make copies of the default profiles and specify a new name if you wish to update settings.", true);
+            if (ProfileName.StartsWith("Default-"))//provide in-config file warning for people to not trample on the default configs...
+            {
+                node.SetValue("name", ProfileName, "Current profile name.  Please make copies of the default profiles and specify new names if you wish to change settings.", true);
+            }
+            else
+            {
+                node.SetValue("name", ProfileName, true);
+            }
             int len = Settings.Count;
             for (int i = 0; i < len; i++)
             {
