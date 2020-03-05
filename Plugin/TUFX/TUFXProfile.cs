@@ -90,7 +90,7 @@ namespace TUFX
         public string ProfileName { get; private set; }
 
         /// <summary>
-        /// List of the override settings for this profile
+        /// List of the override settings currently configured for this profile
         /// </summary>
         public readonly List<PostProcessEffectSettings> Settings = new List<PostProcessEffectSettings>();
 
@@ -210,6 +210,11 @@ namespace TUFX
             return profile;
         }
 
+        /// <summary>
+        /// Returns the PostProcessEffectSettings present in the settings list for the input Type, or null if no settings of that type are present.
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <returns></returns>
         public T GetSettingsFor<T>() where T : PostProcessEffectSettings
         {
             return (T)Settings.FirstOrDefault(m => m is T);

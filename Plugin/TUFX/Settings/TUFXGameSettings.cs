@@ -12,9 +12,9 @@ namespace TUFX
 
         public override string Title => "TUFX Profile Settings";
 
-        public override string DisplaySection => "TUFX-DisplaySection(TODO)";
+        public override string DisplaySection => "TUFX";
 
-        public override string Section => "TUFX-Section(TODO)";
+        public override string Section => "Scene Profiles";
 
         public override int SectionOrder => 1;
 

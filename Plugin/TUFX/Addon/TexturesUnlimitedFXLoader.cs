@@ -24,6 +24,7 @@ namespace TUFX
         private Dictionary<string, Shader> shaders = new Dictionary<string, Shader>();
         private Dictionary<string, ComputeShader> computeShaders = new Dictionary<string, ComputeShader>();
         private Dictionary<string, Texture2D> textures = new Dictionary<string, Texture2D>();
+        private Dictionary<string, TUFXEffectTextureList> effectTextureLists = new Dictionary<string, TUFXEffectTextureList>();//TODO -- load textures into storage
 
         /// <summary>
         /// The currently loaded profiles.
@@ -76,13 +77,53 @@ namespace TUFX
             {
                 loadResources();
             }
+
+            //yeah, wow, that got ugly fast...
+            effectTextureLists.Clear();
+            ConfigNode[] textureListNodes = GameDatabase.Instance.GetConfigNodes("TUFX_TEXTURES");
+            int len = textureListNodes.Length;
+            for (int i = 0; i < len; i++)
+            {
+                Log.debug("Loading TUFX_TEXTURES[" + textureListNodes[i].GetValue("name") + "]");
+                ConfigNode[] effectTextureLists = textureListNodes[i].GetNodes("EFFECT");
+                int len2 = effectTextureLists.Length;
+                for (int k = 0; k < len2; k++)
+                {
+                    string effectName = effectTextureLists[k].GetValue("name");
+                    TUFXEffectTextureList etl;
+                    if (!this.effectTextureLists.TryGetValue(effectName, out etl))
+                    {
+                        this.effectTextureLists[effectName] = etl = new TUFXEffectTextureList();
+                    }
+                    string[] names = effectTextureLists[k].values.DistinctNames();
+                    int len3 = names.Length;
+                    for (int m = 0; m < len3; m++)
+                    {
+                        string[] values = effectTextureLists[k].GetValues(names[m]);
+                        int len4 = values.Length;
+                        for (int r = 0; r < len4; r++)
+                        {
+                            Texture2D tex = GameDatabase.Instance.GetTexture(values[r], false);
+                            if (tex != null)
+                            {
+                                etl.AddTexture(names[m], tex);
+                            }
+                            else
+                            {
+                                Log.exception("Texture specified by path: " + values[r] + " was not found when attempting to load textures for effect: " + effectName + " propertyName: " + names[m]);
+                            }
+                        }
+                    }
+                }
+            }
+
             //discard the existing profile reference, if any
             currentProfile = null;
             //clear profiles in case of in-game reload
             Profiles.Clear();
             //grab all profiles detected in global scope config nodes, load them into local storage
             ConfigNode[] profileConfigs = GameDatabase.Instance.GetConfigNodes("TUFX_PROFILE");
-            int len = profileConfigs.Length;
+            len = profileConfigs.Length;
             for (int i = 0; i < len; i++)
             {
                 TUFXProfile profile = new TUFXProfile(profileConfigs[i]);
@@ -95,6 +136,7 @@ namespace TUFX
                     Log.exception("TUFX Profiles already contains profile for name: " + profile.ProfileName + ".  This is the result of a duplicate configuration; please check your configurations and remove any duplicates.");
                 }
             }
+
             //If configs are reloaded via module-manager from the space center scene... reload and reapply the currently selected profile from game persistence data
             //if for some reason that profile does not exist, nothing will be applied and an error will be logged.
             if (HighLogic.LoadedScene == GameScenes.SPACECENTER)
@@ -383,6 +425,7 @@ namespace TUFX
             switch (HighLogic.LoadedScene)
             {
                 case GameScenes.MAINMENU:
+                    //TODO -- enable profiles for the main-menu
                     break;
                 case GameScenes.SPACECENTER:
                     profileName = HighLogic.CurrentGame.Parameters.CustomParams<TUFXGameSettings>().SpaceCenterSceneProfile;

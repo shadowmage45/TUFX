@@ -21,6 +21,10 @@ namespace TUFX
         /// Cached list of all profile names currently loaded at the time the GUI was created.
         /// </summary>
         private List<string> profileNames = new List<string>();
+
+        /// <summary>
+        /// Cached dictionaries of temporary variables used by the UI for user-input values.
+        /// </summary>
         private Dictionary<string, string> propertyStringStorage = new Dictionary<string, string>();
         private Dictionary<string, float> propertyFloatStorage = new Dictionary<string, float>();
         private Dictionary<string, bool> effectBoolStorage = new Dictionary<string, bool>();
