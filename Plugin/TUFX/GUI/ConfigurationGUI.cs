@@ -16,6 +16,7 @@ namespace TUFX
         private int windowID = 0;
         private Vector2 scrollPos = new Vector2();
         private Vector2 editScrollPos = new Vector2();
+        private Vector2 texScrollPos = new Vector2();
 
         /// <summary>
         /// Cached list of all profile names currently loaded at the time the GUI was created.
@@ -29,21 +30,26 @@ namespace TUFX
         private Dictionary<string, float> propertyFloatStorage = new Dictionary<string, float>();
         private Dictionary<string, bool> effectBoolStorage = new Dictionary<string, bool>();
 
-        private bool selectionMode = true;
+        /// <summary>
+        /// Available textures for the curret 'select texture' assignment.
+        /// </summary>
+        private List<Texture2D> textures = new List<Texture2D>();
+        /// <summary>
+        /// Values used by texture selection mode for UI display
+        /// </summary>
+        private string effect, property, texture;
+        /// <summary>
+        /// Callback for when texture is selected...
+        /// </summary>
+        private Action<Texture2D> textureUpdateCallback = null;
 
-        private TextureSelectionGUI textureSelectionGUI;
+        private int selectionMode = 0;
 
         public void Awake()
         {
             windowID = GetInstanceID();
             profileNames.Clear();
             profileNames.AddRange(TexturesUnlimitedFXLoader.INSTANCE.Profiles.Keys);
-        }
-
-        public void OnDestroy()
-        {
-            //TODO - ??
-            CloseTextureSelectionWindow();
         }
 
         public void OnGUI()
@@ -60,11 +66,6 @@ namespace TUFX
             }
         }
 
-        public void CloseTextureSelectionWindow()
-        {
-            GameObject.Destroy(textureSelectionGUI);
-        }
-
         private void AddLabelRow(string text)
         {
             GUILayout.BeginHorizontal();
@@ -76,21 +77,32 @@ namespace TUFX
         {
             GUILayout.BeginHorizontal();
             GUILayout.Label("Mode: ", GUILayout.Width(100));
-            bool selectionMode = this.selectionMode;
-            if (selectionMode)
+            int selectionMode = this.selectionMode;
+            if (selectionMode==0)
             {
                 GUILayout.Label("Selection", GUILayout.Width(100));
                 if (GUILayout.Button("Change to Edit Mode", GUILayout.Width(200)))
                 {
-                    this.selectionMode = false;
+                    this.selectionMode = 1;
                 }
             }
-            else
+            else if(selectionMode==1)
             {
                 GUILayout.Label("Edit", GUILayout.Width(100));
                 if (GUILayout.Button("Change to Select Mode", GUILayout.Width(200)))
                 {
-                    this.selectionMode = true;
+                    this.selectionMode = 0;
+                }
+            }
+            else if (selectionMode >=2)//texture or spline edit modes
+            {
+                GUILayout.Label("Parameter", GUILayout.Width(100));
+                if (GUILayout.Button("Return to Edit Mode", GUILayout.Width(200)))
+                {
+                    this.selectionMode = 1;
+                    this.textures.Clear();
+                    this.effect = this.property = this.texture = string.Empty;
+                    textureUpdateCallback = null;
                 }
             }
             if (GUILayout.Button("Export Selected", GUILayout.Width(170)))
@@ -104,13 +116,21 @@ namespace TUFX
                 ScreenMessages.PostScreenMessage("<color=orange>Exported all profiles to KSP.log</color>", 5f, ScreenMessageStyle.UPPER_LEFT);
             }
             GUILayout.EndHorizontal();
-            if (selectionMode)
+            if (selectionMode == 0)
             {
                 renderSelectionWindow();
             }
-            else
+            else if (selectionMode == 1)
             {
                 renderConfigurationWindow();
+            }
+            else if (selectionMode == 2)
+            {
+                renderTextureSelectWindow();
+            }
+            else if (selectionMode == 3)
+            {
+                renderSplineConfigurationWindow();
             }
             GUI.DragWindow();
         }
@@ -169,6 +189,51 @@ namespace TUFX
             renderMotionBlurSettings();
             renderVignetteSettings();
             GUILayout.EndScrollView();
+        }
+
+        private void renderTextureSelectWindow()
+        {
+            GUILayout.BeginVertical();
+            GUILayout.Label("Effect: " + effect);
+            GUILayout.Label("Property: " + property);
+            GUILayout.Label("Current: " + texture);
+            texScrollPos = GUILayout.BeginScrollView(texScrollPos);
+            int len = textures.Count;
+            for (int i = 0; i < len; i++)
+            {
+                if (GUILayout.Button(textures[i].name, GUILayout.Width(340)))
+                {
+                    textureUpdateCallback?.Invoke(textures[i]);
+                    this.texture = textures[i].name;
+                }
+            }
+            GUILayout.FlexibleSpace();
+            GUILayout.EndScrollView();
+            GUILayout.EndVertical();
+            GUI.DragWindow();
+        }
+
+        private void renderSplineConfigurationWindow()
+        {
+
+        }
+
+        private void initializeTextureSelectMode(string effectName, string propertyName, string currentTextureName, Action<Texture2D> onSelect)
+        {
+            effect = property = texture = string.Empty;
+            textureUpdateCallback = null;
+            textures.Clear();
+            TUFXEffectTextureList list;
+            if (!TexturesUnlimitedFXLoader.INSTANCE.EffectTextureLists.TryGetValue(effectName, out list))
+            {
+                this.selectionMode = 1;
+                return;
+            }
+            textures.AddRange(list.GetTextures(propertyName));
+            effect = effectName;
+            property = propertyName;
+            texture = currentTextureName;
+            textureUpdateCallback = onSelect;
         }
 
         #region REGION Effect Settings Rendering
@@ -263,16 +328,28 @@ namespace TUFX
             {
                 //TODO -- enable/disable params based on mode and HDR
                 AddEnumParameter("Mode", cg.gradingMode);
-                AddTextureParameter("External LUT", cg.externalLut, BuiltinEffect.ColorGrading.ToString(), "ExternalLUT");
-                AddEnumParameter("Tonemapper", cg.tonemapper);
-                AddFloatParameter("T.Curve Toe Strength", cg.toneCurveToeStrength, 0, 1);
-                AddFloatParameter("T.Curve Toe Length", cg.toneCurveToeLength, 0, 1);
-                AddFloatParameter("T.Curve Shd Strength", cg.toneCurveShoulderStrength, 0, 1);
-                AddFloatParameter("T.Curve Shd Length", cg.toneCurveShoulderLength, 0, 64000);
-                AddFloatParameter("T.Curve Shd Angle", cg.toneCurveShoulderAngle, 0, 1);
-                AddFloatParameter("Tone Curve Gamma", cg.toneCurveGamma, 0.001f, 64000);
-                AddTextureParameter("LDR LUT", cg.ldrLut, BuiltinEffect.ColorGrading.ToString(), "LDRLUT");
-                AddFloatParameter("LDR LUT Contrib.", cg.ldrLutContribution, 0, 1);
+                if (cg.gradingMode == GradingMode.External)
+                {
+                    AddTextureParameter("External LUT", cg.externalLut, BuiltinEffect.ColorGrading.ToString(), "ExternalLUT");
+                }
+                else if (cg.gradingMode == GradingMode.LowDefinitionRange)
+                {
+                    AddTextureParameter("LDR LUT", cg.ldrLut, BuiltinEffect.ColorGrading.ToString(), "LDRLUT");
+                    AddFloatParameter("LDR LUT Contrib.", cg.ldrLutContribution, 0, 1);
+                }
+                else if (cg.gradingMode == GradingMode.HighDefinitionRange)
+                {
+                    AddEnumParameter("Tonemapper", cg.tonemapper);
+                    if (cg.tonemapper == Tonemapper.Custom)
+                    {
+                        AddFloatParameter("T.Curve Toe Strength", cg.toneCurveToeStrength, 0, 1);
+                        AddFloatParameter("T.Curve Toe Length", cg.toneCurveToeLength, 0, 1);
+                        AddFloatParameter("T.Curve Shd Strength", cg.toneCurveShoulderStrength, 0, 1);
+                        AddFloatParameter("T.Curve Shd Length", cg.toneCurveShoulderLength, 0, 64000);
+                        AddFloatParameter("T.Curve Shd Angle", cg.toneCurveShoulderAngle, 0, 1);
+                        AddFloatParameter("Tone Curve Gamma", cg.toneCurveGamma, 0.001f, 64000);
+                    }
+                }
                 AddFloatParameter("Temperature", cg.temperature, -100, 100);
                 AddFloatParameter("Tint", cg.tint, -100, 100);
                 AddColorParameter("ColorFilter", cg.colorFilter);
@@ -296,10 +373,13 @@ namespace TUFX
                 AddVector4Parameter("Gamma", cg.gamma);
                 AddVector4Parameter("Gain", cg.gain);
 
-                AddSplineParameter("MasterCurve", cg.masterCurve);
-                AddSplineParameter("RedCurve", cg.redCurve);
-                AddSplineParameter("GreenCurve", cg.greenCurve);
-                AddSplineParameter("BlueCurve", cg.blueCurve);
+                if (cg.gradingMode == GradingMode.LowDefinitionRange)
+                {
+                    AddSplineParameter("MasterCurve", cg.masterCurve);
+                    AddSplineParameter("RedCurve", cg.redCurve);
+                    AddSplineParameter("GreenCurve", cg.greenCurve);
+                    AddSplineParameter("BlueCurve", cg.blueCurve);
+                }
 
                 AddSplineParameter("HueVsHueCurve", cg.hueVsHueCurve);
                 AddSplineParameter("HueVsSatCurve", cg.hueVsSatCurve);
@@ -752,15 +832,13 @@ namespace TUFX
                 string texLabel = param.value == null ? "Nothing selected" : param.value.name;
                 if (GUILayout.Button(texLabel, GUILayout.Width(440)))
                 {
-                    if (textureSelectionGUI == null)
-                    {
-                        textureSelectionGUI = this.gameObject.AddOrGetComponent<TextureSelectionGUI>();
-                    }
+                    this.selectionMode = 2;
+                    this.texScrollPos = new Vector2();
                     Action<Texture2D> update = (a) => 
                     {
                         param.Override(a);
                     };
-                    textureSelectionGUI.Initialize(effect, paramName, texLabel, update, CloseTextureSelectionWindow);
+                    initializeTextureSelectMode(effect, paramName, texLabel, update);
                 }
             }
             else

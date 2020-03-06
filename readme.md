@@ -1,32 +1,36 @@
 ﻿# TexturesUnlimited Special Effects (TUFX)
 
-Brings the Unity Post Process Package (v2) into KSP, un-touched and as provided by the package developers (exception: minor helper methods added).
+Brings the Unity Post Process Package (v2) into KSP, un-touched and as provided by the package 
+developers (exception: minor helper methods added).
 
 ## Installation:
-From the distributed .zip package, extract the contents of the 'GameData/' subfolder, and place those contents into your
-KSP GameData/ folder; e.g. (XXX/KSP/GameData/TUFX).  
+From the distributed .zip package, extract the contents of the 'GameData/' subfolder, and place 
+those contents into your KSP GameData/ folder; e.g. (XXX/KSP/GameData/TUFX).  
 
-TUFX relies upon ModuleManager for database (re)loaded callbacks, and will not function unless ModuleManager is installed. 
-This dependency is included in the distribution package and should be installed into the root GameData/ folder.
+TUFX relies upon ModuleManager for database (re)loaded callbacks, and will not function unless 
+ModuleManager is installed. This dependency is included in the distribution package and should be
+ installed into the root GameData/ folder.
 
-TUFX fully supports in-game configuration reloading through ModuleManager; any edited (or new) profile configurations will be 
-reloaded from file, and the updated values made available to the effects systems.
+TUFX fully supports in-game configuration reloading through ModuleManager; any edited (or new)
+profile configurations will be reloaded from file, and the updated values made available to the 
+effects systems.
 
 ## Use:
-From within the flight, editor, space-center, or tracking station scenes, press the 'TUfx' app-launcher button to open the
-configuration UI.  
+From within the flight, editor, space-center, or tracking station scenes, press the 'TUfx' 
+app-launcher button to open the configuration UI.  
 
-The main screen on the UI allows for selecting of the profile for the currently active scene.  Click on one of the profile 
-buttons to select it and make it active for the current scene.  These changes are persistent, and stored in the savegame
-persistence file.  
+The main screen on the UI allows for selecting of the profile for the currently active scene.  
+Click on one of the profile buttons to select it and make it active for the current scene.  These 
+changes are persistent, and stored in the savegame persistence file.  
 
-In order to edit settings, press the 'Change to Edit Mode' button on the top of the UI.  This will display the configured
-values for each of the currently enabled effects, will provide methods to enable/disable each effect, and will provide
-methods to adjust each of the property values for each of the effects.
+In order to edit settings, press the 'Change to Edit Mode' button on the top of the UI.  This will 
+display the configured values for each of the currently enabled effects, will provide methods to 
+enable/disable each effect, and will provide methods to adjust each of the property values for each
+of the effects.
 
-Changes made through the UI are not permanent, and are only persistent until the game is restarted.  To make the changes 
-permanent, use the 'Export' buttons at the top of the UI; pressing these will export the profile(s) to the KSP.log file,
-where they can then be copied into a new CFG file.
+Changes made through the UI are not permanent, and are only persistent until the game is restarted. 
+To make the changes permanent, use the 'Export' buttons at the top of the UI; pressing these will 
+export the profile(s) to the KSP.log file, where they can then be copied into a new CFG file.
 
 ## Profile Config Syntax:
 
@@ -90,6 +94,137 @@ TUFX_PROFILE
     }
 }
 ````
+
+## Effects and Parameters
+Listed below will be each effect included in TUFX, the name it uses within the configuration files, 
+and the name of the parameters for the effects as used in both the profiles and texture 
+specifications.
+
+### Ambient Occlusion
+Listed as 'AmbientOcclusion' in configuration files.  Has the following fields:
+* Mode
+* Intensity
+* Color
+* AmbientOnly
+* NoiseFilterTolerance
+* BlurTolerance
+* UpsampleTolerance
+* ThicknessModifier
+* DirectLightingStrength
+* Radius
+* Quality
+
+### Auto Exposure
+Listed as 'AutoExposure' in configuration files.  Has the following fields:
+* Filtering
+* MinLuminance
+* MaxLuminance
+* KeyValue
+* EyeAdaption
+* SpeedUp
+* SpeedDown
+
+### Bloom
+Listed as 'Bloom' in configuration files.  Has the following fields:
+* Intensity
+* Threshold
+* SoftKnee
+* Clamp
+* Diffusion
+* AnamorphicRatio
+* Color
+* FastMode
+* DirtTexture
+* DirtIntensity
+
+### Chromatic Aberration
+Listed as 'ChromaticAberration' in configuration files.  Has the following fields:
+* SpectralLUT
+* Intensity
+* FastMode
+
+### Color Grading
+Listed as 'ColorGrading' in configuration files.  Has the following fields:
+* GradingMode
+* ExternalLUT
+* Tonemapper
+* ToneCurveToeStrength
+* ToneCurveToeLength
+* ToneCurveShoulderStrength
+* ToneCurveShoulderLength
+* ToneCurveShoulderAngle
+* ToneCurveGamma
+* LDRLUT
+* LDRLUTContribution
+* Temperature
+* Tint
+* ColorFilter
+* HueShift
+* Saturation
+* Brightness
+* PostExposure
+* Contrast
+* MixerRedOutRedIn
+* MixerRedOutGreenIn
+* MixerRedOutBlueIn
+* MixerGreenOutRedIn
+* MixerGreenOutGreenIn
+* MixerGreenOutBlueIn
+* MixerBlueOutRedIn
+* MixerBlueOutGreenIn
+* MixerBlueOutBlueIn
+* Lift
+* Gamma
+* Gain
+* MasterCurve
+* RedCurve
+* GreenCurve
+* BlueCurve
+* HueVsHueCurve
+* HueVsSatCurve
+* SatVsSatCurve
+* LumVsSatCurve
+
+### Depth Of Field
+Listed as 'DepthOfField' in configuration files.  Has the following fields:
+* FocusDistance
+* Aperture
+* FocalLength
+* KernelSize
+
+### Grain
+Listed as 'Grain' in configuration files.  Has the following fields:
+* Colored
+* Intensity
+* Size
+* LumContrib
+
+### Lens Distortion
+Listed as 'LensDistortion' in configuration files.  Has the following fields:
+* Intensity
+* IntensityX
+* IntensityY
+* CenterX
+* CenterY
+* Scale
+
+### Motion Blur
+Listed as 'MotionBlur' in configuration files.  Has the following fields:
+* ShutterAngle
+* SampleCount
+
+### Vignette
+Listed as 'Vignette' in configuration files.  Has the following fields:
+* Mode
+* Color
+* Center
+* Intensity
+* Smoothness
+* Roundness
+* Rounded
+* Mask
+* Opacity
+
 
 ## Licensing:
 * Custom code and classes (everything outside of the PostProcessing source folder) is under GPL3.0 or later license.
