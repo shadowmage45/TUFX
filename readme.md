@@ -3,6 +3,16 @@
 Brings the Unity Post Process Package (v2) into KSP, un-touched and as provided by the package 
 developers (exception: minor helper methods added).
 
+## Requirements:
+* **Windows / DirectX11** (sorry OSX and Linux users, complain to Unity; the effects **require** compute shader support)
+* ShaderModel 3.5 or later graphics hardware support (5.0+ recommended)
+* KSP 1.9.0 or later
+* No exceptions.  No OpenGL.  No DirectX12.  Definitely not DirectX9.
+* Any other requirements of the Unity Post Process package (look them up if interested)
+* KS3P will cause conflicts.  Choose one or the other.
+* Scatterer currently unsupported (it is not yet available for KSP 1.9+)
+* EVE currently unsupported (it is not yet available for KSP 1.9+)
+
 ## Installation:
 From the distributed .zip package, extract the contents of the 'GameData/' subfolder, and place 
 those contents into your KSP GameData/ folder; e.g. (XXX/KSP/GameData/TUFX).  

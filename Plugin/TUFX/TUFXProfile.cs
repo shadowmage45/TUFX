@@ -90,6 +90,11 @@ namespace TUFX
         public string ProfileName { get; private set; }
 
         /// <summary>
+        /// Configured value on if HDR is enabled for this profile or not.
+        /// </summary>
+        public bool HDREnabled { get; set; }
+
+        /// <summary>
         /// List of the override settings currently configured for this profile
         /// </summary>
         public readonly List<PostProcessEffectSettings> Settings = new List<PostProcessEffectSettings>();
@@ -125,6 +130,7 @@ namespace TUFX
             {
                 node.SetValue("name", ProfileName, true);
             }
+            node.SetValue("hdr", HDREnabled, true);
             int len = Settings.Count;
             for (int i = 0; i < len; i++)
             {
@@ -147,6 +153,7 @@ namespace TUFX
         public static void SaveProfile(PostProcessProfile profile, ConfigNode node)
         {
             node.SetValue("name", profile.name, true);
+            node.SetValue("hdr", true, true);
             int len = profile.settings.Count;
             for (int i = 0; i < len; i++)
             {
@@ -167,6 +174,7 @@ namespace TUFX
         public void LoadProfile(ConfigNode node)
         {
             ProfileName = node.GetStringValue("name");
+            HDREnabled = node.GetBoolValue("hdr", false);
             Settings.Clear();
             ConfigNode[] effectNodes = node.GetNodes("EFFECT");
             int len = effectNodes.Length;

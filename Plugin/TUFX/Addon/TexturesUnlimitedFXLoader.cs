@@ -504,7 +504,7 @@ namespace TUFX
             Camera activeCam = getActiveCamera();
             Log.debug("TUFX: enableProfile( " + profileName + " )  scene: ( "+HighLogic.LoadedScene+" ) map: ( "+isMapScene+" ) camera: ( "+activeCam?.name+" )");
             Log.debug(System.Environment.StackTrace);
-            if (previousCamera != activeCam)// previousScene != HighLogic.LoadedScene || isMapScene != wasMapScene)
+            if (previousCamera != activeCam)
             {
                 Log.log("Detected change of active camera; recreating post-process objects.");
                 if (volume != null)
@@ -531,7 +531,8 @@ namespace TUFX
                 Log.log("Enabling profile: " + profileName + ".  Current GameScene: " + HighLogic.LoadedScene);
                 TUFXProfile tufxProfile = Profiles[profileName];
                 Log.debug("Profile (hashcode): " + tufxProfile?.GetHashCode() + " :: "+tufxProfile?.ProfileName);
-                
+                Log.log("Setting HDR for camera: " + activeCam.name + " to: " + tufxProfile.HDREnabled);
+                activeCam.allowHDR = tufxProfile.HDREnabled;
                 layer = activeCam.gameObject.AddOrGetComponent<PostProcessLayer>();
                 layer.Init(Resources);
                 layer.volumeLayer = ~0;//everything //TODO -- fix layer assignment...
@@ -564,25 +565,20 @@ namespace TUFX
         }
 
         /// <summary>
-        /// Internal method to be used by the debug GUI to enable HDR on the KSP cameras.  This apparently still causes a few rendering issues, and will need further investigation
-        /// before the feature can be re-enabled.
+        /// Internal method to toggle the HDR setting on the current profile, and apply it to the active camera for the scene
         /// </summary>
-        [Obsolete("Unused and unusable pending investigation of rending issues.")]
-        internal static void onHDRToggled()
+        internal void onHDRToggled()
         {
-            Log.debug("Toggling HDR");
-            Camera[] cams = GameObject.FindObjectsOfType<Camera>();
-            int len = cams.Length;
-            Log.debug("Found cameras: " + len);
-            for (int i = 0; i < len; i++)
+            Camera activeCam = getActiveCamera();
+            if (CurrentProfile != null && activeCam != null)
             {
-                Log.debug("Camera: " + cams[i].name);
-                //TODO -- other KSP 3d cameras (not UI)
-                if (cams[i].name == "Camera 00" || cams[i].name == "Camera 01")
-                {
-                    //cams[i].allowHDR = EffectManager.hdrEnabled;
-                    //TODO -- re-add HDR effect storage somewhere
-                }
+                CurrentProfile.HDREnabled = !CurrentProfile.HDREnabled;
+                activeCam.allowHDR = CurrentProfile.HDREnabled;
+                Log.log("Toggled HDR for camera: " + activeCam.name + " to: " + CurrentProfile.HDREnabled);
+            }
+            else
+            {
+                Log.exception("Attempted to toggle HDR while either the profile or camera were null.  Profile: " + CurrentProfile?.ProfileName + " camera: " + activeCam?.name);
             }
         }
 

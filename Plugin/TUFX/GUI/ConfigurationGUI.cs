@@ -178,6 +178,7 @@ namespace TUFX
             GUILayout.EndHorizontal();
             GUI.contentColor = c;
             editScrollPos = GUILayout.BeginScrollView(editScrollPos, false, true);
+            renderHDRSettings();
             renderAmbientOcclusionSettings();
             renderAutoExposureSettings();
             renderBloomSettings();
@@ -237,6 +238,28 @@ namespace TUFX
         }
 
         #region REGION Effect Settings Rendering
+
+        private void renderHDRSettings()
+        {
+            GUILayout.BeginHorizontal();
+            GUILayout.Label("----- HDR", GUILayout.Width(200));
+            bool enabled = TexturesUnlimitedFXLoader.INSTANCE.CurrentProfile.HDREnabled;
+            if (enabled) //if it is enabled, draw button to disable it
+            {
+                if (GUILayout.Button("Disable", GUILayout.Width(100)))
+                {
+                    TexturesUnlimitedFXLoader.INSTANCE.onHDRToggled();
+                }
+            }
+            else //else draw the button to enable it
+            {
+                if (GUILayout.Button("Enable", GUILayout.Width(100)))
+                {
+                    TexturesUnlimitedFXLoader.INSTANCE.onHDRToggled();
+                }
+            }
+            GUILayout.EndHorizontal();
+        }
 
         private void renderAmbientOcclusionSettings()
         {
