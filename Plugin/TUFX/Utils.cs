@@ -342,7 +342,12 @@ namespace TUFX
 
     public static class Log
     {
-        public static void debug(string msg) { MonoBehaviour.print("[TUFX-DEBUG] " + msg); }
+        public static void debug(string msg)
+        {
+#if DEBUG
+            MonoBehaviour.print("[TUFX-DEBUG] " + msg);
+#endif
+        }
         public static void log(string msg) { MonoBehaviour.print("[TUFX] " + msg); }
         public static void exception(string msg) { MonoBehaviour.print("[TUFX-ERROR] " + msg); }
     }

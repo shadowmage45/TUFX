@@ -24,7 +24,8 @@ namespace TUFX
         private Dictionary<string, Shader> shaders = new Dictionary<string, Shader>();
         private Dictionary<string, ComputeShader> computeShaders = new Dictionary<string, ComputeShader>();
         private Dictionary<string, Texture2D> textures = new Dictionary<string, Texture2D>();
-        private Dictionary<string, TUFXEffectTextureList> effectTextureLists = new Dictionary<string, TUFXEffectTextureList>();//TODO -- load textures into storage
+
+        internal Dictionary<string, TUFXEffectTextureList> EffectTextureLists { get; private set; } = new Dictionary<string, TUFXEffectTextureList>();
 
         /// <summary>
         /// The currently loaded profiles.
@@ -78,64 +79,9 @@ namespace TUFX
                 loadResources();
             }
 
-            //yeah, wow, that got ugly fast...
-            effectTextureLists.Clear();
-            ConfigNode[] textureListNodes = GameDatabase.Instance.GetConfigNodes("TUFX_TEXTURES");
-            int len = textureListNodes.Length;
-            for (int i = 0; i < len; i++)
-            {
-                Log.debug("Loading TUFX_TEXTURES[" + textureListNodes[i].GetValue("name") + "]");
-                ConfigNode[] effectTextureLists = textureListNodes[i].GetNodes("EFFECT");
-                int len2 = effectTextureLists.Length;
-                for (int k = 0; k < len2; k++)
-                {
-                    string effectName = effectTextureLists[k].GetValue("name");
-                    TUFXEffectTextureList etl;
-                    if (!this.effectTextureLists.TryGetValue(effectName, out etl))
-                    {
-                        this.effectTextureLists[effectName] = etl = new TUFXEffectTextureList();
-                    }
-                    string[] names = effectTextureLists[k].values.DistinctNames();
-                    int len3 = names.Length;
-                    for (int m = 0; m < len3; m++)
-                    {
-                        string[] values = effectTextureLists[k].GetValues(names[m]);
-                        int len4 = values.Length;
-                        for (int r = 0; r < len4; r++)
-                        {
-                            Texture2D tex = GameDatabase.Instance.GetTexture(values[r], false);
-                            if (tex != null)
-                            {
-                                etl.AddTexture(names[m], tex);
-                            }
-                            else
-                            {
-                                Log.exception("Texture specified by path: " + values[r] + " was not found when attempting to load textures for effect: " + effectName + " propertyName: " + names[m]);
-                            }
-                        }
-                    }
-                }
-            }
+            loadTextures();
 
-            //discard the existing profile reference, if any
-            currentProfile = null;
-            //clear profiles in case of in-game reload
-            Profiles.Clear();
-            //grab all profiles detected in global scope config nodes, load them into local storage
-            ConfigNode[] profileConfigs = GameDatabase.Instance.GetConfigNodes("TUFX_PROFILE");
-            len = profileConfigs.Length;
-            for (int i = 0; i < len; i++)
-            {
-                TUFXProfile profile = new TUFXProfile(profileConfigs[i]);
-                if (!Profiles.ContainsKey(profile.ProfileName))
-                {
-                    Profiles.Add(profile.ProfileName, profile);
-                }
-                else
-                {
-                    Log.exception("TUFX Profiles already contains profile for name: " + profile.ProfileName + ".  This is the result of a duplicate configuration; please check your configurations and remove any duplicates.");
-                }
-            }
+            loadProfiles();
 
             //If configs are reloaded via module-manager from the space center scene... reload and reapply the currently selected profile from game persistence data
             //if for some reason that profile does not exist, nothing will be applied and an error will be logged.
@@ -258,6 +204,84 @@ namespace TUFX
             #endregion
         }
 
+        private void loadTextures()
+        {
+            //yeah, wow, that got ugly fast...
+            EffectTextureLists.Clear();
+            ConfigNode[] textureListNodes = GameDatabase.Instance.GetConfigNodes("TUFX_TEXTURES");
+            int len = textureListNodes.Length;
+            for (int i = 0; i < len; i++)
+            {
+                Log.debug("Loading TUFX_TEXTURES[" + textureListNodes[i].GetValue("name") + "]");
+                ConfigNode[] effectTextureLists = textureListNodes[i].GetNodes("EFFECT");
+                int len2 = effectTextureLists.Length;
+                for (int k = 0; k < len2; k++)
+                {
+                    string effectName = effectTextureLists[k].GetValue("name");
+                    Log.debug("Loading EFFECT[" + effectName + "]");
+                    if (!this.EffectTextureLists.TryGetValue(effectName, out TUFXEffectTextureList etl))
+                    {
+                        this.EffectTextureLists[effectName] = etl = new TUFXEffectTextureList();
+                    }
+                    string[] names = effectTextureLists[k].values.DistinctNames();
+                    int len3 = names.Length;
+                    for (int m = 0; m < len3; m++)
+                    {
+                        string propName = names[m];
+                        if (propName == "name") { continue; }//don't load textures for the 'name=' entry in the configs
+                        Log.debug("Loading Textures for property [" + propName + "]");
+                        string[] values = effectTextureLists[k].GetValues(propName);
+                        int len4 = values.Length;
+                        for (int r = 0; r < len4; r++)
+                        {
+                            string texName = values[r];
+                            Log.debug("Loading Texture for name [" + texName + "]");
+                            Texture2D tex = GameDatabase.Instance.GetTexture(texName, false);
+                            if (tex != null)
+                            {
+                                if (!etl.ContainsTexture(propName, tex))
+                                {
+                                    etl.AddTexture(propName, tex);
+                                }
+                                else
+                                {
+                                    Log.log("Ignoring duplicate texture: " + texName + " for effect: " + effectName + " property: " + propName);
+                                }
+                            }
+                            else
+                            {
+                                Log.exception("Texture specified by path: " + texName + " was not found when attempting to load textures for effect: " + effectName + " propertyName: " + propName);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        private void loadProfiles()
+        {
+            //discard the existing profile reference, if any
+            currentProfile = null;
+            //clear profiles in case of in-game reload
+            Profiles.Clear();
+            //grab all profiles detected in global scope config nodes, load them into local storage
+            ConfigNode[] profileConfigs = GameDatabase.Instance.GetConfigNodes("TUFX_PROFILE");
+            int len = profileConfigs.Length;
+            for (int i = 0; i < len; i++)
+            {
+                TUFXProfile profile = new TUFXProfile(profileConfigs[i]);
+                if (!Profiles.ContainsKey(profile.ProfileName))
+                {
+                    Profiles.Add(profile.ProfileName, profile);
+                }
+                else
+                {
+                    Log.exception("TUFX Profiles already contains profile for name: " + profile.ProfileName + ".  This is the result of a configuration with" +
+                        " a duplicate name; please check your configurations and remove any duplicates.  Only the first configuration parsed for any one name will be loaded.");
+                }
+            }
+        }
+
         /// <summary>
         /// Internal function to retrieve a shader from the dictionary, by name.  These names will include the package level prefixing, e.g. 'Unity/Foo/Bar/ShaderName'
         /// </summary>
@@ -331,6 +355,7 @@ namespace TUFX
                 Log.debug("TUFX - Removing AppLauncher button...");
                 ApplicationLauncher.Instance.RemoveModApplication(configAppButton);
             }
+            configGuiDisable();
             //on scene change, reset the map-scene flag
             //scene change into flight-scene is never directly into map mode, so this will only be true if the current scene is the tracking station
             isMapScene = scene == GameScenes.TRACKSTATION;
@@ -343,6 +368,7 @@ namespace TUFX
         /// </summary>
         private void mapEntered()
         {
+            configGuiDisable();
             Log.debug("Map view entered ( " + HighLogic.LoadedScene + " ).\n" + System.Environment.StackTrace);
             Log.debug("Main camera: " + Camera.main?.GetHashCode());
             Log.debug("Flight camera: " + FlightCamera.fetch?.mainCamera?.GetHashCode());
@@ -362,6 +388,7 @@ namespace TUFX
         /// </summary>
         private void mapExited()
         {
+            configGuiDisable();
             Log.debug("Map view closed ( "+HighLogic.LoadedScene+" ).\n" + System.Environment.StackTrace);
             Log.debug("Main camera: " + Camera.main?.GetHashCode());
             Log.debug("Flight camera: " + FlightCamera.fetch?.mainCamera?.GetHashCode());

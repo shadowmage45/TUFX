@@ -32,6 +32,7 @@ namespace TUFX
             {
                 propertyTextures[propertyName] = textures = new List<Texture2D>();
             }
+            textures.AddUnique(texture);
         }
 
         /// <summary>
@@ -44,9 +45,15 @@ namespace TUFX
             List<Texture2D> textures;
             if (!propertyTextures.TryGetValue(propertyName, out textures))
             {
+                Log.debug("No textures found for property: " + propertyName);
                 return new List<Texture2D>();//because C# doesn't have a static (and typed) empty list construct?
             }
             return textures;
+        }
+
+        public bool ContainsTexture(string propertyName, Texture2D tex)
+        {
+            return GetTextures(propertyName).Contains(tex);
         }
 
     }

@@ -31,11 +31,19 @@ namespace TUFX
 
         private bool selectionMode = true;
 
+        private TextureSelectionGUI textureSelectionGUI;
+
         public void Awake()
         {
             windowID = GetInstanceID();
             profileNames.Clear();
             profileNames.AddRange(TexturesUnlimitedFXLoader.INSTANCE.Profiles.Keys);
+        }
+
+        public void OnDestroy()
+        {
+            //TODO - ??
+            CloseTextureSelectionWindow();
         }
 
         public void OnGUI()
@@ -50,6 +58,11 @@ namespace TUFX
                 MonoBehaviour.print(e.Message);
                 MonoBehaviour.print(System.Environment.StackTrace);
             }
+        }
+
+        public void CloseTextureSelectionWindow()
+        {
+            GameObject.Destroy(textureSelectionGUI);
         }
 
         private void AddLabelRow(string text)
@@ -217,7 +230,7 @@ namespace TUFX
                 AddFloatParameter("Anamorphic Ratio", bl.anamorphicRatio, -1, 1);
                 AddColorParameter("Color", bl.color);
                 AddBoolParameter("Fast Mode", bl.fastMode);
-                AddTextureParameter("Dirt Texture", bl.dirtTexture);
+                AddTextureParameter("Dirt Texture", bl.dirtTexture, BuiltinEffect.Bloom.ToString(), "DirtTexture");
                 AddFloatParameter("Dirt Intensity", bl.dirtIntensity, 0, 2);
             }
             GUILayout.BeginHorizontal();
@@ -232,7 +245,7 @@ namespace TUFX
             bool showProps = AddEffectHeader("Chromatic Aberration", ca);
             if (enabled && showProps)
             {
-                AddTextureParameter("Spectral LUT", ca.spectralLut);
+                AddTextureParameter("Spectral LUT", ca.spectralLut, BuiltinEffect.ChromaticAberration.ToString(), "SpectralLUT");
                 AddFloatParameter("Intensity", ca.intensity, 0, 1);
                 AddBoolParameter("Fast Mode", ca.fastMode);
             }
@@ -248,8 +261,9 @@ namespace TUFX
             bool showProps = AddEffectHeader("Color Grading", cg);
             if (enabled && showProps)
             {
+                //TODO -- enable/disable params based on mode and HDR
                 AddEnumParameter("Mode", cg.gradingMode);
-                AddTextureParameter("External LUT", cg.externalLut);
+                AddTextureParameter("External LUT", cg.externalLut, BuiltinEffect.ColorGrading.ToString(), "ExternalLUT");
                 AddEnumParameter("Tonemapper", cg.tonemapper);
                 AddFloatParameter("T.Curve Toe Strength", cg.toneCurveToeStrength, 0, 1);
                 AddFloatParameter("T.Curve Toe Length", cg.toneCurveToeLength, 0, 1);
@@ -257,7 +271,7 @@ namespace TUFX
                 AddFloatParameter("T.Curve Shd Length", cg.toneCurveShoulderLength, 0, 64000);
                 AddFloatParameter("T.Curve Shd Angle", cg.toneCurveShoulderAngle, 0, 1);
                 AddFloatParameter("Tone Curve Gamma", cg.toneCurveGamma, 0.001f, 64000);
-                AddTextureParameter("LDR LUT", cg.ldrLut);
+                AddTextureParameter("LDR LUT", cg.ldrLut, BuiltinEffect.ColorGrading.ToString(), "LDRLUT");
                 AddFloatParameter("LDR LUT Contrib.", cg.ldrLutContribution, 0, 1);
                 AddFloatParameter("Temperature", cg.temperature, -100, 100);
                 AddFloatParameter("Tint", cg.tint, -100, 100);
@@ -379,7 +393,7 @@ namespace TUFX
                 AddFloatParameter("Smoothness", vg.smoothness, 0.01f, 1f);
                 AddFloatParameter("Roundness", vg.roundness, 0, 1);
                 AddBoolParameter("Rounded", vg.rounded);
-                AddTextureParameter("Mask", vg.mask);
+                AddTextureParameter("Mask", vg.mask, BuiltinEffect.Vignette.ToString(), "Mask");
                 AddFloatParameter("Opacity", vg.opacity, 0, 1);
             }
             GUILayout.BeginHorizontal();
@@ -724,7 +738,7 @@ namespace TUFX
             GUILayout.EndHorizontal();
         }
 
-        private void AddTextureParameter(string label, ParameterOverride<Texture> param)//TODO
+        private void AddTextureParameter(string label, ParameterOverride<Texture> param, string effect, string paramName)
         {
             GUILayout.BeginHorizontal();
             GUILayout.Label(label, GUILayout.Width(200));
@@ -735,9 +749,18 @@ namespace TUFX
                 {
                     param.overrideState = false;
                 }
-                if (GUILayout.Button(param.value?.name, GUILayout.Width(440)))
+                string texLabel = param.value == null ? "Nothing selected" : param.value.name;
+                if (GUILayout.Button(texLabel, GUILayout.Width(440)))
                 {
-                    //TODO
+                    if (textureSelectionGUI == null)
+                    {
+                        textureSelectionGUI = this.gameObject.AddOrGetComponent<TextureSelectionGUI>();
+                    }
+                    Action<Texture2D> update = (a) => 
+                    {
+                        param.Override(a);
+                    };
+                    textureSelectionGUI.Initialize(effect, paramName, texLabel, update, CloseTextureSelectionWindow);
                 }
             }
             else
