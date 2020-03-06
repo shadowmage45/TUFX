@@ -213,7 +213,7 @@ namespace TUFX
             GUI.DragWindow();
         }
 
-        private void renderSplineConfigurationWindow()
+        private void renderSplineConfigurationWindow()//TODO - spline configuration window
         {
 
         }
@@ -811,7 +811,7 @@ namespace TUFX
             GUILayout.EndHorizontal();
         }
 
-        private void AddSplineParameter(string label, ParameterOverride<Spline> param)//TODO
+        private void AddSplineParameter(string label, ParameterOverride<Spline> param)//TODO spine parameter configuration rendering
         {
             GUILayout.BeginHorizontal();
             GUILayout.Label("TODO - Spline parameter.");
