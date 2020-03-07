@@ -186,15 +186,6 @@ namespace TUFX
             }
             bundle.Unload(false);
 
-            bundle = AssetBundle.LoadFromFile(KSPUtil.ApplicationRootPath + "GameData/TUFX/Textures/tufx-tex-lensdirt.ssf");
-            tex = bundle.LoadAllAssets<Texture2D>();
-            len = tex.Length;
-            for (int i = 0; i < len; i++)
-            {
-                textures.Add(tex[i].name, tex[i]);
-            }
-            bundle.Unload(false);
-
             bundle = AssetBundle.LoadFromFile(KSPUtil.ApplicationRootPath + "GameData/TUFX/Textures/tufx-tex-smaa.ssf");
             tex = bundle.LoadAllAssets<Texture2D>();
             len = tex.Length;
@@ -613,7 +604,10 @@ namespace TUFX
                 GameObject.Destroy(configGUI);
                 configGUI = null;
             }
-            configAppButton?.Disable(false);
+            if (configAppButton != null && configAppButton.toggleButton != null)
+            {
+                configAppButton.toggleButton.Value = false;
+            }
         }
 
         /// <summary>
