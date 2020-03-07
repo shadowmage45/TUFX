@@ -5,7 +5,7 @@ versionFile = GameData/TUFX/TexturesUnlimitedFX.version
 //simply zip it up and export it to the parent directory
 ZIP:TUFX-%version%.zip
 {
-    +d GameData/TUFX:GameData/TUFX
+    +d GameData:GameData
 	+f readme.md:GameData/TUFX/readme.md
 	+f LICENSE.txt:GameData/TUFX/LICENSE.txt
 }
