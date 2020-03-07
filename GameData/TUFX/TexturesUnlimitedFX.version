@@ -1,14 +1,14 @@
 {
 	"NAME":"TexturesUnlimitedFX",
 	"URL":"https://raw.githubusercontent.com/shadowmage45/TUFX/master/GameData/TUFX/TexturesUnlimitedFX.version",
-	"DOWNLOAD":"https://github.com/shadowmage45/TUFX/releases/tag/1.0.0.1",
-	"CHANGE_LOG_URL":"https://github.com/shadowmage45/TUFX/releases/tag/1.0.0.1",
+	"DOWNLOAD":"https://github.com/shadowmage45/TUFX/releases/tag/1.0.1.2",
+	"CHANGE_LOG_URL":"https://github.com/shadowmage45/TUFX/releases/tag/1.0.1.2",
 	"VERSION":
 	{
 		"MAJOR":1,
 		"MINOR":0,
-		"PATCH":0,
-		"BUILD":1
+		"PATCH":1,
+		"BUILD":2
 	},
 	"KSP_VERSION":
 	{
