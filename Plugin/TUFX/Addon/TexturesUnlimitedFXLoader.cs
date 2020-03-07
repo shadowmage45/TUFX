@@ -33,6 +33,9 @@ namespace TUFX
         /// </summary>
         internal Dictionary<string, TUFXProfile> Profiles { get; private set; } = new Dictionary<string, TUFXProfile>();
 
+        private string mainMenuProfile = "Default-MainMenu";//TODO -- load from config
+        public string MainMenuProfileName => mainMenuProfile;
+
         private PostProcessLayer layer;
         private PostProcessVolume volume;
         private GameScenes previousScene=GameScenes.LOADING;
@@ -416,6 +419,9 @@ namespace TUFX
         {
             switch (scene)
             {
+                case GameScenes.MAINMENU:
+                    mainMenuProfile = profile;
+                    break;
                 case GameScenes.SPACECENTER:
                     HighLogic.CurrentGame.Parameters.CustomParams<TUFXGameSettings>().SpaceCenterSceneProfile = profile;
                     break;
@@ -452,7 +458,7 @@ namespace TUFX
             switch (HighLogic.LoadedScene)
             {
                 case GameScenes.MAINMENU:
-                    //TODO -- enable profiles for the main-menu
+                    profileName = MainMenuProfileName;
                     break;
                 case GameScenes.SPACECENTER:
                     profileName = HighLogic.CurrentGame.Parameters.CustomParams<TUFXGameSettings>().SpaceCenterSceneProfile;
@@ -485,10 +491,11 @@ namespace TUFX
         private Camera getActiveCamera()
         {
             Camera activeCam = null;
-            if (HighLogic.LoadedScene == GameScenes.TRACKSTATION) { activeCam = PlanetariumCamera.Camera; }
+            if (HighLogic.LoadedScene == GameScenes.MAINMENU) { activeCam = Camera.main; }//TODO -- verify this is the correct camera?
+            else if (HighLogic.LoadedScene == GameScenes.TRACKSTATION) { activeCam = PlanetariumCamera.Camera; }
             //else if (HighLogic.LoadedScene == GameScenes.EDITOR) { activeCam = null; }// EditorCamera.Instance.cam; } // TODO simply referencing this camera screws up the editor scene... (incorrect matrix? wrong camera ref? is this a UI camera?)
             //else if (HighLogic.LoadedScene == GameScenes.EDITOR) { activeCam = null; }// Camera.main; }//TODO -- this one isn't the right camera either....
-            else if (HighLogic.LoadedScene == GameScenes.SPACECENTER) { activeCam = Camera.main; }//TODO -- verify this is the correct camera?
+            else if (HighLogic.LoadedScene == GameScenes.SPACECENTER) { activeCam = Camera.main; }
             else if (HighLogic.LoadedScene == GameScenes.FLIGHT) { activeCam = isMapScene ? PlanetariumCamera.Camera : FlightCamera.fetch.mainCamera; }
             else { Log.exception("Could not locate camera for scene: " + HighLogic.LoadedScene); }
             return activeCam;

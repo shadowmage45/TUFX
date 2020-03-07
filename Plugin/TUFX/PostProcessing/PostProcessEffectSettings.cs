@@ -192,19 +192,19 @@ namespace UnityEngine.Rendering.PostProcessing
         internal void loadSplineParameter(ConfigNode node, string name, ParameterOverride<Spline> param)
         {
             //TODO -- load zero point and range values
-            ConfigNode splineNode = node.GetNode("SPLINE", "name", name);
-            string[] keys = splineNode.GetValues("key");
-            List<Keyframe> frames = new List<Keyframe>();
-            int len = keys.Length;
-            for (int i = 0; i < len; i++)
-            {
-                float[] vals = Utils.safeParseFloatArray(keys[i]);
-                Keyframe frame = new Keyframe(vals[0], vals[1], vals[2], vals[3], vals[4], vals[5]);
-                frames.Add(frame);
-            }
-            frames.Sort((a, b) => { return a.time.CompareTo(b.time); });
-            Spline spline = new Spline(new AnimationCurve(frames.ToArray()), 0f, false, new Vector2(0f, 1f));
-            param.Override(spline);
+            //ConfigNode splineNode = node.GetNode("SPLINE", "name", name);
+            //string[] keys = splineNode.GetValues("key");
+            //List<Keyframe> frames = new List<Keyframe>();
+            //int len = keys.Length;
+            //for (int i = 0; i < len; i++)
+            //{
+            //    float[] vals = Utils.safeParseFloatArray(keys[i]);
+            //    Keyframe frame = new Keyframe(vals[0], vals[1], vals[2], vals[3], vals[4], vals[5]);
+            //    frames.Add(frame);
+            //}
+            //frames.Sort((a, b) => { return a.time.CompareTo(b.time); });
+            //Spline spline = new Spline(new AnimationCurve(frames.ToArray()), 0f, false, new Vector2(0f, 1f));
+            //param.Override(spline);
         }
 
         internal void saveBoolParameter(ConfigNode node, string name, ParameterOverride<bool> param)
@@ -252,20 +252,22 @@ namespace UnityEngine.Rendering.PostProcessing
 
         internal void saveSplineParameter(ConfigNode node, string name, ParameterOverride<Spline> param)
         {
+            if (!param.overrideState) { return; }
             //TODO -- save the zero value and range of the spline
-            ConfigNode splineNode = new ConfigNode("SPLINE");
-            splineNode.SetValue("name", name);
-            Spline spline = param.value;
-            AnimationCurve animCurve = spline.curve;
-            Keyframe[] keys = animCurve.keys;
-            int len = keys.Length;
-            string val;
-            for (int i = 0; i < len; i++)
-            {
-                val = keys[i].time + "," + keys[i].value + "," + keys[i].inTangent + "," + keys[i].outTangent + "," + keys[i].inWeight + "," + keys[i].outWeight;
-                splineNode.AddValue("key", val);
-            }
-            node.AddNode(splineNode);
+            //TODO -- save spline name
+            //ConfigNode splineNode = new ConfigNode("SPLINE");
+            //splineNode.SetValue("name", name);
+            //Spline spline = param.value;
+            //AnimationCurve animCurve = spline.curve;
+            //Keyframe[] keys = animCurve.keys;
+            //int len = keys.Length;
+            //string val;
+            //for (int i = 0; i < len; i++)
+            //{
+            //    val = keys[i].time + "," + keys[i].value + "," + keys[i].inTangent + "," + keys[i].outTangent + "," + keys[i].inWeight + "," + keys[i].outWeight;
+            //    splineNode.AddValue("key", val);
+            //}
+            //node.AddNode(splineNode);
         }
 
         internal void saveVector2Parameter(ConfigNode node, string name, ParameterOverride<Vector2> param)
