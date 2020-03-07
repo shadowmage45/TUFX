@@ -28,6 +28,8 @@ namespace UnityEngine.Rendering.PostProcessing
         [SerializeField]
         bool m_Loop;
 
+        public bool Loop => m_Loop;
+
         [SerializeField]
         float m_ZeroValue;
 

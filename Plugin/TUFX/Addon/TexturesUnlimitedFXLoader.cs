@@ -33,7 +33,7 @@ namespace TUFX
         /// </summary>
         internal Dictionary<string, TUFXProfile> Profiles { get; private set; } = new Dictionary<string, TUFXProfile>();
 
-        private string mainMenuProfile = "Default-MainMenu";//TODO -- load from config
+        private string mainMenuProfile = "Default-MainMenu";
         public string MainMenuProfileName => mainMenuProfile;
 
         private PostProcessLayer layer;
@@ -283,6 +283,11 @@ namespace TUFX
                         " a duplicate name; please check your configurations and remove any duplicates.  Only the first configuration parsed for any one name will be loaded.");
                 }
             }
+            ConfigNode config = GameDatabase.Instance.GetConfigNodes("TUFX_CONFIGURATION").FirstOrDefault(m=>m.GetValue("name")=="Default");
+            if (config != null)
+            {
+                mainMenuProfile = config.GetStringValue("MainMenuProfile", mainMenuProfile);
+            }
         }
 
         /// <summary>
@@ -409,7 +414,6 @@ namespace TUFX
         /// <summary>
         /// Public method to specify a new profile name for the input game scene (and map view setting, in the case of flight-scene).
         /// This will udpate the game persistence data with the name specified, and optionally enable the profile now.
-        /// //TODO -- support main-menu post-processing profile.
         /// </summary>
         /// <param name="profile"></param>
         /// <param name="scene">the game scene to which the new profile should be applied</param>
@@ -450,7 +454,6 @@ namespace TUFX
 
         /// <summary>
         /// Looks up the profile for the current scene from the game persistence data and attempts to enable it.
-        /// //TODO -- support main-menu post-processing profile.
         /// </summary>
         internal void enableProfileForCurrentScene()
         {
@@ -491,7 +494,7 @@ namespace TUFX
         private Camera getActiveCamera()
         {
             Camera activeCam = null;
-            if (HighLogic.LoadedScene == GameScenes.MAINMENU) { activeCam = Camera.main; }//TODO -- verify this is the correct camera?
+            if (HighLogic.LoadedScene == GameScenes.MAINMENU) { activeCam = Camera.main; }
             else if (HighLogic.LoadedScene == GameScenes.TRACKSTATION) { activeCam = PlanetariumCamera.Camera; }
             //else if (HighLogic.LoadedScene == GameScenes.EDITOR) { activeCam = null; }// EditorCamera.Instance.cam; } // TODO simply referencing this camera screws up the editor scene... (incorrect matrix? wrong camera ref? is this a UI camera?)
             //else if (HighLogic.LoadedScene == GameScenes.EDITOR) { activeCam = null; }// Camera.main; }//TODO -- this one isn't the right camera either....
@@ -610,8 +613,7 @@ namespace TUFX
                 GameObject.Destroy(configGUI);
                 configGUI = null;
             }
-            //TODO -- manually toggle the state of the applicationlauncher button?  Do those even have state toggles?
-            //configAppButton.//something
+            configAppButton?.Disable(false);
         }
 
         /// <summary>

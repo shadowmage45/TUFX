@@ -349,7 +349,6 @@ namespace TUFX
             bool showProps = AddEffectHeader("Color Grading", cg);
             if (enabled && showProps)
             {
-                //TODO -- enable/disable params based on mode and HDR
                 AddEnumParameter("Mode", cg.gradingMode);
                 if (cg.gradingMode == GradingMode.External)
                 {

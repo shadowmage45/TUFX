@@ -7,6 +7,7 @@ using System.Collections.Generic;
 
 namespace UnityEngine.Rendering.PostProcessing
 {
+
     /// <summary>
     /// The base class for all post-processing effect settings. Any <see cref="ParameterOverride"/>
     /// members found in this class will be automatically handled and interpolated by the volume
@@ -155,7 +156,6 @@ namespace UnityEngine.Rendering.PostProcessing
             {
                 return;
             }
-            //TODO -- find better method for texture references...
             string texName = node.GetValue(name);
             Texture2D texture = null;
             if (texName.StartsWith("BUILTIN:"))
@@ -163,7 +163,7 @@ namespace UnityEngine.Rendering.PostProcessing
                 texName = texName.Substring(8);
                 texture = TexturesUnlimitedFXLoader.INSTANCE.getTexture(texName);
             }
-            else if (texName.StartsWith("LOADED:"))
+            else
             {
                 texName = texName.Substring(7);
                 texture = GameDatabase.Instance.GetTexture(texName, false);
@@ -191,20 +191,28 @@ namespace UnityEngine.Rendering.PostProcessing
 
         internal void loadSplineParameter(ConfigNode node, string name, ParameterOverride<Spline> param)
         {
-            //TODO -- load zero point and range values
-            //ConfigNode splineNode = node.GetNode("SPLINE", "name", name);
-            //string[] keys = splineNode.GetValues("key");
-            //List<Keyframe> frames = new List<Keyframe>();
-            //int len = keys.Length;
-            //for (int i = 0; i < len; i++)
-            //{
-            //    float[] vals = Utils.safeParseFloatArray(keys[i]);
-            //    Keyframe frame = new Keyframe(vals[0], vals[1], vals[2], vals[3], vals[4], vals[5]);
-            //    frames.Add(frame);
-            //}
-            //frames.Sort((a, b) => { return a.time.CompareTo(b.time); });
-            //Spline spline = new Spline(new AnimationCurve(frames.ToArray()), 0f, false, new Vector2(0f, 1f));
-            //param.Override(spline);
+            Log.debug("Loading spline for: " + GetType() + " with name: " + name);
+            ConfigNode splineNode = node.GetNode("SPLINE", "name", name);
+            Log.debug("Node: " + splineNode);
+            if (splineNode == null)
+            {
+                Log.debug("Node was null...");
+                return;
+            }
+            string[] keys = splineNode.GetValues("key");
+            List<Keyframe> frames = new List<Keyframe>();
+            int len = keys.Length;
+            for (int i = 0; i < len; i++)
+            {
+                float[] vals = Utils.safeParseFloatArray(keys[i]);
+                Keyframe frame = new Keyframe(vals[0], vals[1], vals[2], vals[3], vals[4], vals[5]);
+                frames.Add(frame);
+            }
+            frames.Sort((a, b) => { return a.time.CompareTo(b.time); });
+            float zero = splineNode.GetFloatValue("zero");
+            bool loop = splineNode.GetBoolValue("loop");
+            Spline spline = new Spline(new AnimationCurve(frames.ToArray()), zero, loop, new Vector2(0f, 1f));
+            param.Override(spline);
         }
 
         internal void saveBoolParameter(ConfigNode node, string name, ParameterOverride<bool> param)
@@ -225,7 +233,6 @@ namespace UnityEngine.Rendering.PostProcessing
         internal void saveTextureParameter(ConfigNode node, string name, ParameterOverride<Texture> param)
         {
             if (!param.overrideState) { return; }
-            //TODO -- find better method for texture references...
             Texture2D tex = (Texture2D)param.value;
             string texName = string.Empty;
             if (TexturesUnlimitedFXLoader.INSTANCE.isBuiltinTexture(tex))
@@ -235,9 +242,9 @@ namespace UnityEngine.Rendering.PostProcessing
             else
             {
                 GameDatabase.TextureInfo info = GameDatabase.Instance.databaseTexture.FirstOrDefault(m => m.texture == tex);
-                texName = "LOADED:" + info.file.url;//TODO -- is this the correct path to *re-load the texture?
+                texName = info.file.url;
             }
-            node.SetValue(name, texName);
+            node.SetValue(name, texName, true);
         }
 
         internal void saveColorParameter(ConfigNode node, string name, ParameterOverride<Color> param)
@@ -253,21 +260,22 @@ namespace UnityEngine.Rendering.PostProcessing
         internal void saveSplineParameter(ConfigNode node, string name, ParameterOverride<Spline> param)
         {
             if (!param.overrideState) { return; }
-            //TODO -- save the zero value and range of the spline
-            //TODO -- save spline name
-            //ConfigNode splineNode = new ConfigNode("SPLINE");
-            //splineNode.SetValue("name", name);
-            //Spline spline = param.value;
-            //AnimationCurve animCurve = spline.curve;
-            //Keyframe[] keys = animCurve.keys;
-            //int len = keys.Length;
-            //string val;
-            //for (int i = 0; i < len; i++)
-            //{
-            //    val = keys[i].time + "," + keys[i].value + "," + keys[i].inTangent + "," + keys[i].outTangent + "," + keys[i].inWeight + "," + keys[i].outWeight;
-            //    splineNode.AddValue("key", val);
-            //}
-            //node.AddNode(splineNode);
+            ConfigNode splineNode = new ConfigNode("SPLINE");
+            splineNode.SetValue("name", name, true);
+            splineNode.SetValue("zero", param.value.ZeroValue);
+            splineNode.SetValue("range", param.value.Range);
+            splineNode.SetValue("loop", param.value.Loop);
+            Spline spline = param.value;
+            AnimationCurve animCurve = spline.curve;
+            Keyframe[] keys = animCurve.keys;
+            int len = keys.Length;
+            string val;
+            for (int i = 0; i < len; i++)
+            {
+                val = keys[i].time + "," + keys[i].value + "," + keys[i].inTangent + "," + keys[i].outTangent + "," + keys[i].inWeight + "," + keys[i].outWeight;
+                splineNode.AddValue("key", val);
+            }
+            node.AddNode(splineNode);
         }
 
         internal void saveVector2Parameter(ConfigNode node, string name, ParameterOverride<Vector2> param)
