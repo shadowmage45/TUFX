@@ -10,18 +10,30 @@ through specially configured profiles.
 TUFX allows for users to select a specific 'profile' to be used for each game scene.  These profiles specify which effects 
 will be enabled for the scene, and specify the values for each of the parameters for the effects.
 
-Before:  
-**TODO - Add before and after images**
+|Before|After|
+|----|----|
+| ![](https://i.imgur.com/vx7oYeS.png) | ![](https://i.imgur.com/rmz5dL3.png) |
+| ![](https://i.imgur.com/bV0sQQp.png) | ![](https://i.imgur.com/4DFwZoi.png) |
+| ![](https://i.imgur.com/5FoqysR.png) | ![](https://i.imgur.com/cF9Bx22.png) |
+| ![](https://i.imgur.com/OQPLwFi.png) | ![](https://i.imgur.com/glUZris.png) |
+| ![](https://i.imgur.com/OIiq8aC.png) | ![](https://i.imgur.com/XqeHw0n.png) |
 
-After:  
-**TODO - Add before and after images**
-
+---
+## Requirements:
+* **Windows / DirectX11**, required for single-camera setup in KSP
+* ShaderModel 3.5 or later graphics hardware support (5.0+ recommended)
+* KSP 1.9.0 or later, required for single-camera setup
+* No exceptions.  No OpenGL.  No DirectX12.  Definitely not DirectX9.
+* Any other requirements of the Unity Post Process package (look them up if interested)
+* KS3P will cause conflicts.  Choose one or the other.
+* Scatterer currently unsupported (it is not yet available for KSP 1.9+)
+* EVE currently unsupported (it is not yet available for KSP 1.9+)
 
 ## Installation
 Releases of the mod will be available from GitHub:  https://github.com/shadowmage45/TUFX/releases  
 
 Download the most recent release for your version of KSP, open the .zip file, and extract the contents of the GameData/ 
-subfolder from the package into your KSP installations' GameData/ folder (e.g. YourKSPPath/GameData/TUFX).  Make sure to
+subfolder from the package into your KSP installations' GameData/ folder (e.g. Your/KSP/Path/GameData/TUFX).  Make sure to
 include any other dependencies and folders (e.g. ModuleManager) that were included in the release package.
 
 
@@ -41,8 +53,6 @@ is not supported).
 From within the configuration UI, select a profile for the current scene/to be edited (**only the active profile can be
  edited**).  Once a profile has been selected, press the 'Change to Edit Mode' button on the top of the configuration UI. 
  This will prompt the UI to display the current configuration of the profile.
- 
-**TODO: Add marked-up example of editing UI**
 
 Press the 'Enable'/'Disable' toggle by an effect title to toggle that effect on or off.
 
@@ -59,6 +69,23 @@ into the KSP.log file.  From there, you can copy the profile out of the log and 
 data to overwrite the contents of an existing profile config file.  **TUFX does not support direct-to-file exporting, as no
  'Save File Dialog' has been provided by either Unity or KSP, and I have no desire to create one myself, nor deal with the
  security issues that would arise from its use.**
+ 
+**See the included readme.md document for information on config file syntax, and how to manually edit/create profiles.**
+ 
+---
+## Performance Comparison
+Comparison data gathered on the following hardware (your results may differ):
+* Intel i5-2500k @ 4.5ghz
+* 24g DDR3
+* GTX970
+
+|Scene|KS3P|TUFX|TUFX-Disabled|Stock|
+|----|----|----|----|----|
+|KSC|NA|142|170|180|
+|Kerbin-Ground|NA|105|118|128|
+|Kerbin-Orbit|NA|125|150|165|
+
+KS3P was unavailabe at the time the testing was performed, so no data was gathered.
 
 ## Dependencies
 * **ModuleManager** - TUFX depends directly on ModuleManager for its 'Database Reloaded' callback, and will not function unless ModuleManager is
@@ -66,12 +93,16 @@ data to overwrite the contents of an existing profile config file.  **TUFX does 
  Further information on Module Manager can be found on the KSP Forums at: ( https://forum.kerbalspaceprogram.com/index.php?/topic/50533-18x-19x-module-manager-413-november-30th-2019-right-to-ludicrous-speed/ ), and the license and source-code may be found
  on the ModuleManager GitHub repository: ( https://github.com/sarbian/ModuleManager ).
 
-## Licensing/Legal
+## Known Issues and Bug Reports
+See the github issues repository: https://github.com/shadowmage45/TUFX/issues
 
+## Licensing/Legal
+* Full source code for the TUFX assembly is available on github: https://github.com/shadowmage45/TUFX
+* Source code for Unity post processing shaders are available on github: https://github.com/Unity-Technologies/PostProcessing
 * Custom code and classes (everything outside of the PostProcessing source folder) is under GPL3.0 or later license, the
  full text of this license may be found included in the release packages and on the GitHub repository:  
  https://github.com/shadowmage45/TUFX/blob/master/LICENSE.txt
-* Unity developed classes are provided under Unity companion license, with source and license references available
+* Unity developed classes, shaders, and textures are provided under Unity companion license, with source and license references available
   from:  
   https://github.com/Unity-Technologies/PostProcessing
 * Modifications to Unity classes (adding ConfigNode load/save methods) are released under public domain or as close as possible under US law.  

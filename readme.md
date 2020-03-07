@@ -4,9 +4,9 @@ Brings the Unity Post Process Package (v2) into KSP, un-touched and as provided 
 developers (exception: minor helper methods added).
 
 ## Requirements:
-* **Windows / DirectX11** (sorry OSX and Linux users, complain to Unity; the effects **require** compute shader support)
+* **Windows / DirectX11**, required for single-camera setup in KSP
 * ShaderModel 3.5 or later graphics hardware support (5.0+ recommended)
-* KSP 1.9.0 or later
+* KSP 1.9.0 or later, required for single-camera setup
 * No exceptions.  No OpenGL.  No DirectX12.  Definitely not DirectX9.
 * Any other requirements of the Unity Post Process package (look them up if interested)
 * KS3P will cause conflicts.  Choose one or the other.
@@ -42,6 +42,7 @@ Changes made through the UI are not permanent, and are only persistent until the
 To make the changes permanent, use the 'Export' buttons at the top of the UI; pressing these will 
 export the profile(s) to the KSP.log file, where they can then be copied into a new CFG file.
 
+---
 ## Profile Config Syntax:
 
 The structure of the profile configuration files is as below:
@@ -93,9 +94,11 @@ TUFX_PROFILE
             //the name of the parameter
             name = MasterCurve
             //the 'zero point' (no clue)
-            ZeroPoint = 0.5
+            zero = 0.5
             //the 'range' (no clue)
-            Range = 1
+            range = 1
+			//unknown
+			loop = True
             //animation curve/float curve key layout with six floating point elements
             // time, value, in-tangent, out-tangent, in-weight, out-weight
             key = 0.0, 1.0, 0.0, 0.0, 0.0, 0.0
@@ -104,7 +107,7 @@ TUFX_PROFILE
     }
 }
 ````
-
+---
 ## Effects and Parameters
 Listed below will be each effect included in TUFX, the name it uses within the configuration files, 
 and the name of the parameters for the effects as used in both the profiles and texture 
@@ -235,7 +238,7 @@ Listed as 'Vignette' in configuration files.  Has the following fields:
 * Mask
 * Opacity
 
-
+---
 ## Licensing:
 * Custom code and classes (everything outside of the PostProcessing source folder) is under GPL3.0 or later license.
 * Modifications to Unity classes are released under public domain or as close as possible under US law.  
