@@ -388,9 +388,9 @@ namespace UnityEngine.Rendering.PostProcessing
 
         public override void Load(ConfigNode config)
         {
-            if (config.HasValue("GradingMode")) { gradingMode.Override(config.GetEnumValue<GradingMode>("GradingMode", typeof(GradingMode))); }
+            if (config.HasValue("GradingMode")) { gradingMode.Override(config.GetEnumValue<GradingMode>("GradingMode", GradingMode.HighDefinitionRange)); }
             loadTextureParameter(config, "ExternalLut", externalLut);
-            if (config.HasValue("Tonemapper")) { tonemapper.Override(config.GetEnumValue<Tonemapper>("Tonemapper", typeof(Tonemapper))); }
+            if (config.HasValue("Tonemapper")) { tonemapper.Override(config.GetEnumValue<Tonemapper>("Tonemapper", Tonemapper.None)); }
             loadFloatParameter(config, "ToneCurveToeStrength", toneCurveToeStrength);
             loadFloatParameter(config, "ToneCurveToeLength", toneCurveToeLength);
             loadFloatParameter(config, "ToneCurveShoulderStrength", toneCurveShoulderStrength);

@@ -178,7 +178,7 @@ namespace TUFX
             GUILayout.EndHorizontal();
             GUI.contentColor = c;
             editScrollPos = GUILayout.BeginScrollView(editScrollPos, false, true);
-            renderHDRSettings();
+            renderGeneralSettings();
             renderAmbientOcclusionSettings();
             renderAutoExposureSettings();
             renderBloomSettings();
@@ -239,10 +239,36 @@ namespace TUFX
 
         #region REGION Effect Settings Rendering
 
+        private void renderGeneralSettings()
+        {
+            string hash = this.GetHashCode().ToString();
+            if (!effectBoolStorage.TryGetValue(hash, out bool showProps))
+            {
+                showProps = true;
+                effectBoolStorage.Add(hash, true);
+            }
+            GUILayout.BeginHorizontal();
+            GUILayout.Label("----- General Settings", GUILayout.Width(300));
+            if (GUILayout.Button((showProps ? "Hide Props" : "Show Props"), GUILayout.Width(110)))
+            {
+                showProps = !showProps;
+                effectBoolStorage[hash] = showProps;
+            }
+            GUILayout.EndHorizontal();
+            if (showProps)
+            {
+                renderHDRSettings();
+                renderAntialiasingSettings();
+            }
+            GUILayout.BeginHorizontal();
+            GUILayout.Label("---------------------------------------");
+            GUILayout.EndHorizontal();
+        }
+
         private void renderHDRSettings()
         {
             GUILayout.BeginHorizontal();
-            GUILayout.Label("----- HDR", GUILayout.Width(200));
+            GUILayout.Label("HDR", GUILayout.Width(200));
             bool enabled = TexturesUnlimitedFXLoader.INSTANCE.CurrentProfile.HDREnabled;
             if (enabled) //if it is enabled, draw button to disable it
             {
@@ -259,6 +285,22 @@ namespace TUFX
                 }
             }
             GUILayout.EndHorizontal();
+        }
+
+        private void renderAntialiasingSettings()
+        {
+            PostProcessLayer.Antialiasing mode = TexturesUnlimitedFXLoader.INSTANCE.CurrentProfile.AntiAliasing;
+            AddEnumField("AntiAliasing Mode", ref mode);
+            if (mode != TexturesUnlimitedFXLoader.INSTANCE.CurrentProfile.AntiAliasing)
+            {
+                TexturesUnlimitedFXLoader.INSTANCE.onAntiAliasingSelected(mode, true);
+            }
+            //TODO -- add parameters for the AA modes
+            //if (mode == PostProcessLayer.Antialiasing.FastApproximateAntialiasing)
+            //{
+            //    //AddBoolField("FXAA Fast Mode", ref layer.fastApproximageAntialiasing.fastMode);
+            //    //AddBoolField("FXAA Keep Alpha", ref layer.fastApproximageAntialiasing.keepAlpha);
+            //}
         }
 
         private void renderAmbientOcclusionSettings()
@@ -593,6 +635,30 @@ namespace TUFX
                 {
                     param.overrideState = true;
                 }
+            }
+            GUILayout.EndHorizontal();
+        }
+
+        private void AddEnumField<Tenum>(string label, ref Tenum param)
+        {
+            Tenum value = param;
+            Type type = value.GetType();
+            Tenum[] values = (Tenum[])Enum.GetValues(type);
+            int index = values.IndexOf(value);
+            GUILayout.BeginHorizontal();
+            GUILayout.Label(label, GUILayout.Width(300));
+            if (GUILayout.Button("<", GUILayout.Width(110)))
+            {
+                index--;
+                if (index < 0) { index = values.Length - 1; }
+                param = (values[index]);
+            }
+            GUILayout.Label(value.ToString(), GUILayout.Width(220));
+            if (GUILayout.Button(">", GUILayout.Width(110)))
+            {
+                index++;
+                if (index >= values.Length) { index = 0; }
+                param = (values[index]);
             }
             GUILayout.EndHorizontal();
         }

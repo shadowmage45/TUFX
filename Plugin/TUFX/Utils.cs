@@ -303,10 +303,19 @@ namespace TUFX
             return color;
         }
 
-        public static T GetEnumValue<T>(this ConfigNode node, string name, Type enumType)
+        public static T GetEnumValue<T>(this ConfigNode node, string name, T defaultValue)
         {
             string value = node.GetStringValue(name);
-            return (T)Enum.Parse(enumType, value);
+            if (string.IsNullOrEmpty(value)) { return defaultValue; }
+            try
+            {
+                return (T)Enum.Parse(defaultValue.GetType(), value);
+            }
+            catch (Exception e)
+            {
+                Log.debug(e.ToString());
+                return defaultValue;
+            }
         }
         #endregion
 

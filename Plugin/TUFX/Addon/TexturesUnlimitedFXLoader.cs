@@ -531,9 +531,11 @@ namespace TUFX
             {
                 Log.log("Enabling profile: " + profileName + ".  Current GameScene: " + HighLogic.LoadedScene);
                 TUFXProfile tufxProfile = Profiles[profileName];
+                currentProfile = tufxProfile;
                 Log.debug("Profile (hashcode): " + tufxProfile?.GetHashCode() + " :: "+tufxProfile?.ProfileName);
                 Log.log("Setting HDR for camera: " + activeCam.name + " to: " + tufxProfile.HDREnabled);
                 activeCam.allowHDR = tufxProfile.HDREnabled;
+                onAntiAliasingSelected(tufxProfile.AntiAliasing, false);
                 layer = activeCam.gameObject.AddOrGetComponent<PostProcessLayer>();
                 layer.Init(Resources);
                 layer.volumeLayer = ~0;//everything //TODO -- fix layer assignment...
@@ -552,7 +554,6 @@ namespace TUFX
                     tufxProfile.Enable(volume);
                 }
                 Log.log("Profile enabled: " + profileName);
-                currentProfile = tufxProfile;
             }
             else if (string.IsNullOrEmpty(profileName))
             {
@@ -580,6 +581,28 @@ namespace TUFX
             else
             {
                 Log.exception("Attempted to toggle HDR while either the profile or camera were null.  Profile: " + CurrentProfile?.ProfileName + " camera: " + activeCam?.name);
+            }
+        }
+
+        internal void onAntiAliasingSelected(PostProcessLayer.Antialiasing mode, bool updateProfile)
+        {
+            if (updateProfile && CurrentProfile != null)
+            {
+                Log.debug("Updated profile AA value to: " + mode);
+                CurrentProfile.AntiAliasing = mode;
+            }
+            else if(updateProfile)
+            {
+                Log.exception("Profile was null when attempting to update AA mode.");
+            }
+            if (layer != null)
+            {
+                Log.debug("Updated post process layer AA value to: " + mode);
+                layer.antialiasingMode = mode;
+            }
+            else
+            {
+                Log.exception("Layer was null when attempting to update AA mode.");
             }
         }
 
