@@ -12,11 +12,19 @@ will be enabled for the scene, and specify the values for each of the parameters
 
 |Before|After|
 |----|----|
-| ![](https://i.imgur.com/vx7oYeS.png) | ![](https://i.imgur.com/rmz5dL3.png) |
-| ![](https://i.imgur.com/bV0sQQp.png) | ![](https://i.imgur.com/4DFwZoi.png) |
-| ![](https://i.imgur.com/5FoqysR.png) | ![](https://i.imgur.com/cF9Bx22.png) |
-| ![](https://i.imgur.com/OQPLwFi.png) | ![](https://i.imgur.com/glUZris.png) |
-| ![](https://i.imgur.com/OIiq8aC.png) | ![](https://i.imgur.com/XqeHw0n.png) |
+| ![](https://i.imgur.com/NbYlicE.png) | ![](https://i.imgur.com/dG4UQdz.png) |
+| ![](https://i.imgur.com/gEBsHnU.png) | ![](https://i.imgur.com/cOkNiuI.png) |
+| ![](https://i.imgur.com/sxiGJ5X.png) | ![](https://i.imgur.com/d0PrPJY.png) |
+| ![](https://i.imgur.com/a9xVi27.png) | ![](https://i.imgur.com/Mm6OmRx.png) |
+| ![](https://i.imgur.com/EpStaK5.png) | ![](https://i.imgur.com/PdiBqns.png) |
+| ![](https://i.imgur.com/kF9cBvv.png) | ![](https://i.imgur.com/GvakWTa.png) |
+
+Cinematic Effects (not default profile)  
+
+|Before|After|
+|----|----|
+| ![](https://i.imgur.com/1UPTEym.png) | ![](https://i.imgur.com/4c0y5Y5.png) |
+| ![](https://i.imgur.com/y9crGm6.png) | ![](https://i.imgur.com/iMno4eE.png) |
 
 ---
 ## Requirements:
@@ -94,7 +102,10 @@ KS3P was unavailabe at the time the testing was performed, so no data was gather
  on the ModuleManager GitHub repository: ( https://github.com/sarbian/ModuleManager ).
 
 ## Known Issues and Bug Reports
-See the github issues repository: https://github.com/shadowmage45/TUFX/issues
+See the github issues repository: https://github.com/shadowmage45/TUFX/issues  
+The change to use HDR rendering can cause occasional artifacts.  If these are present, you can turn
+off HDR in the profiles by setting the hdr flag to 'False'.
+
 
 ## Licensing/Legal
 * Full source code for the TUFX assembly is available on github: https://github.com/shadowmage45/TUFX
