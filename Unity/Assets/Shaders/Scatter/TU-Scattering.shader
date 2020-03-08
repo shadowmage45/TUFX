@@ -87,7 +87,7 @@
 				//we need it to describe the rear of a flat plane defined by the far-clip value
 				//which is separate from the _FrustLength
 				//should actually be interpolated between them based on the distance from center in both x and y
-				o.viewDir = lerp(left, right, v.uv.x);// * _FrustLength;
+				o.viewDir = lerp(left, right, v.uv.x);
 
 				return o;
 			}
@@ -290,25 +290,19 @@
 				
 				//0-1 linear depth value; 0= no depth, 1 = max depth
 				float depth = Linear01Depth(UNITY_SAMPLE_DEPTH(tex2D(_CameraDepthTexture, i.uv)));
-				//return fixed4(tA / length(i.viewDir), 0, 0, 1);
-				//return fixed4(tB, 0, 0, 1);
-				//return fixed4(depth, 0, 0, 1);
-				//return fixed4(tA / length(i.viewDir), 0, 0,1);
 
 				//absolute world-space hit position (or should be)
-				float3 worldPos = cameraPos + depth * i.viewDir;
+				// float3 worldPos = cameraPos + depth * i.viewDir;
 
 				//distance from camera to the hit
-				float dist = length(cameraPos - worldPos);
+				// float dist = length(cameraPos - worldPos);
 				
 				float hitDist = depth * length(i.viewDir);
-				//return fixed4(hitDist,0,0,1);
-				if(hitDist < tB)//tB/length(i.viewDir))
+				if(hitDist < tA)
 				{
 					return col;
 				}
 				
-
 				//bool inAtmo = length(cameraPos - _PlanetPos) < _AtmoSize;
 								
 				// Total optical depth

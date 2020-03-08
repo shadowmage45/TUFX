@@ -81,21 +81,21 @@ public class TUScatteringScript : MonoBehaviour
     {
         // this example shows the different camera frustums when using asymmetric projection matrices (like those used by OpenVR).
 
-        var camera = GetComponent<Camera>();
-        Vector3[] frustumCorners = new Vector3[4];
-        camera.CalculateFrustumCorners(new Rect(0, 0, 1, 1), camera.farClipPlane, Camera.MonoOrStereoscopicEye.Mono, frustumCorners);
+        // var camera = GetComponent<Camera>();
+        // Vector3[] frustumCorners = new Vector3[4];
+        // camera.CalculateFrustumCorners(new Rect(0, 0, 1, 1), camera.farClipPlane, Camera.MonoOrStereoscopicEye.Mono, frustumCorners);
 
-        for (int i = 0; i < 4; i++)
-        {
-           var worldSpaceCorner = camera.transform.TransformVector(frustumCorners[i]);
-           Debug.DrawRay(camera.transform.position, worldSpaceCorner, Color.blue);
-        }
+        // for (int i = 0; i < 4; i++)
+        // {
+           // var worldSpaceCorner = camera.transform.TransformVector(frustumCorners[i]);
+           // Debug.DrawRay(camera.transform.position, worldSpaceCorner, Color.blue);
+        // }
     }
 
     public void OnRenderImage(RenderTexture source, RenderTexture dest)
     {
         if (mat == null || tex == null || effectCam == null) { return; }
-        effectCam.CalculateFrustumCorners(new Rect(0, 0, 1, 1), 1, Camera.MonoOrStereoscopicEye.Mono, frustumCorners);
+        effectCam.CalculateFrustumCorners(new Rect(0, 0, 1, 1), effectCam.farClipPlane, Camera.MonoOrStereoscopicEye.Mono, frustumCorners);
         
         for (int i = 0; i < 4; i++)
         {
