@@ -169,7 +169,7 @@ namespace BrunetonsImprovedAtmosphere
             m_model.Init(m_compute, numScatteringOrders);
 
             m_model.BindToMaterial(m_material);
-            dumpTextures();
+            //dumpTextures();
         }
 
         private void OnDestroy()

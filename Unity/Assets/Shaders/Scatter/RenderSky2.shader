@@ -1,4 +1,4 @@
-﻿Shader "Hidden/RenderSky2"
+﻿Shader "Custom/RenderSky2"
 {
 	/**
 	* Copyright (c) 2017 Eric Bruneton
