@@ -460,7 +460,7 @@
 					float d2 = top_radius - bottom_radius;//total height of atmo
 					float d3 = d1 / d2;//percent of the way through atmo
 					d3 = max(0, d3);
-					d3 = pow(d3, 20);
+					d3 = pow(d3, 10);
 					d3 = 1 - d3;
 					radiance *= d3;
 				}
