@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
+using UnityEngine.Rendering;
 
 namespace BrunetonsImprovedAtmosphere
 {
@@ -41,8 +42,6 @@ namespace BrunetonsImprovedAtmosphere
         public Material m_material;
 
         private Model m_model;
-
-        public RenderTexture inScat;
         
         /// <summary>
         /// The "real" initialization work, which is specific to our atmosphere model,
@@ -94,7 +93,8 @@ namespace BrunetonsImprovedAtmosphere
             // Wavelength independent solar irradiance "spectrum" (not physically
             // realistic, but was used in the original implementation).
             double kConstantSolarIrradiance = 1.5;
-            double kTopRadius = 6420000.0;
+            //double kTopRadius = 6420000.0;
+            double kTopRadius = 6560000.0;
             double kRayleigh = 1.24062e-6;
             double kRayleighScaleHeight = 8000.0;
             double kMieScaleHeight = 1200.0;
@@ -165,7 +165,7 @@ namespace BrunetonsImprovedAtmosphere
             m_model.MaxSunZenithAngle = max_sun_zenith_angle;
             m_model.LengthUnitInMeters = kLengthUnitInMeters;
 
-            int numScatteringOrders = 4;
+            int numScatteringOrders = 6;
             m_model.Init(m_compute, numScatteringOrders);
 
             m_model.BindToMaterial(m_material);
@@ -174,8 +174,9 @@ namespace BrunetonsImprovedAtmosphere
 
         private void OnDestroy()
         {
+            MonoBehaviour.print("BIS:OnDestroy(): "+GetHashCode());
             if (m_model != null)
-                m_model.Release();
+                m_model.Release(); 
         }
 
         void OnRenderImage(RenderTexture src, RenderTexture dest)
@@ -206,12 +207,12 @@ namespace BrunetonsImprovedAtmosphere
             
 
             Vector3[] frustumCorners = new Vector3[4];
-            camera.CalculateFrustumCorners(new Rect(0, 0, 1, 1), 1, Camera.MonoOrStereoscopicEye.Mono, frustumCorners);
+            camera.CalculateFrustumCorners(new Rect(0, 0, 1, 1), camera.farClipPlane, Camera.MonoOrStereoscopicEye.Mono, frustumCorners);
 
             for (int i = 0; i < 4; i++)
             {
                 //transform the vectors to contain frustum depth information, used to recompose world-space pos from depth-buffer
-                frustumCorners[i] = camera.transform.TransformVector(frustumCorners[i] * (camera.farClipPlane - camera.nearClipPlane));
+                frustumCorners[i] = camera.transform.TransformVector(frustumCorners[i]);
             }
 
             Vector3 botLeft = frustumCorners[0];
@@ -225,117 +226,32 @@ namespace BrunetonsImprovedAtmosphere
             m_material.SetVector("_Left2", botLeft);
             m_material.SetVector("_Right2", botRight);
 
-            m_material.SetFloat("_showSphere", showSphere ? 1 : 0);
+
+            //TODO -- need to add the far-clip vertices as well, to aid in depth-buffer-to-world-space recomposition
+
+            frustumCorners = new Vector3[4];
+            camera.CalculateFrustumCorners(new Rect(0, 0, 1, 1), camera.nearClipPlane, Camera.MonoOrStereoscopicEye.Mono, frustumCorners);
+
+            for (int i = 0; i < 4; i++)
+            {
+                //transform the vectors to contain frustum depth information, used to recompose world-space pos from depth-buffer
+                frustumCorners[i] = camera.transform.TransformVector(frustumCorners[i]);
+            }
+
+            botLeft = frustumCorners[0];
+            topLeft = frustumCorners[1];
+            topRight = frustumCorners[2];
+            botRight = frustumCorners[3];
+
+            //bounding box frustum corners, for world-space view direction decoding
+            m_material.SetVector("_NLeft", topLeft);
+            m_material.SetVector("_NRight", topRight);
+            m_material.SetVector("_NLeft2", botLeft);
+            m_material.SetVector("_NRight2", botRight);
 
             m_material.SetFloat("_ClipDepth", camera.farClipPlane - camera.nearClipPlane);
 
             Graphics.Blit(src, dest, m_material, 0);
-
-            //can remove custom blit as no longer storing indices in vertex data
-            //CustomGraphicsBlit(src, dest, m_material, 0);
-        }
-
-        private void CustomGraphicsBlit(RenderTexture source, RenderTexture dest, Material mat, int passNr)
-        {
-            RenderTexture.active = dest;
-
-            mat.SetTexture("_MainTex", source);
-
-            GL.PushMatrix();
-            GL.LoadOrtho();
-
-            mat.SetPass(passNr);
-
-            GL.Begin(GL.QUADS);
-
-            //This custom blit is needed as infomation about what corner verts relate to what frustum corners is needed
-            //A index to the frustum corner is store in the z pos of vert
-
-            GL.MultiTexCoord2(0, 0.0f, 0.0f);
-            GL.Vertex3(0.0f, 0.0f, 3.0f); // BL
-
-            GL.MultiTexCoord2(0, 1.0f, 0.0f);
-            GL.Vertex3(1.0f, 0.0f, 2.0f); // BR
-
-            GL.MultiTexCoord2(0, 1.0f, 1.0f);
-            GL.Vertex3(1.0f, 1.0f, 1.0f); // TR
-
-            GL.MultiTexCoord2(0, 0.0f, 1.0f);
-            GL.Vertex3(0.0f, 1.0f, 0.0f); // TL
-
-            GL.End();
-            GL.PopMatrix();
-
-        }
-
-        private void dumpTextures()
-        {
-            //sampler2D transmittance_texture;
-            //sampler2D irradiance_texture;
-            RenderTexture tex = m_model.TransmittanceTexture;// (RenderTexture)m_material.GetTexture("transmittance_texture");
-            if (tex == null) { return; }
-
-            Texture2D outputTex = new Texture2D(tex.width, tex.height, TextureFormat.ARGB32, false);
-                        
-            Graphics.SetRenderTarget(tex);
-            outputTex.ReadPixels(new Rect(0, 0, tex.width, tex.height), 0, 0);
-            outputTex.Apply();
-
-            string path = "testOut.png";
-            MonoBehaviour.print(Path.GetFullPath(path));
-            
-            File.WriteAllBytes("Assets/transmittance.png", outputTex.EncodeToPNG());
-
-            //okay, so we've got the transmittance texture in a texture2d
-            //along the right-most pixels, set them to 0,0,0
-            //doesn't seem to actually fix... anything...
-            //for (int y = 0; y < tex.height; y++)
-            //{
-            //    outputTex.SetPixel(tex.width - 1, y, new Color(0, 0, 0, 0));
-            //}
-            //outputTex.Apply();
-            //Graphics.Blit(outputTex, tex);
-            //File.WriteAllBytes("Assets/transmittance2.png", outputTex.EncodeToPNG());
-
-            tex = m_model.IrradianceTexture;
-            outputTex = new Texture2D(tex.width, tex.height, TextureFormat.ARGB32, false);
-
-            Graphics.SetRenderTarget(tex);
-            outputTex.ReadPixels(new Rect(0, 0, tex.width, tex.height), 0, 0);
-            outputTex.Apply();
-
-            File.WriteAllBytes("Assets/irradiance.png", outputTex.EncodeToPNG());
-
-
-
-            RenderTexture inScat = m_model.ScatteringTexture;
-            outputTex = new Texture2D(inScat.width, inScat.height, TextureFormat.RGBAFloat, false);
-
-            RenderTexture realOutputTex = new RenderTexture(inScat.width, inScat.height, 0, RenderTextureFormat.ARGBFloat);
-            realOutputTex.Create();
-
-            for (int i = 0; i < CONSTANTS.SCATTERING_DEPTH; i++)
-            {
-                //copy into the back end GPU memory for the slice
-                Graphics.CopyTexture(inScat, i, realOutputTex, 0);
-
-
-                Graphics.CopyTexture(inScat, i, this.inScat, i);
-
-                //bind the copied texture to be able to read from it
-                Graphics.SetRenderTarget(realOutputTex);
-
-                //read the pixels
-                outputTex.ReadPixels(new Rect(0, 0, inScat.width, inScat.height), 0, 0);
-                outputTex.Apply();
-                
-                File.WriteAllBytes("Assets/scatter-"+i+".png", outputTex.EncodeToPNG());
-
-                realOutputTex.DiscardContents();
-            }
-
-
-            
         }
 
     }

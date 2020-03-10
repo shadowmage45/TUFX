@@ -62,11 +62,17 @@
 			//cheap hack to disable rendering of the 'sphere'
 			float _showSphere;
 
-			//frustum bounding vectors, used to determine world-space view direction from inside screen space shader
+			//frustum bounding vectors for far clip, used to determine world-space view direction from inside screen space shader
 			float3 _Left;
 			float3 _Right;
 			float3 _Left2;
 			float3 _Right2;
+
+			//frustum bounding vectors for near clip, used to determine world-space view direction from inside screen space shader
+			float3 _NLeft;
+			float3 _NRight;
+			float3 _NLeft2;
+			float3 _NRight2;
 
 			//farClip - nearClip - used to recreate world-space position from depth buffer
 			//may or may not be correct...
@@ -96,6 +102,7 @@
 			{
 				float2 uv : TEXCOORD0;
 				float3 view_ray : TEXCOORD1;
+				float3 view_ray2 : TEXCOORD2;
 				float4 vertex : SV_POSITION;
 			};
 
@@ -111,103 +118,16 @@
 
 				float3 left = lerp(_Left2, _Left, v.uv.y);
 				float3 right = lerp(_Right2, _Right, v.uv.y);
-				o.view_ray = lerp(left, right, v.uv.x);
+				o.view_ray = lerp(left, right, v.uv.x);				
+
+				left = lerp(_NLeft2, _NLeft, v.uv.y);
+				right = lerp(_NRight2, _NRight, v.uv.y);
+				o.view_ray2 = lerp(left, right, v.uv.x);
 
 				return o;
 			}
 
-			/*
-			The functions to compute shadows and light shafts must be defined before we
-			can use them in the main shader function, so we define them first. Testing if
-			a point is in the shadow of the sphere S is equivalent to test if the
-			corresponding light ray intersects the sphere, which is very simple to do.
-			However, this is only valid for a punctual light source, which is not the case
-			of the Sun. In the following function we compute an approximate (and biased)
-			soft shadow by taking the angular size of the Sun into account:
-			*/
-			float GetSunVisibility(float3 _point, float3 sun_direction)
-			{
-				float3 p = _point - kSphereCenter;
-				float p_dot_v = dot(p, sun_direction);
-				float p_dot_p = dot(p, p);
-				float ray_sphere_center_squared_distance = p_dot_p - p_dot_v * p_dot_v;
-				float distance_to_intersection = -p_dot_v - sqrt(max(0.0, kSphereRadius * kSphereRadius - ray_sphere_center_squared_distance));
-
-				if (distance_to_intersection > 0.0) 
-				{
-					// Compute the distance between the view ray and the sphere, and the
-					// corresponding (tangent of the) subtended angle. Finally, use this to
-					// compute an approximate sun visibility.
-					float ray_sphere_distance = kSphereRadius - sqrt(ray_sphere_center_squared_distance);
-					float ray_sphere_angular_distance = -ray_sphere_distance / p_dot_v;
-
-					return smoothstep(1.0, 0.0, ray_sphere_angular_distance / sun_size.x);
-				}
-
-				return 1.0;
-			}
-
-			/*
-			The sphere also partially occludes the sky light, and we approximate this
-			effect with an ambient occlusion factor. The ambient occlusion factor due to a
-			sphere is given in <a href=
-			"http://webserver.dmt.upm.es/~isidoro/tc3/Radiation%20View%20factors.pdf"
-			>Radiation View Factors</a> (Isidoro Martinez, 1995). In the simple case where
-			the sphere is fully visible, it is given by the following function:
-			*/
-			float GetSkyVisibility(float3 _point) 
-			{
-				float3 p = _point - kSphereCenter;
-				float p_dot_p = dot(p, p);
-				return 1.0 + p.y / sqrt(p_dot_p) * kSphereRadius * kSphereRadius / p_dot_p;
-			}
-
-			/*
-			To compute light shafts we need the intersections of the view ray with the
-			shadow volume of the sphere S. Since the Sun is not a punctual light source this
-			shadow volume is not a cylinder but a cone (for the umbra, plus another cone for
-			the penumbra, but we ignore it here):
-			*/
-			void GetSphereShadowInOut(float3 view_direction, float3 sun_direction, out float d_in, out float d_out)
-			{
-				float3 camera = _WorldSpaceCameraPos;
-				float3 pos = camera - kSphereCenter;
-				float pos_dot_sun = dot(pos, sun_direction);
-				float view_dot_sun = dot(view_direction, sun_direction);
-				float k = sun_size.x;
-				float l = 1.0 + k * k;
-				float a = 1.0 - l * view_dot_sun * view_dot_sun;
-				float b = dot(pos, view_direction) - l * pos_dot_sun * view_dot_sun -
-					k * kSphereRadius * view_dot_sun;
-				float c = dot(pos, pos) - l * pos_dot_sun * pos_dot_sun -
-					2.0 * k * kSphereRadius * pos_dot_sun - kSphereRadius * kSphereRadius;
-				float discriminant = b * b - a * c;
-				if (discriminant > 0.0) 
-				{
-					d_in = max(0.0, (-b - sqrt(discriminant)) / a);
-					d_out = (-b + sqrt(discriminant)) / a;
-					// The values of d for which delta is equal to 0 and kSphereRadius / k.
-					float d_base = -pos_dot_sun / view_dot_sun;
-					float d_apex = -(pos_dot_sun + kSphereRadius / k) / view_dot_sun;
-
-					if (view_dot_sun > 0.0) 
-					{
-						d_in = max(d_in, d_apex);
-						d_out = a > 0.0 ? min(d_out, d_base) : d_base;
-					}
-					else 
-					{
-						d_in = a > 0.0 ? max(d_in, d_base) : d_base;
-						d_out = min(d_out, d_apex);
-					}
-				}
-				else 
-				{
-					d_in = 0.0;
-					d_out = 0.0;
-				}
-			}
-
+#define RADIANCE_API_ENABLED 1
 #ifdef RADIANCE_API_ENABLED
 			RadianceSpectrum GetSolarRadiance() 
 			{
@@ -288,6 +208,7 @@
 			
 			fixed4 frag (v2f i) : SV_Target
 			{
+
 				float3 camera = _WorldSpaceCameraPos;
 				// Normalized view direction vector.
 				float3 view_direction = normalize(i.view_ray);
@@ -296,12 +217,7 @@
 				float fragment_angular_size = length(ddx(i.view_ray) + ddy(i.view_ray)) / length(i.view_ray);
 
 				float shadow_in = 1;
-				float shadow_out = 1;
-				if (_showSphere > 0) 
-				{
-					GetSphereShadowInOut(view_direction, sun_direction, shadow_in, shadow_out);
-				}
-				
+				float shadow_out = 1;				
 
 				// Hack to fade out light shafts when the Sun is very close to the horizon.
 				float lightshaft_fadein_hack = smoothstep(
@@ -312,76 +228,31 @@
 				we compute an approximate (and biased) opacity value, using the same
 				approximation as in GetSunVisibility:
 				*/
-
 				// Compute the distance between the view ray line and the sphere center,
 				// and the distance between the camera and the intersection of the view
 				// ray with the sphere (or NaN if there is no intersection).
-				float3 p = camera - kSphereCenter;
-				float p_dot_v = dot(p, view_direction);
-				float p_dot_p = dot(p, p);
-				float ray_sphere_center_squared_distance = p_dot_p - p_dot_v * p_dot_v;
-				float distance_to_intersection = -p_dot_v - sqrt(kSphereRadius * kSphereRadius - ray_sphere_center_squared_distance);
-
-				// Compute the radiance reflected by the sphere, if the ray intersects it.
-				float sphere_alpha = 0.0;
-				float3 sphere_radiance = float3(0,0,0);
-				if (_showSphere > 0 && distance_to_intersection > 0.0) 
-				{
-					// Compute the distance between the view ray and the sphere, and the
-					// corresponding (tangent of the) subtended angle. Finally, use this to
-					// compute the approximate analytic antialiasing factor sphere_alpha.
-					float ray_sphere_distance = kSphereRadius - sqrt(ray_sphere_center_squared_distance);
-					float ray_sphere_angular_distance = -ray_sphere_distance / p_dot_v;
-					sphere_alpha = min(ray_sphere_angular_distance / fragment_angular_size, 1.0);
-
-					/*
-					We can then compute the intersection point and its normal, and use them to
-					get the sun and sky irradiance received at this point. The reflected radiance
-					follows, by multiplying the irradiance with the sphere BRDF:
-					*/
-					float3 _point = camera + view_direction * distance_to_intersection;
-					float3 normal = normalize(_point - kSphereCenter);
-
-					// Compute the radiance reflected by the sphere.
-					float3 sky_irradiance;
-					float3 sun_irradiance = GetSunAndSkyIrradiance(_point - earth_center, normal, sun_direction, sky_irradiance);
-
-					sphere_radiance = kSphereAlbedo * (1.0 / PI) * (sun_irradiance + sky_irradiance);
-
-					/*
-					Finally, we take into account the aerial perspective between the camera and
-					the sphere, which depends on the length of this segment which is in shadow:
-					*/
-					float shadow_length = max(0.0, min(shadow_out, distance_to_intersection) - shadow_in) * lightshaft_fadein_hack;
-
-					float3 transmittance;
-					float3 in_scatter = GetSkyRadianceToPoint(camera - earth_center, _point - earth_center, shadow_length, sun_direction, transmittance);
-
-					sphere_radiance = sphere_radiance * transmittance + in_scatter;
-				}
-
 				/*
 				In the following we repeat the same steps as above, but for the planet sphere
 				P instead of the sphere S (a smooth opacity is not really needed here, so we
 				don't compute it. Note also how we modulate the sun and sky irradiance received
 				on the ground by the sun and sky visibility factors):
 				*/
-
 				// Compute the distance between the view ray line and the Earth center,
 				// and the distance between the camera and the intersection of the view
 				// ray with the ground (or NaN if there is no intersection).
-				p = camera - earth_center;
-				p_dot_v = dot(p, view_direction);
-				p_dot_p = dot(p, p);
+				float3 p = camera - earth_center;
+				float p_dot_v = dot(p, view_direction);
+				float p_dot_p = dot(p, p);
 				float ray_earth_center_squared_distance = p_dot_p - p_dot_v * p_dot_v;
-				distance_to_intersection = -p_dot_v - sqrt(bottom_radius * bottom_radius - ray_earth_center_squared_distance);
+				float distance_to_intersection = -p_dot_v - sqrt(bottom_radius * bottom_radius - ray_earth_center_squared_distance);
 
 
 				//0-1 linear depth value; 0= no depth, 1 = max depth
 				float depth = Linear01Depth(UNITY_SAMPLE_DEPTH(tex2D(_CameraDepthTexture, i.uv)));
 
 				//absolute world-space hit position (or should be)
-				float3 worldPos = camera + (depth * i.view_ray);
+				//camera position + near clip distance + percentage of distance between near and far clip in the depth buffer...
+				float3 worldPos = camera + i.view_ray2 + (depth * (i.view_ray - i.view_ray2));
 
 				//distance from camera to the hit
 				float dist = length(camera - worldPos);
@@ -408,6 +279,9 @@
 				float3 ground_radiance = float3(0,0,0);
 				if (distance_to_intersection > 0.0) 
 				{
+					//TODO - this needs to utilize depth buffer to test for ground intersection
+					//TODO - how to get a normal direction for the ground without a normals buffer?
+
 					float3 _point = camera + view_direction * distance_to_intersection;
 					float3 normal = normalize(_point - earth_center);
 
@@ -415,8 +289,8 @@
 					float3 sky_irradiance;
 					float3 sun_irradiance = GetSunAndSkyIrradiance(_point - earth_center, normal, sun_direction, sky_irradiance);
 
-					float sunVis = _showSphere> 0 ? GetSunVisibility(_point, sun_direction) : 1;
-					float skyVis = _showSphere> 0 ? GetSkyVisibility(_point) : 1;
+					float sunVis = 1;
+					float skyVis = 1;
 
 					ground_radiance = kGroundAlbedo * (1.0 / PI) * (sun_irradiance * sunVis + sky_irradiance * skyVis);
 
@@ -448,10 +322,7 @@
 				}
 
 				radiance = lerp(radiance, ground_radiance, ground_alpha);
-				//radiance = lerp(radiance, sphere_radiance, sphere_alpha);
-
-				radiance = pow(float3(1,1,1) - exp(-radiance / white_point * exposure), 1.0 / 2.2);
-				
+				radiance = pow(float3(1,1,1) - exp(-radiance / white_point * exposure), 1.0 / 2.2);				
 
 				//this is a hacky fix for 'from space' atmosphere having a hard edged boundary (looks fine from in-atmo)
 				if (ray_earth_center_squared_distance > bottom_radius * bottom_radius && length(camera - earth_center) > top_radius && ray_earth_center_squared_distance< top_radius * top_radius)
@@ -462,10 +333,8 @@
 					d3 = max(0, d3);
 					d3 = pow(d3, 10);
 					d3 = 1 - d3;
-					radiance *= d3;
+					//radiance *= d3;
 				}
-
-
 
 				float3 col = tex2D(_MainTex, i.uv);
 				return float4(saturate(radiance+col), 1);
