@@ -1,5 +1,24 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
+--- !u!114 &-5170847893754043367
+MonoBehaviour:
+  m_ObjectHideFlags: 3
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 0}
+  m_Name: Grayscale
+  m_EditorClassIdentifier: Assembly-CSharp:TUFX:Grayscale
+  active: 1
+  enabled:
+    overrideState: 1
+    value: 1
+  blend:
+    overrideState: 1
+    value: 1
 --- !u!114 &-3987044383104512508
 MonoBehaviour:
   m_ObjectHideFlags: 3
@@ -17,10 +36,10 @@ MonoBehaviour:
     overrideState: 1
     value: 1
   intensity:
-    overrideState: 0
-    value: 0
+    overrideState: 1
+    value: 1
   threshold:
-    overrideState: 0
+    overrideState: 1
     value: 1
   softKnee:
     overrideState: 0
@@ -59,11 +78,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 387293bfa4a8a1a408e3e8c2f63fc3a1, type: 3}
   m_Name: TUBISEffect
   m_EditorClassIdentifier: 
-  active: 0
+  active: 1
   enabled:
     overrideState: 1
     value: 1
-  kLengthUnitInMeters: 100
+  kLengthUnitInMeters: 100000
   Sun: {fileID: 0}
   planet: {fileID: 0}
   UseConstantSolarSpectrum: 0
@@ -72,7 +91,7 @@ MonoBehaviour:
   UseHalfPrecision: 0
   DoWhiteBalance: 0
   UseLuminance: 0
-  Exposure: 10
+  Exposure: 1000
   m_compute: {fileID: 0}
 --- !u!114 &11400000
 MonoBehaviour:
@@ -89,3 +108,23 @@ MonoBehaviour:
   settings:
   - {fileID: -3905780299630945876}
   - {fileID: -3987044383104512508}
+  - {fileID: 7908320933409407563}
+--- !u!114 &7908320933409407563
+MonoBehaviour:
+  m_ObjectHideFlags: 3
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 0}
+  m_Name: Grayscale
+  m_EditorClassIdentifier: Assembly-CSharp:TUFX:Grayscale
+  active: 0
+  enabled:
+    overrideState: 1
+    value: 1
+  blend:
+    overrideState: 0
+    value: 0.5

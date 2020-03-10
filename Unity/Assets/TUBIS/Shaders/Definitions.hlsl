@@ -102,29 +102,18 @@
 // A vector of 3 illuminance values.
 #define Illuminance3 float3
 
-/*
- * Finally, we also need precomputed textures containing physical quantities in each texel.
- */
-
-#ifdef COMPUTE_SHADER
-
-#define TransmittanceTexture Texture2D<float4>
-#define AbstractScatteringTexture Texture3D<float4>
-#define ReducedScatteringTexture Texture3D<float4>
-#define ScatteringTexture Texture3D<float4>
-#define ScatteringDensityTexture Texture3D<float4>
-#define IrradianceTexture Texture2D<float4>
-
-#else
-
-#define TransmittanceTexture sampler2D
-#define AbstractScatteringTexture sampler3D
-#define ReducedScatteringTexture sampler3D
-#define ScatteringTexture sampler3D
-#define ScatteringDensityTexture sampler3D
-#define IrradianceTexture sampler2D
-
-#endif
+#define TransmittanceTexture Texture2D
+#define TransmittanceSampler SamplerState
+#define AbstractScatteringTexture Texture3D
+#define AbstractScatteringSampler SamplerState
+#define ReducedScatteringTexture Texture3D
+#define ReducedScatteringSampler SamplerState
+#define ScatteringTexture Texture3D
+#define ScatteringSampler SamplerState
+#define ScatteringDensityTexture Texture3D
+#define ScatteringDensitySampler SamplerState
+#define IrradianceTexture Texture2D
+#define IrradianceSampler SamplerState
 
 /*
  * Physical units
@@ -145,7 +134,7 @@ static const LuminousPower lm = 1.0;
  * as well as some derived units (kilometer km, kilocandela kcd, degree deg):
  */
 
-static const float PI = 3.14159265358979323846;
+//static const float PI = 3.14159265358979323846;
 
 static const Length km = 1000.0 * m;
 static const Area m2 = m * m;

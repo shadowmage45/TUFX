@@ -102,20 +102,20 @@
  * the scattering coefficients at the bottom of the atmosphere - we add them later
  * on for efficiency reasons):
  */
-
-void ComputeSingleScatteringIntegrand(TransmittanceTexture transmittance_texture, 
+//HLSL
+void ComputeSingleScatteringIntegrand(TransmittanceTexture transmittance_texture, TransmittanceSampler transmittance_sampler,
 				      Length r, Number mu, Number mu_s, Number nu, Length d, 
 				      bool ray_r_mu_intersects_ground, out DimensionlessSpectrum rayleigh, out DimensionlessSpectrum mie) 
 {
-  Length r_d = ClampRadius(sqrt(d * d + 2.0 * r * mu * d + r * r));
-  Number mu_s_d = ClampCosine((r * mu_s + d * nu) / r_d);
+	Length r_d = ClampRadius(sqrt(d * d + 2.0 * r * mu * d + r * r));
+	Number mu_s_d = ClampCosine((r * mu_s + d * nu) / r_d);
 
-  DimensionlessSpectrum transmittance =
-      GetTransmittance(transmittance_texture, r, mu, d, ray_r_mu_intersects_ground) *
-      GetTransmittanceToSun(transmittance_texture, r_d, mu_s_d);
+	DimensionlessSpectrum transmittance =
+		GetTransmittance(transmittance_texture, transmittance_sampler, r, mu, d, ray_r_mu_intersects_ground) *
+		GetTransmittanceToSun(transmittance_texture, transmittance_sampler, r_d, mu_s_d);
 
-  rayleigh = transmittance * GetProfileDensity(RayleighDensity(), r_d - bottom_radius);
-  mie = transmittance * GetProfileDensity(MieDensity(), r_d - bottom_radius);
+	rayleigh = transmittance * GetProfileDensity(RayleighDensity(), r_d - bottom_radius);
+	mie = transmittance * GetProfileDensity(MieDensity(), r_d - bottom_radius);
 
 }
 
@@ -128,7 +128,7 @@ void ComputeSingleScatteringIntegrand(TransmittanceTexture transmittance_texture
  * to p for all points q between p and i. To compute it, we first
  * need the length $\Vert\bp\bi\Vert$:
  */
-
+//HLSL
 Length DistanceToNearestAtmosphereBoundary(Length r, Number mu, bool ray_r_mu_intersects_ground) 
 {
   if (ray_r_mu_intersects_ground)
@@ -143,9 +143,9 @@ Length DistanceToNearestAtmosphereBoundary(Length r, Number mu, bool ray_r_mu_in
  * the <a href="https://en.wikipedia.org/wiki/Trapezoidal_rule">trapezoidal
  * rule</a>):
  */
-
+//HLSL
 void ComputeSingleScattering(
-    TransmittanceTexture transmittance_texture,
+    TransmittanceTexture transmittance_texture, TransmittanceSampler transmittance_sampler,
     Length r, Number mu, Number mu_s, Number nu,
     bool ray_r_mu_intersects_ground,
     out IrradianceSpectrum rayleigh, out IrradianceSpectrum mie) 
@@ -167,7 +167,7 @@ void ComputeSingleScattering(
     // The Rayleigh and Mie single scattering at the current sample point.
     DimensionlessSpectrum rayleigh_i;
     DimensionlessSpectrum mie_i;
-    ComputeSingleScatteringIntegrand(transmittance_texture, r, mu, mu_s, nu, d_i, ray_r_mu_intersects_ground, rayleigh_i, mie_i);
+    ComputeSingleScatteringIntegrand(transmittance_texture, transmittance_sampler, r, mu, mu_s, nu, d_i, ray_r_mu_intersects_ground, rayleigh_i, mie_i);
 
     // Sample weight (from the trapezoidal rule).
     Number weight_i = (i == 0 || i == SAMPLE_COUNT) ? 0.5 : 1.0;
@@ -186,13 +186,13 @@ void ComputeSingleScattering(
  * phase function terms - they are added at <a href="#rendering">render time</a>
  * for better angular precision. We provide them here for completeness:
  */
-
+//HLSL
 InverseSolidAngle RayleighPhaseFunction(Number nu) 
 {
   InverseSolidAngle k = 3.0 / (16.0 * PI * sr);
   return k * (1.0 + nu * nu);
 }
-
+//HLSL
 InverseSolidAngle MiePhaseFunction(Number g, Number nu) 
 {
   InverseSolidAngle k = 3.0 / (8.0 * PI * sr) * (1.0 - g * g) / (2.0 + g * g);
@@ -222,7 +222,7 @@ InverseSolidAngle MiePhaseFunction(Number g, Number nu)
  * horizon.
  * 
  */
-
+//HLSL
 float4 GetScatteringTextureUvwzFromRMuMuSNu(
     Length r, Number mu, Number mu_s, Number nu,
     bool ray_r_mu_intersects_ground) 
@@ -278,7 +278,7 @@ float4 GetScatteringTextureUvwzFromRMuMuSNu(
 /*
  * The inverse mapping follows immediately:
 */
-
+//HLSL
 void GetRMuMuSNuFromScatteringTextureUvwz(
     float4 uvwz, out Length r, out Number mu, out Number mu_s,
 	out Number nu, out bool ray_r_mu_intersects_ground)
@@ -337,6 +337,7 @@ void GetRMuMuSNuFromScatteringTextureUvwz(
  * (their assertions can break if this constraint is not respected).
  */
 
+//HLSL
 void GetRMuMuSNuFromScatteringTextureFragCoord(
     float3 gl_frag_coord,
     out Length r, out Number mu, out Number mu_s, out Number nu,
@@ -364,9 +365,9 @@ void GetRMuMuSNuFromScatteringTextureFragCoord(
  * With this mapping, we can finally write a function to precompute a texel of
  * the single scattering in a 3D texture:
  */
-
+//HLSL
 void ComputeSingleScatteringTexture(
-    TransmittanceTexture transmittance_texture, float3 gl_frag_coord,
+    TransmittanceTexture transmittance_texture, TransmittanceSampler transmittance_sampler, float3 gl_frag_coord,
     out IrradianceSpectrum rayleigh, out IrradianceSpectrum mie)
 {
   Length r;
@@ -376,7 +377,7 @@ void ComputeSingleScatteringTexture(
   bool ray_r_mu_intersects_ground;
   GetRMuMuSNuFromScatteringTextureFragCoord(gl_frag_coord,
       r, mu, mu_s, nu, ray_r_mu_intersects_ground);
-  ComputeSingleScattering(transmittance_texture,
+  ComputeSingleScattering(transmittance_texture, transmittance_sampler,
       r, mu, mu_s, nu, ray_r_mu_intersects_ground, rayleigh, mie);
 }
 
@@ -390,9 +391,10 @@ void ComputeSingleScatteringTexture(
  * inverse of the 3D-4D mapping defined in
  * GetRMuMuSNuFromScatteringTextureFragCoord):
  */
-
+//HLSL
 AbstractSpectrum GetScattering(
     AbstractScatteringTexture scattering_texture,
+	AbstractScatteringSampler scattering_sampler,
     Length r, Number mu, Number mu_s, Number nu,
     bool ray_r_mu_intersects_ground) 
 {
@@ -406,7 +408,7 @@ AbstractSpectrum GetScattering(
 
   float3 uvw1 = float3((tex_x + 1.0 + uvwz.y) / Number(SCATTERING_TEXTURE_NU_SIZE), uvwz.z, uvwz.w);
 
-  return TEX3D(scattering_texture, uvw0).rgb * (1.0 - lerp) + TEX3D(scattering_texture, uvw1).rgb * lerp;
+  return SAMPLE_TEXTURE3D(scattering_texture, scattering_sampler, uvw0).rgb * (1.0 - lerp) + SAMPLE_TEXTURE3D(scattering_texture, scattering_sampler, uvw1).rgb * lerp;
 }
 
 /*
@@ -417,11 +419,14 @@ AbstractSpectrum GetScattering(
  * multiple_scattering_texture corresponds to this scattering order,
  * with both Rayleigh and Mie included, as well as all the phase function terms.
  */
-
+//HLSL
 RadianceSpectrum GetScattering(
     ReducedScatteringTexture single_rayleigh_scattering_texture,
+	ReducedScatteringSampler single_rayleigh_scattering_sampler,
     ReducedScatteringTexture single_mie_scattering_texture,
+	ReducedScatteringSampler single_mie_scattering_sampler,
     ScatteringTexture multiple_scattering_texture,
+	ScatteringSampler multiple_scattering_sampler,
     Length r, Number mu, Number mu_s, Number nu,
     bool ray_r_mu_intersects_ground,
     int scattering_order) 
@@ -429,11 +434,11 @@ RadianceSpectrum GetScattering(
   if (scattering_order == 1) 
   {
     IrradianceSpectrum rayleigh = GetScattering(
-        single_rayleigh_scattering_texture, r, mu, mu_s, nu,
+        single_rayleigh_scattering_texture, single_rayleigh_scattering_sampler, r, mu, mu_s, nu,
         ray_r_mu_intersects_ground);
 
     IrradianceSpectrum mie = GetScattering(
-        single_mie_scattering_texture, r, mu, mu_s, nu,
+        single_mie_scattering_texture, single_mie_scattering_sampler, r, mu, mu_s, nu,
         ray_r_mu_intersects_ground);
 
     return rayleigh * RayleighPhaseFunction(nu) +
@@ -442,7 +447,7 @@ RadianceSpectrum GetScattering(
   else 
   {
     return GetScattering(
-        multiple_scattering_texture, r, mu, mu_s, nu,
+        multiple_scattering_texture, multiple_scattering_sampler, r, mu, mu_s, nu,
         ray_r_mu_intersects_ground);
   }
 }
@@ -549,6 +554,7 @@ RadianceSpectrum GetScattering(
 
 IrradianceSpectrum GetIrradiance(
     IrradianceTexture irradiance_texture,
+	IrradianceSampler irradiance_sampler,
     Length r, Number mu_s);
 
 /*
@@ -562,13 +568,18 @@ IrradianceSpectrum GetIrradiance(
  * received on the ground after n-2 bounces, and <scattering_order is
  * equal to n):
  */
-
+//HLSL
 RadianceDensitySpectrum ComputeScatteringDensity(
     TransmittanceTexture transmittance_texture,
+	TransmittanceSampler transmittance_sampler,
     ReducedScatteringTexture single_rayleigh_scattering_texture,
+	ReducedScatteringSampler single_rayleigh_scattering_sampler,
     ReducedScatteringTexture single_mie_scattering_texture,
+	ReducedScatteringSampler single_mie_scattering_sampler,
     ScatteringTexture multiple_scattering_texture,
+	ScatteringSampler multiple_scattering_sampler,
     IrradianceTexture irradiance_texture,
+	IrradianceSampler irradiance_sampler,
     Length r, Number mu, Number mu_s, Number nu, int scattering_order) 
 {
 
@@ -603,7 +614,7 @@ RadianceDensitySpectrum ComputeScatteringDensity(
     if (ray_r_theta_intersects_ground) 
     {
       distance_to_ground = DistanceToBottomAtmosphereBoundary(r, cos_theta);
-      transmittance_to_ground = GetTransmittance(transmittance_texture, r, cos_theta, distance_to_ground, true);
+      transmittance_to_ground = GetTransmittance(transmittance_texture, transmittance_sampler, r, cos_theta, distance_to_ground, true);
     }
 
     for (int m = 0; m < 2 * SAMPLE_COUNT; ++m) 
@@ -617,8 +628,10 @@ RadianceDensitySpectrum ComputeScatteringDensity(
       // (n-1)-th order:
       Number nu1 = dot(omega_s, omega_i);
       RadianceSpectrum incident_radiance = GetScattering(
-          single_rayleigh_scattering_texture, single_mie_scattering_texture,
-          multiple_scattering_texture, r, omega_i.z, mu_s, nu1,
+          single_rayleigh_scattering_texture, single_rayleigh_scattering_sampler,
+		  single_mie_scattering_texture, single_mie_scattering_sampler,
+          multiple_scattering_texture, multiple_scattering_sampler,
+		  r, omega_i.z, mu_s, nu1,
           ray_r_theta_intersects_ground, scattering_order - 1);
 
       // and of the contribution from the light paths with n-1 bounces and whose
@@ -626,7 +639,7 @@ RadianceDensitySpectrum ComputeScatteringDensity(
       // transmittance to the ground, the ground albedo, the ground BRDF, and
       // the irradiance received on the ground after n-2 bounces.
       float3 ground_normal = normalize(zenith_direction * r + omega_i * distance_to_ground);
-      IrradianceSpectrum ground_irradiance = GetIrradiance(irradiance_texture, bottom_radius, dot(ground_normal, omega_s));
+      IrradianceSpectrum ground_irradiance = GetIrradiance(irradiance_texture, irradiance_sampler, bottom_radius, dot(ground_normal, omega_s));
       incident_radiance += transmittance_to_ground * ground_albedo * (1.0 / (PI * sr)) * ground_irradiance;
 
       // The radiance finally scattered from direction omega_i towards direction
@@ -669,10 +682,12 @@ RadianceDensitySpectrum ComputeScatteringDensity(
  * 
  * The implementation for this second step is straightforward:
 */
-
+//HLSL
 RadianceSpectrum ComputeMultipleScattering(
     TransmittanceTexture transmittance_texture,
+	TransmittanceSampler transmittance_sampler,
     ScatteringDensityTexture scattering_density_texture,
+	ScatteringDensitySampler scattering_density_sampler,
     Length r, Number mu, Number mu_s, Number nu,
     bool ray_r_mu_intersects_ground) 
 {
@@ -697,8 +712,8 @@ RadianceSpectrum ComputeMultipleScattering(
 
     // The Rayleigh and Mie multiple scattering at the current sample point.
     RadianceSpectrum rayleigh_mie_i =
-        GetScattering(scattering_density_texture, r_i, mu_i, mu_s_i, nu, ray_r_mu_intersects_ground) *
-        GetTransmittance(transmittance_texture, r, mu, d_i, ray_r_mu_intersects_ground) * dx;
+        GetScattering(scattering_density_texture, scattering_density_sampler, r_i, mu_i, mu_s_i, nu, ray_r_mu_intersects_ground) *
+        GetTransmittance(transmittance_texture, transmittance_sampler, r, mu, d_i, ray_r_mu_intersects_ground) * dx;
 
     // Sample weight (from the trapezoidal rule).
     Number weight_i = (i == 0 || i == SAMPLE_COUNT) ? 0.5 : 1.0;
@@ -722,13 +737,18 @@ RadianceSpectrum ComputeMultipleScattering(
  * first and second steps of each iteration
  * over the number of bounces:
 */
-
+//HLSL
 RadianceDensitySpectrum ComputeScatteringDensityTexture(
     TransmittanceTexture transmittance_texture,
+	TransmittanceSampler transmittance_sampler,
     ReducedScatteringTexture single_rayleigh_scattering_texture,
+	ReducedScatteringSampler single_rayleigh_scattering_sampler,
     ReducedScatteringTexture single_mie_scattering_texture,
+	ReducedScatteringSampler single_mie_scattering_sampler,
     ScatteringTexture multiple_scattering_texture,
+	ScatteringSampler multiple_scattering_sampler,
     IrradianceTexture irradiance_texture,
+	IrradianceSampler irradiance_sampler,
     float3 gl_frag_coord, int scattering_order) 
 {
   Length r;
@@ -739,15 +759,22 @@ RadianceDensitySpectrum ComputeScatteringDensityTexture(
   GetRMuMuSNuFromScatteringTextureFragCoord(gl_frag_coord,
       r, mu, mu_s, nu, ray_r_mu_intersects_ground);
 
-  return ComputeScatteringDensity(transmittance_texture,
-      single_rayleigh_scattering_texture, single_mie_scattering_texture,
-      multiple_scattering_texture, irradiance_texture, r, mu, mu_s, nu,
+  return ComputeScatteringDensity(
+	  transmittance_texture, transmittance_sampler,
+      single_rayleigh_scattering_texture, single_rayleigh_scattering_sampler,
+	  single_mie_scattering_texture, single_mie_scattering_sampler,
+      multiple_scattering_texture, multiple_scattering_sampler,
+	  irradiance_texture, irradiance_sampler,
+	  r, mu, mu_s, nu,
       scattering_order);
 }
 
+//HLSL
 RadianceSpectrum ComputeMultipleScatteringTexture(
     TransmittanceTexture transmittance_texture,
+	TransmittanceSampler transmittance_sampler,
     ScatteringDensityTexture scattering_density_texture,
+	ScatteringDensitySampler scattering_density_sampler,
     float3 gl_frag_coord, out Number nu) 
 {
   Length r;
@@ -757,8 +784,10 @@ RadianceSpectrum ComputeMultipleScatteringTexture(
   GetRMuMuSNuFromScatteringTextureFragCoord(gl_frag_coord,
       r, mu, mu_s, nu, ray_r_mu_intersects_ground);
 
-  return ComputeMultipleScattering(transmittance_texture,
-      scattering_density_texture, r, mu, mu_s, nu,
+  return ComputeMultipleScattering(
+	  transmittance_texture, transmittance_sampler,
+      scattering_density_texture, scattering_density_sampler,
+	  r, mu, mu_s, nu,
       ray_r_mu_intersects_ground);
 }
 

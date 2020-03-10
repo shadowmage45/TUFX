@@ -9,7 +9,7 @@ using UnityEngine.Rendering.PostProcessing;
 namespace TUFX
 {
 
-    [PostProcess(typeof(BISRenderer), PostProcessEvent.BeforeStack, "TU/BIS")]
+    [PostProcess(typeof(BISRenderer), PostProcessEvent.AfterStack, "TU/BIS")]
     public class TUBISEffect : PostProcessEffectSettings
     {
 
@@ -35,12 +35,12 @@ namespace TUFX
 
         public LUMINANCE UseLuminance = LUMINANCE.NONE;
 
-        public float Exposure = 1000.0f;
+        public float Exposure = 10.0f;
 
         public ComputeShader m_compute;
 
         internal Model m_model;
-        
+
         /// <summary>
         /// The "real" initialization work, which is specific to our atmosphere model,
         /// is done in the following method. It starts with the creation of an atmosphere
@@ -170,14 +170,14 @@ namespace TUFX
             int numScatteringOrders = 6;
             m_model.Init(m_compute, numScatteringOrders);
 
-            //m_model.BindToMaterial(m_material);
+            m_model.BindToMaterial(m_material);
         }
 
         private void OnDestroy()
         {
             MonoBehaviour.print("BIS:OnDestroy(): "+GetHashCode());
             if (m_model != null)
-                m_model.Release(); 
+                m_model.Release();
         }
 
     }
@@ -186,11 +186,13 @@ namespace TUFX
     {
 
         private bool init = false;
+        Shader shader;
 
         public override void Render(PostProcessRenderContext context)
         {
+            if (shader == null) { shader = Shader.Find("TU/BIS"); }
             Camera camera = context.camera;
-            PropertySheet sheet = context.propertySheets.Get(Shader.Find("TU/BIS"));
+            PropertySheet sheet = context.propertySheets.Get(shader);
             MaterialPropertyBlock m_material = sheet.properties;
             if (!init) { settings.Init(m_material); init = true; }
 
@@ -260,6 +262,8 @@ namespace TUFX
 
             m_material.SetFloat("_ClipDepth", camera.farClipPlane - camera.nearClipPlane);
 
+            //context.command.Blit(context.source, context.destination, sheet, 0);
+            
             context.command.BlitFullscreenTriangle(context.source, context.destination, sheet, 0);
         }
 

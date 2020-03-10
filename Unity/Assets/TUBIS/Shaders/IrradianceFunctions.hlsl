@@ -103,23 +103,18 @@
  * equations can be simplified as follows:
  */
 
-IrradianceSpectrum ComputeDirectIrradiance(
-    TransmittanceTexture transmittance_texture,
-    Length r, Number mu_s) 
+//HLSL
+IrradianceSpectrum ComputeDirectIrradiance(TransmittanceTexture transmittance_texture, TransmittanceSampler transmittance_sampler, Length r, Number mu_s) 
 {
+	Number alpha_s = sun_angular_radius / rad;
 
-  Number alpha_s = sun_angular_radius / rad;
+	// Approximate average of the cosine factor mu_s over the visible fraction of
+	// the Sun disc.
+	Number average_cosine_factor =
+	mu_s < -alpha_s ? 0.0 : (mu_s > alpha_s ? mu_s : (mu_s + alpha_s) * (mu_s + alpha_s) / (4.0 * alpha_s));
 
-  // Approximate average of the cosine factor mu_s over the visible fraction of
-  // the Sun disc.
-  Number average_cosine_factor =
-    mu_s < -alpha_s ? 0.0 : (mu_s > alpha_s ? mu_s :
-        (mu_s + alpha_s) * (mu_s + alpha_s) / (4.0 * alpha_s));
-
-  return solar_irradiance * GetTransmittanceToTopAtmosphereBoundary(transmittance_texture, r, mu_s) * average_cosine_factor;
-
+	return solar_irradiance * GetTransmittanceToTopAtmosphereBoundary(transmittance_texture, transmittance_sampler, r, mu_s) * average_cosine_factor;
 }
-
 
 /*
  * For the indirect ground irradiance the integral over the hemisphere must be
@@ -134,39 +129,41 @@ IrradianceSpectrum ComputeDirectIrradiance(
  * order of scattering, if n>1, and scattering_order is equal to n):
  */
 
-IrradianceSpectrum ComputeIndirectIrradiance(
-    ReducedScatteringTexture single_rayleigh_scattering_texture,
-    ReducedScatteringTexture single_mie_scattering_texture,
-    ScatteringTexture multiple_scattering_texture,
-    Length r, Number mu_s, int scattering_order) 
+//HLSL
+IrradianceSpectrum ComputeIndirectIrradiance(ReducedScatteringTexture single_rayleigh_scattering_texture, ReducedScatteringSampler sampler1, ReducedScatteringTexture single_mie_scattering_texture,
+	ReducedScatteringSampler sampler2, ScatteringTexture multiple_scattering_texture, ScatteringSampler sampler3, Length r, Number mu_s, int scattering_order)
 {
+	const int SAMPLE_COUNT = 32;
+	const Angle dphi = pi / Number(SAMPLE_COUNT);
+	const Angle dtheta = pi / Number(SAMPLE_COUNT);
 
-  const int SAMPLE_COUNT = 32;
-  const Angle dphi = pi / Number(SAMPLE_COUNT);
-  const Angle dtheta = pi / Number(SAMPLE_COUNT);
+	IrradianceSpectrum result = IrradianceSpectrum(0, 0, 0);
 
-  IrradianceSpectrum result = IrradianceSpectrum(0, 0, 0);
+	float3 omega_s = float3(sqrt(1.0 - mu_s * mu_s), 0.0, mu_s);
 
-  float3 omega_s = float3(sqrt(1.0 - mu_s * mu_s), 0.0, mu_s);
+	for (int j = 0; j < SAMPLE_COUNT / 2; ++j) 
+	{
+		Angle theta = (Number(j) + 0.5) * dtheta;
 
-  for (int j = 0; j < SAMPLE_COUNT / 2; ++j) 
-  {
-    Angle theta = (Number(j) + 0.5) * dtheta;
+		for (int i = 0; i < 2 * SAMPLE_COUNT; ++i) 
+		{
+			Angle phi = (Number(i) + 0.5) * dphi;
+			float3 omega = float3(cos(phi) * sin(theta), sin(phi) * sin(theta), cos(theta));
+			SolidAngle domega = (dtheta / rad) * (dphi / rad) * sin(theta) * sr;
+			Number nu = dot(omega, omega_s);
 
-    for (int i = 0; i < 2 * SAMPLE_COUNT; ++i) 
-    {
-      Angle phi = (Number(i) + 0.5) * dphi;
-      float3 omega = float3(cos(phi) * sin(theta), sin(phi) * sin(theta), cos(theta));
-      SolidAngle domega = (dtheta / rad) * (dphi / rad) * sin(theta) * sr;
-      Number nu = dot(omega, omega_s);
+			result += GetScattering(
+					single_rayleigh_scattering_texture,
+					sampler1,
+					single_mie_scattering_texture,
+					sampler2, 
+					multiple_scattering_texture,
+					sampler3,
+					r, omega.z, mu_s, nu, false, scattering_order) * omega.z * domega;
+		}
+	}
 
-      result += GetScattering(single_rayleigh_scattering_texture,
-                single_mie_scattering_texture, multiple_scattering_texture,
-                r, omega.z, mu_s, nu, false,scattering_order) * omega.z * domega;
-    }
-  }
-
-  return result;
+	return result;
 }
 
 /*
@@ -180,26 +177,25 @@ IrradianceSpectrum ComputeIndirectIrradiance(
  * because the ground irradiance function is very smooth:
  */
 
+ //HLSL
 float2 GetIrradianceTextureUvFromRMuS(Length r, Number mu_s) 
 {
-
-  Number x_r = (r - bottom_radius) / (top_radius - bottom_radius);
-  Number x_mu_s = mu_s * 0.5 + 0.5;
-  return float2(GetTextureCoordFromUnitRange(x_mu_s, IRRADIANCE_TEXTURE_WIDTH),
-                GetTextureCoordFromUnitRange(x_r, IRRADIANCE_TEXTURE_HEIGHT));
+	Number x_r = (r - bottom_radius) / (top_radius - bottom_radius);
+	Number x_mu_s = mu_s * 0.5 + 0.5;
+	return float2(GetTextureCoordFromUnitRange(x_mu_s, IRRADIANCE_TEXTURE_WIDTH), GetTextureCoordFromUnitRange(x_r, IRRADIANCE_TEXTURE_HEIGHT));
 }
 
 /*
  * The inverse mapping follows immediately:
  */
 
+//HLSL
 void GetRMuSFromIrradianceTextureUv(float2 uv, out Length r, out Number mu_s) 
 {
-
-  Number x_mu_s = GetUnitRangeFromTextureCoord(uv.x, IRRADIANCE_TEXTURE_WIDTH);
-  Number x_r = GetUnitRangeFromTextureCoord(uv.y, IRRADIANCE_TEXTURE_HEIGHT);
-  r = bottom_radius + x_r * (top_radius - bottom_radius);
-  mu_s = ClampCosine(2.0 * x_mu_s - 1.0);
+	Number x_mu_s = GetUnitRangeFromTextureCoord(uv.x, IRRADIANCE_TEXTURE_WIDTH);
+	Number x_r = GetUnitRangeFromTextureCoord(uv.y, IRRADIANCE_TEXTURE_HEIGHT);
+	r = bottom_radius + x_r * (top_radius - bottom_radius);
+	mu_s = ClampCosine(2.0 * x_mu_s - 1.0);
 }
 
 /*
@@ -207,28 +203,25 @@ void GetRMuSFromIrradianceTextureUv(float2 uv, out Length r, out Number mu_s)
  * the ground irradiance texture, for the direct irradiance:
  */
 
-IrradianceSpectrum ComputeDirectIrradianceTexture(
-    TransmittanceTexture transmittance_texture,
-    float2 gl_frag_coord) 
+//HLSL
+IrradianceSpectrum ComputeDirectIrradianceTexture(TransmittanceTexture transmittance_texture, TransmittanceSampler transmittance_sampler, float2 gl_frag_coord) 
 {
-  Length r;
-  Number mu_s;
+	Length r;
+	Number mu_s;
 
-  const float2 IRRADIANCE_TEXTURE_SIZE = float2(IRRADIANCE_TEXTURE_WIDTH, IRRADIANCE_TEXTURE_HEIGHT);
+	const float2 IRRADIANCE_TEXTURE_SIZE = float2(IRRADIANCE_TEXTURE_WIDTH, IRRADIANCE_TEXTURE_HEIGHT);
 
-  GetRMuSFromIrradianceTextureUv(gl_frag_coord / IRRADIANCE_TEXTURE_SIZE, r, mu_s);
-  return ComputeDirectIrradiance(transmittance_texture, r, mu_s);
+	GetRMuSFromIrradianceTextureUv(gl_frag_coord / IRRADIANCE_TEXTURE_SIZE, r, mu_s);
+	return ComputeDirectIrradiance(transmittance_texture, transmittance_sampler, r, mu_s);
 }
 
 /*
  * and the indirect one:
  */
 
-IrradianceSpectrum ComputeIndirectIrradianceTexture(
-    ReducedScatteringTexture single_rayleigh_scattering_texture,
-    ReducedScatteringTexture single_mie_scattering_texture,
-    ScatteringTexture multiple_scattering_texture,
-    float2 gl_frag_coord, int scattering_order) 
+//HLSL
+IrradianceSpectrum ComputeIndirectIrradianceTexture(ReducedScatteringTexture single_rayleigh_scattering_texture, ReducedScatteringSampler sampler1, ReducedScatteringTexture single_mie_scattering_texture,
+	ReducedScatteringSampler sampler2, ScatteringTexture multiple_scattering_texture, ReducedScatteringSampler sampler3, float2 gl_frag_coord, int scattering_order) 
 {
   Length r;
   Number mu_s;
@@ -237,8 +230,8 @@ IrradianceSpectrum ComputeIndirectIrradianceTexture(
 
   GetRMuSFromIrradianceTextureUv(gl_frag_coord / IRRADIANCE_TEXTURE_SIZE, r, mu_s);
 
-  return ComputeIndirectIrradiance(single_rayleigh_scattering_texture, single_mie_scattering_texture,
-                                   multiple_scattering_texture, r, mu_s, scattering_order);
+  return ComputeIndirectIrradiance(single_rayleigh_scattering_texture, sampler1, single_mie_scattering_texture, sampler2, 
+                                   multiple_scattering_texture, sampler3, r, mu_s, scattering_order);
 }
 
 /*
@@ -248,12 +241,11 @@ IrradianceSpectrum ComputeIndirectIrradianceTexture(
  * with a single texture lookup:
  */
 
-IrradianceSpectrum GetIrradiance(
-    IrradianceTexture irradiance_texture,
-    Length r, Number mu_s) 
+//HLSL
+IrradianceSpectrum GetIrradiance(IrradianceTexture irradiance_texture, IrradianceSampler irradiance_sampler, Length r, Number mu_s) 
 {
-  float2 uv = GetIrradianceTextureUvFromRMuS(r, mu_s);
-  return TEX2D(irradiance_texture, uv).rgb;
+	float2 uv = GetIrradianceTextureUvFromRMuS(r, mu_s);
+	return SAMPLE_TEXTURE2D(irradiance_texture, irradiance_sampler, uv).rgb;
 }
 
 

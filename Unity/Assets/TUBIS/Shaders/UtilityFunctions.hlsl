@@ -91,38 +91,6 @@ float3 RadianceToLuminance(float3 rad)
 	return mul(luminanceFromRadiance, float4(rad, 1)).rgb;
 }
 
-#ifdef COMPUTE_SHADER
- 
-// Used to sample from texture in compute shader.
-
-SamplerState _PointClamp;
-SamplerState _LinearClamp;
-
-float4 TEX2D(Texture2D<float4> tex, float2 uv)
-{
-	return tex.SampleLevel(_LinearClamp, uv, 0);
-}
-
-float4 TEX3D(Texture3D<float4> tex, float3 uv)
-{
-	return tex.SampleLevel(_LinearClamp, uv, 0);
-}
-
-#else
-
-// Used to sample from texture in pixel shader.
-
-float4 TEX2D(sampler2D tex, float2 uv)
-{
-	return tex2D(tex, uv);
-}
-
-float4 TEX3D(sampler3D tex, float3 uv)
-{
-	return tex3D(tex, uv);
-}
-
-#endif
 
 
 

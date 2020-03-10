@@ -85,6 +85,7 @@
   * function:
   */
 
+
 #ifdef COMBINED_SCATTERING_TEXTURES
 float3 GetExtrapolatedSingleMieScattering(float4 scattering)
 {
@@ -105,10 +106,12 @@ float3 GetExtrapolatedSingleMieScattering(float4 scattering)
  * make sure that the texture coordinates computation is shared between the lookups
  * in scattering_texture and single_mie_scattering_texture):
  */
-
+//HLSL
 IrradianceSpectrum GetCombinedScattering(
 	ReducedScatteringTexture scattering_texture,
+	ReducedScatteringSampler scattering_sampler,
 	ReducedScatteringTexture single_mie_scattering_texture,
+	ReducedScatteringSampler single_mie_scattering_sampler,
 	Length r, Number mu, Number mu_s, Number nu,
 	bool ray_r_mu_intersects_ground,
 	out IrradianceSpectrum single_mie_scattering)
@@ -123,12 +126,12 @@ IrradianceSpectrum GetCombinedScattering(
 	float3 uvw1 = float3((tex_x + 1.0 + uvwz.y) / Number(SCATTERING_TEXTURE_NU_SIZE), uvwz.z, uvwz.w);
 
 #ifdef COMBINED_SCATTERING_TEXTURES
-	float4 combined_scattering = TEX3D(scattering_texture, uvw0) * (1.0 - lerp) + TEX3D(scattering_texture, uvw1) * lerp;
+	float4 combined_scattering = SAMPLE_TEXTURE3D(scattering_texture, scattering_sampler, uvw0) * (1.0 - lerp) + SAMPLE_TEXTURE3D(scattering_texture, scattering_sampler, uvw1) * lerp;
 	IrradianceSpectrum scattering = combined_scattering;
 	single_mie_scattering = GetExtrapolatedSingleMieScattering(combined_scattering);
 #else
-	IrradianceSpectrum scattering = TEX3D(scattering_texture, uvw0).xyz * (1.0 - lerp) + TEX3D(scattering_texture, uvw1).xyz * lerp;
-	single_mie_scattering = TEX3D(single_mie_scattering_texture, uvw0).xyz * (1.0 - lerp) + TEX3D(single_mie_scattering_texture, uvw1).xyz * lerp;
+	IrradianceSpectrum scattering = SAMPLE_TEXTURE3D(scattering_texture, scattering_sampler, uvw0).xyz * (1.0 - lerp) + SAMPLE_TEXTURE3D(scattering_texture, scattering_sampler, uvw1).xyz * lerp;
+	single_mie_scattering = SAMPLE_TEXTURE3D(single_mie_scattering_texture, single_mie_scattering_sampler, uvw0).xyz * (1.0 - lerp) + SAMPLE_TEXTURE3D(single_mie_scattering_texture, single_mie_scattering_sampler, uvw1).xyz * lerp;
 #endif
 
 	return scattering;
@@ -146,11 +149,14 @@ IrradianceSpectrum GetCombinedScattering(
  * function, where most of the computations are used to correctly handle the case
  * of viewers outside the atmosphere, and the case of light shafts:
  */
-
+//HLSL
 RadianceSpectrum GetSkyRadiance(
 	TransmittanceTexture transmittance_texture,
+	TransmittanceSampler transmittance_sampler,
 	ReducedScatteringTexture scattering_texture,
+	ReducedScatteringSampler scattering_sampler,
 	ReducedScatteringTexture single_mie_scattering_texture,
+	ReducedScatteringSampler single_mie_scattering_sampler,
 	Position camera, Direction view_ray, Length shadow_length,
 	Direction sun_direction, out DimensionlessSpectrum transmittance)
 {
@@ -183,7 +189,7 @@ RadianceSpectrum GetSkyRadiance(
 	bool ray_r_mu_intersects_ground = RayIntersectsGround(r, mu);
 
 	transmittance = ray_r_mu_intersects_ground ? DimensionlessSpectrum(0, 0, 0) :
-		GetTransmittanceToTopAtmosphereBoundary(transmittance_texture, r, mu);
+		GetTransmittanceToTopAtmosphereBoundary(transmittance_texture, transmittance_sampler, r, mu);
 
 	IrradianceSpectrum single_mie_scattering;
 	IrradianceSpectrum scattering;
@@ -191,7 +197,8 @@ RadianceSpectrum GetSkyRadiance(
 	if (shadow_length == 0.0 * m)
 	{
 		scattering = GetCombinedScattering(
-			scattering_texture, single_mie_scattering_texture,
+			scattering_texture, scattering_sampler,
+			single_mie_scattering_texture, single_mie_scattering_sampler,
 			r, mu, mu_s, nu, ray_r_mu_intersects_ground,
 			single_mie_scattering);
 	}
@@ -208,12 +215,13 @@ RadianceSpectrum GetSkyRadiance(
 		Number mu_s_p = (r * mu_s + d * nu) / r_p;
 
 		scattering = GetCombinedScattering(
-			scattering_texture, single_mie_scattering_texture,
+			scattering_texture, scattering_sampler,
+			single_mie_scattering_texture, single_mie_scattering_sampler,
 			r_p, mu_p, mu_s_p, nu, ray_r_mu_intersects_ground,
 			single_mie_scattering);
 
 		DimensionlessSpectrum shadow_transmittance =
-			GetTransmittance(transmittance_texture,
+			GetTransmittance(transmittance_texture, transmittance_sampler,
 				r, mu, shadow_length, ray_r_mu_intersects_ground);
 
 		scattering = scattering * shadow_transmittance;
@@ -239,11 +247,14 @@ RadianceSpectrum GetSkyRadiance(
  * implement in the following function (the initial computations are used to
  * correctly handle the case of viewers outside the atmosphere):
  */
-
+//HLSL
 RadianceSpectrum GetSkyRadianceToPoint(
 	TransmittanceTexture transmittance_texture,
+	TransmittanceSampler transmittance_sampler,
 	ReducedScatteringTexture scattering_texture,
+	ReducedScatteringSampler scattering_sampler,
 	ReducedScatteringTexture single_mie_scattering_texture,
+	ReducedScatteringSampler single_mie_scattering_sampler,
 	Position camera, Position pos, Length shadow_length,
 	Direction sun_direction, out DimensionlessSpectrum transmittance)
 {
@@ -271,12 +282,13 @@ RadianceSpectrum GetSkyRadianceToPoint(
 	Length d = length(pos - camera);
 	bool ray_r_mu_intersects_ground = RayIntersectsGround(r, mu);
 
-	transmittance = GetTransmittance(transmittance_texture,
+	transmittance = GetTransmittance(transmittance_texture, transmittance_sampler,
 		r, mu, d, ray_r_mu_intersects_ground);
 
 	IrradianceSpectrum single_mie_scattering;
 	IrradianceSpectrum scattering = GetCombinedScattering(
-		scattering_texture, single_mie_scattering_texture,
+		scattering_texture, scattering_sampler,
+		single_mie_scattering_texture, single_mie_scattering_sampler,
 		r, mu, mu_s, nu, ray_r_mu_intersects_ground,
 		single_mie_scattering);
 
@@ -292,7 +304,8 @@ RadianceSpectrum GetSkyRadianceToPoint(
 
 	IrradianceSpectrum single_mie_scattering_p;
 	IrradianceSpectrum scattering_p = GetCombinedScattering(
-		scattering_texture, single_mie_scattering_texture,
+		scattering_texture, scattering_sampler,
+		single_mie_scattering_texture, single_mie_scattering_sampler,
 		r_p, mu_p, mu_s_p, nu, ray_r_mu_intersects_ground,
 		single_mie_scattering_p);
 
@@ -301,7 +314,7 @@ RadianceSpectrum GetSkyRadianceToPoint(
 	if (shadow_length > 0.0 * m)
 	{
 		// This is the T(x,x_s) term in Eq. (17) of our paper, for light shafts.
-		shadow_transmittance = GetTransmittance(transmittance_texture, r, mu, d, ray_r_mu_intersects_ground);
+		shadow_transmittance = GetTransmittance(transmittance_texture, transmittance_sampler, r, mu, d, ray_r_mu_intersects_ground);
 	}
 
 	scattering = scattering - shadow_transmittance * scattering_p;
@@ -332,10 +345,12 @@ RadianceSpectrum GetSkyRadianceToPoint(
  * <a href="https://hal.inria.fr/inria-00288758/en">paper</a> for the other cases).
  * The function below returns the direct and indirect irradiances separately:
  */
-
+//HLSL
 IrradianceSpectrum GetSunAndSkyIrradiance(
 	TransmittanceTexture transmittance_texture,
+	TransmittanceSampler transmittance_sampler,
 	IrradianceTexture irradiance_texture,
+	IrradianceSampler irradiance_sampler,
 	Position pos, Direction normal, Direction sun_direction,
 	out IrradianceSpectrum sky_irradiance)
 {
@@ -343,11 +358,96 @@ IrradianceSpectrum GetSunAndSkyIrradiance(
 	Number mu_s = dot(pos, sun_direction) / r;
 
 	// Indirect irradiance (approximated if the surface is not horizontal).
-	sky_irradiance = GetIrradiance(irradiance_texture, r, mu_s) * (1.0 + dot(normal, pos) / r) * 0.5;
+	sky_irradiance = GetIrradiance(irradiance_texture, irradiance_sampler, r, mu_s) * (1.0 + dot(normal, pos) / r) * 0.5;
 
 	// Direct irradiance.
-	return solar_irradiance * GetTransmittanceToSun(transmittance_texture, r, mu_s) * max(dot(normal, sun_direction), 0.0);
+	return solar_irradiance * GetTransmittanceToSun(transmittance_texture, transmittance_sampler, r, mu_s) * max(dot(normal, sun_direction), 0.0);
 }
+
+
+#define RADIANCE_API_ENABLED 1
+#ifdef RADIANCE_API_ENABLED
+RadianceSpectrum GetSolarRadiance()
+{
+	//return 0;
+	return solar_irradiance / (PI * sun_angular_radius * sun_angular_radius);
+}
+
+RadianceSpectrum GetSkyRadiance(
+	Position camera, Direction view_ray, Length shadow_length,
+	Direction sun_direction, out DimensionlessSpectrum transmittance)
+{
+	//transmittance = 0;
+	//return 0;
+	return GetSkyRadiance(transmittance_texture, sampler_transmittance_texture,
+		scattering_texture, sampler_scattering_texture,
+		single_mie_scattering_texture, sampler_single_mie_scattering_texture,
+		camera, view_ray, shadow_length, sun_direction, transmittance);
+}
+
+RadianceSpectrum GetSkyRadianceToPoint(
+	Position camera, Position _point, Length shadow_length,
+	Direction sun_direction, out DimensionlessSpectrum transmittance)
+{
+	//transmittance = 0;
+	//return 0;
+	return GetSkyRadianceToPoint(transmittance_texture, sampler_transmittance_texture,
+		scattering_texture, sampler_scattering_texture,
+		single_mie_scattering_texture, sampler_single_mie_scattering_texture,
+		camera, _point, shadow_length, sun_direction, transmittance);
+}
+
+IrradianceSpectrum GetSunAndSkyIrradiance(
+	Position p, Direction normal, Direction sun_direction,
+	out IrradianceSpectrum sky_irradiance)
+{
+	//sky_irradiance = 0;
+	//return 0;
+	return GetSunAndSkyIrradiance(
+		transmittance_texture, sampler_transmittance_texture,
+		irradiance_texture, sampler_irradiance_texture,
+		p, normal, sun_direction, sky_irradiance);
+}
+#else
+Luminance3 GetSolarRadiance()
+{
+	return solar_irradiance /
+		(PI * sun_angular_radius * sun_angular_radius) *
+		SUN_SPECTRAL_RADIANCE_TO_LUMINANCE;
+}
+
+Luminance3 GetSkyRadiance(Position camera, Direction view_ray, Length shadow_length, Direction sun_direction, out DimensionlessSpectrum transmittance)
+{
+	//transmittance = 0;
+	//return 0;
+	return GetSkyRadiance(transmittance_texture,
+		scattering_texture, single_mie_scattering_texture,
+		camera, view_ray, shadow_length, sun_direction, transmittance) *
+		SKY_SPECTRAL_RADIANCE_TO_LUMINANCE;
+}
+
+Luminance3 GetSkyRadianceToPoint(Position camera, Position _point, Length shadow_length, Direction sun_direction, out DimensionlessSpectrum transmittance)
+{
+	//transmittance = 0;
+	//return 0;
+	return GetSkyRadianceToPoint(transmittance_texture, transmittance_sampler,
+		scattering_texture, scattering_sampler,
+		single_mie_scattering_texture, single_mie_scattering_sampler,
+		camera, _point, shadow_length, sun_direction, transmittance) *
+		SKY_SPECTRAL_RADIANCE_TO_LUMINANCE;
+}
+
+Illuminance3 GetSunAndSkyIrradiance(Position p, Direction normal, Direction sun_direction, out IrradianceSpectrum sky_irradiance)
+{
+	//sky_irradiance = 0;
+	//return 0;
+	IrradianceSpectrum sun_irradiance = GetSunAndSkyIrradiance(
+		transmittance_texture, irradiance_texture, p, normal,
+		sun_direction, sky_irradiance);
+	sky_irradiance *= SKY_SPECTRAL_RADIANCE_TO_LUMINANCE;
+	return sun_irradiance * SUN_SPECTRAL_RADIANCE_TO_LUMINANCE;
+}
+#endif
 
 
 
