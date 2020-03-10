@@ -1,5 +1,11 @@
 ﻿Shader "Custom/RenderSky2"
 {
+
+	/**
+	* Original copyright notice is below in its entirety.  Substantial portions
+	* of this source have been modified to enable use as a post-process shader.
+	*/
+
 	/**
 	* Copyright (c) 2017 Eric Bruneton
 	* All rights reserved.
