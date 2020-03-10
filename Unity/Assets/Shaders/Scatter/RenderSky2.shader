@@ -247,15 +247,22 @@
 				float distance_to_intersection = -p_dot_v - sqrt(bottom_radius * bottom_radius - ray_earth_center_squared_distance);
 
 
+
+				//huh, good info here... https://gamedev.stackexchange.com/questions/131978/shader-reconstructing-position-from-depth-in-vr-through-projection-matrix/140924#140924
+				//https://forum.unity.com/threads/world-space-position-in-a-post-processing-shader.114392/
+				//https://answers.unity.com/questions/1584649/how-do-you-port-old-shaders-to-hlsl-so-they-work-w.html
+
 				//0-1 linear depth value; 0= no depth, 1 = max depth
+				//0 should be near clip plane, but it appears to actually be '0'
 				float depth = Linear01Depth(UNITY_SAMPLE_DEPTH(tex2D(_CameraDepthTexture, i.uv)));
 
 				//absolute world-space hit position (or should be)
 				//camera position + near clip distance + percentage of distance between near and far clip in the depth buffer...
-				float3 worldPos = camera + i.view_ray2 + (depth * (i.view_ray - i.view_ray2));
+				//float3 worldPos = camera + i.view_ray2 + (depth * (i.view_ray - i.view_ray2));
 
 				//distance from camera to the hit
-				float dist = length(camera - worldPos);
+				//float dist = length(i.view_ray2) + (depth * length(i.view_ray - i.view_ray2));//  length(camera - worldPos);
+				float dist = depth * length(i.view_ray);// length(i.view_ray2) + (depth * length(i.view_ray - i.view_ray2));//  length(camera - worldPos);
 
 				//distance from camera to planetary boundary
 				//equals the distance to the planetary center minus distance to surface
@@ -268,8 +275,9 @@
 				//then it must have hit something -else- between the camera and the target planet
 				//thus, discard the pixel / render zeros.
 
-				if (dist < distance_to_intersection2)
+				if (dist < distance_to_intersection || dist < distance_to_intersection2)
 				{
+					//return float4(0, 1, 0, 1);
 					//return float4(dist.rrr / _ClipDepth, 1);
 					return float4(tex2D(_MainTex, i.uv).rgb, 1);
 				}
@@ -325,19 +333,19 @@
 				radiance = pow(float3(1,1,1) - exp(-radiance / white_point * exposure), 1.0 / 2.2);				
 
 				//this is a hacky fix for 'from space' atmosphere having a hard edged boundary (looks fine from in-atmo)
-				if (ray_earth_center_squared_distance > bottom_radius * bottom_radius && length(camera - earth_center) > top_radius && ray_earth_center_squared_distance< top_radius * top_radius)
-				{
-					float d1 = sqrt(ray_earth_center_squared_distance) - bottom_radius;//depth in atmo
-					float d2 = top_radius - bottom_radius;//total height of atmo
-					float d3 = d1 / d2;//percent of the way through atmo
-					d3 = max(0, d3);
-					d3 = pow(d3, 10);
-					d3 = 1 - d3;
+				//if (ray_earth_center_squared_distance > bottom_radius * bottom_radius && length(camera - earth_center) > top_radius && ray_earth_center_squared_distance< top_radius * top_radius)
+				//{
+					//float d1 = sqrt(ray_earth_center_squared_distance) - bottom_radius;//depth in atmo
+					//float d2 = top_radius - bottom_radius;//total height of atmo
+					//float d3 = d1 / d2;//percent of the way through atmo
+					//d3 = max(0, d3);
+					//d3 = pow(d3, 10);
+					//d3 = 1 - d3;
 					//radiance *= d3;
-				}
+				//}
 
 				float3 col = tex2D(_MainTex, i.uv);
-				return float4(saturate(radiance+col), 1);
+				return float4(saturate(radiance + col), 1);
 			}
 
 			ENDCG
