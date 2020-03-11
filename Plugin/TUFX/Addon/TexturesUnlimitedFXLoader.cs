@@ -19,7 +19,9 @@ namespace TUFX
 
         internal static TexturesUnlimitedFXLoader INSTANCE;
         private static ApplicationLauncherButton configAppButton;
+        private static ApplicationLauncherButton debugAppButton;
         private ConfigurationGUI configGUI;
+        private DebugGUI debugGUI;
 
         private Dictionary<string, Shader> shaders = new Dictionary<string, Shader>();
         private Dictionary<string, ComputeShader> computeShaders = new Dictionary<string, ComputeShader>();
@@ -121,6 +123,37 @@ namespace TUFX
                 if (!this.computeShaders.ContainsKey(compShaders[i].name)) { this.computeShaders.Add(compShaders[i].name, compShaders[i]); }
             }
             bundle.Unload(false);
+
+            //TODO -- cleanup loading
+            try
+            {
+                bundle = AssetBundle.LoadFromFile(KSPUtil.ApplicationRootPath + "GameData/TUFX/Shaders/tufx-scattering.ssf");
+                shaders = bundle.LoadAllAssets<Shader>();
+                len = shaders.Length;
+                for (int i = 0; i < len; i++)
+                {
+                    if (!this.shaders.ContainsKey(shaders[i].name))
+                    {
+                        this.shaders.Add(shaders[i].name, shaders[i]);
+                        Log.debug("Loading scattering shader: " + shaders[i].name);
+                    }
+                }
+                compShaders = bundle.LoadAllAssets<ComputeShader>();
+                len = compShaders.Length;
+                for (int i = 0; i < len; i++)
+                {
+                    if (!this.computeShaders.ContainsKey(compShaders[i].name))
+                    {
+                        this.computeShaders.Add(compShaders[i].name, compShaders[i]);
+                        Log.debug("Loading scattering compute shader: " + compShaders[i].name);
+                    }
+                }
+                bundle.Unload(false);
+            }
+            catch(Exception e)
+            {
+                Log.debug(e.ToString());
+            }
 
             #region REGION - Load standard Post Process Effect Shaders
             Resources.shaders.bloom = getShader("Hidden/PostProcessing/Bloom");
@@ -286,7 +319,7 @@ namespace TUFX
         /// </summary>
         /// <param name="name"></param>
         /// <returns></returns>
-        private Shader getShader(string name)
+        internal Shader getShader(string name)
         {
             shaders.TryGetValue(name, out Shader s);
             return s;
@@ -297,7 +330,7 @@ namespace TUFX
         /// </summary>
         /// <param name="name"></param>
         /// <returns></returns>
-        private ComputeShader getComputeShader(string name)
+        internal ComputeShader getComputeShader(string name)
         {
             computeShaders.TryGetValue(name, out ComputeShader s);
             return s;
@@ -348,12 +381,28 @@ namespace TUFX
                     configAppButton.onTrue = configGuiEnable;
                     configAppButton.onFalse = configGuiDisable;
                 }
+#if DEBUG
+                if (debugAppButton == null)
+                {
+                    tex = GameDatabase.Instance.GetTexture("TUFX/Assets/TUFX-Icon2", false);
+                    debugAppButton = ApplicationLauncher.Instance.AddModApplication(debugGuiEnable, debugGuiDisable, null, null, null, null, ApplicationLauncher.AppScenes.FLIGHT | ApplicationLauncher.AppScenes.SPH | ApplicationLauncher.AppScenes.VAB | ApplicationLauncher.AppScenes.SPACECENTER | ApplicationLauncher.AppScenes.TRACKSTATION | ApplicationLauncher.AppScenes.MAPVIEW, tex);
+                }
+                else if (debugAppButton != null)
+                {
+                    debugAppButton.onTrue = debugGuiEnable;
+                    configAppButton.onFalse = debugGuiDisable;
+                }
+#endif
             }
             else if (configAppButton != null)
             {
                 Log.debug("TUFX - Removing AppLauncher button...");
                 ApplicationLauncher.Instance.RemoveModApplication(configAppButton);
+#if DEBUG
+                ApplicationLauncher.Instance.RemoveModApplication(debugAppButton);
+#endif
             }
+            
             configGuiDisable();
             //on scene change, reset the map-scene flag
             //scene change into flight-scene is never directly into map mode, so this will only be true if the current scene is the tracking station
@@ -482,7 +531,7 @@ namespace TUFX
         /// Helper method to return a reference to the active camera object.
         /// </summary>
         /// <returns></returns>
-        private Camera getActiveCamera()
+        internal Camera getActiveCamera()
         {
             Camera activeCam = null;
             if (HighLogic.LoadedScene == GameScenes.MAINMENU) { activeCam = Camera.main; }
@@ -630,6 +679,29 @@ namespace TUFX
             if (configAppButton != null && configAppButton.toggleButton != null)
             {
                 configAppButton.toggleButton.Value = false;
+            }
+        }
+
+        private void debugGuiEnable()
+        {
+#if DEBUG
+            debugGUI = GetComponent<DebugGUI>();
+            if (debugGUI == null)
+            {
+                debugGUI = this.gameObject.AddComponent<DebugGUI>();
+            }
+#endif
+        }
+
+        internal void debugGuiDisable()
+        {
+            if (debugGUI != null)
+            {
+                GameObject.Destroy(debugGUI);
+            }
+            if (debugAppButton != null && debugAppButton.toggleButton != null)
+            {
+                debugAppButton.toggleButton.Value = false;
             }
         }
 

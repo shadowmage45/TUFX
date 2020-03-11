@@ -79,7 +79,6 @@
 
 		#include "RenderingFunctions.hlsl"
 
-		//appdata never has UV, what a terrible system..
 		struct at
 		{
 			float4 vertex : POSITION;
@@ -97,13 +96,10 @@
 		{
 			vertout o;
 			o.vertex = float4(v.vertex.xy, 0.0, 1.0);
-			//o.vertex = mul(mul(unity_MatrixVP, unity_ObjectToWorld), o.vertex);//apparently this is not correct for the triangle blit method (why the fuck are they doing this?)
 			o.uv = TransformTriangleVertexToUV(v.vertex.xy);
-
 #if UNITY_UV_STARTS_AT_TOP
 			o.uv = o.uv * float2(1.0, -1.0) + float2(0.0, 1.0);
 #endif
-
 			float3 left = lerp(_Left2, _Left, o.uv.y);
 			float3 right = lerp(_Right2, _Right, o.uv.y);
 			o.view_ray = lerp(left, right, o.uv.x);
@@ -117,6 +113,8 @@
 
 		float4 frag(vertout i) : SV_TARGET
 		{
+			//we'll need this regardless of anything else that happens
+			float4 backgroundColor = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, i.uv);
 			//return float4(normalize(i.view_ray),1);
 			float3 camera = _WorldSpaceCameraPos;
 			// Normalized view direction vector.
@@ -153,6 +151,7 @@
 			float p_dot_p = dot(p, p);
 			float ray_earth_center_squared_distance = p_dot_p - p_dot_v * p_dot_v;
 			float distance_to_intersection = -p_dot_v - sqrt(bottom_radius * bottom_radius - ray_earth_center_squared_distance);
+			float distance_to_intersection2 = -p_dot_v - sqrt(top_radius * top_radius - ray_earth_center_squared_distance);
 
 
 
@@ -167,32 +166,27 @@
 
 			//0-1 linear depth value; 0= no depth, 1 = max depth
 			//0 should be near clip plane, but it appears to actually be '0'
-			float depth = Linear01Depth(SAMPLE_DEPTH_TEXTURE(_CameraDepthTexture, sampler_CameraDepthTexture, i.uv));// 1;//TODO - fix depth //float depth = Linear01Depth(tex2D(_CameraDepthTexture, i.uv).r);
+			float depth = Linear01Depth(SAMPLE_DEPTH_TEXTURE(_CameraDepthTexture, sampler_CameraDepthTexture, i.uv));
 
-			//absolute world-space hit position (or should be)
-			//camera position + near clip distance + percentage of distance between near and far clip in the depth buffer...
-			//float3 worldPos = camera + i.view_ray2 + (depth * (i.view_ray - i.view_ray2));
+			//absolute world-space hit position
+			//float3 worldPos = camera + (depth * i.view_ray);
 
 			//distance from camera to the hit
-			//float dist = length(i.view_ray2) + (depth * length(i.view_ray - i.view_ray2));//  length(camera - worldPos);
-			float dist = depth * length(i.view_ray);// length(i.view_ray2) + (depth * length(i.view_ray - i.view_ray2));//  length(camera - worldPos);
+			float dist = depth * length(i.view_ray);
 
-			//distance from camera to planetary boundary
-			//equals the distance to the planetary center minus distance to surface
-			float dist2 = length(earth_center - camera) - (bottom_radius);
-			float distance_to_intersection2 = -p_dot_v - sqrt(top_radius * top_radius - ray_earth_center_squared_distance);
-
-			//but this is incorrect, as we actually need the distance for -this view ray- --if it intersects the surface--
-
-			//if the distance from camera to hit is less than the distance between the camera and the atmosphere boundary
-			//then it must have hit something -else- between the camera and the target planet
-			//thus, discard the pixel / render zeros.
-
-			if (dist * 1.001 < distance_to_intersection || dist < distance_to_intersection2)
+			if(dist < distance_to_intersection2)
 			{
-				return float4(0, 1, 0, 1);
-				//return float4(dist.rrr / _ClipDepth, 1);
-				//return float4(tex2D(_MainTex, i.uv).rgb, 1);
+				return backgroundColor;
+			}
+			//the rest of the code needs more adjustment than this simple 'set hit to depth distance'
+			//because... erm... NFC
+			// can probably look at the code for the sphere stuff, as it likely had some implementation of 'cut the scattering distance to the hit distance'
+			if(dist < distance_to_intersection)
+			{
+				//float diff = distance_to_intersection - dist;
+				//return float4(diff, 0, 0, 1);
+				//return backgroundColor;
+				//distance_to_intersection = dist;
 			}
 
 			// Compute the radiance reflected by the ground, if the ray intersects it.
@@ -202,6 +196,7 @@
 			{
 				//TODO - this needs to utilize depth buffer to test for ground intersection
 				//TODO - how to get a normal direction for the ground without a normals buffer?
+				//TODO - might have to render a normals buffer somehow in a prepass...really only care about terrain
 
 				float3 _point = camera + view_direction * distance_to_intersection;
 				float3 normal = normalize(_point - earth_center);
@@ -235,17 +230,18 @@
 			float3 transmittance;
 			float3 radiance = GetSkyRadiance(camera - earth_center, view_direction, shadow_length, sun_direction, transmittance);
 
+			//TODO second pass if dist < distance_to_intersection; from dist as camera; subtract from base output
+
 			// If the view ray intersects the Sun, add the Sun radiance.
 			if (dot(view_direction, sun_direction) > sun_size.y)
 			{
-				radiance = radiance + transmittance * 1;// GetSolarRadiance();
+				radiance = radiance + transmittance * GetSolarRadiance();
 			}
 
 			radiance = lerp(radiance, ground_radiance, ground_alpha);
 			radiance = pow(float3(1,1,1) - exp(-radiance / white_point * exposure), 1.0 / 2.2);
 
-			float3 color = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, i.uv).rgb;
-			return float4(saturate(radiance.rgb + color.rgb), 1);
+			return float4(saturate(radiance.rgb + backgroundColor.rgb), 1);
 		}
 
 	ENDHLSL
@@ -262,5 +258,7 @@
 
 			ENDHLSL
 		}
+
 	}
+
 }

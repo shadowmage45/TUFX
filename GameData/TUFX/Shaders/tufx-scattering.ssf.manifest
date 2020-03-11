@@ -1,0 +1,35 @@
+ManifestFileVersion: 0
+CRC: 217159882
+Hashes:
+  AssetFileHash:
+    serializedVersion: 2
+    Hash: e9ac966e099eadc4df94d48658cae294
+  TypeTreeHash:
+    serializedVersion: 2
+    Hash: 058083b70f8502aa8dd9e934f984ccb1
+HashAppended: 0
+ClassTypes:
+- Class: 48
+  Script: {instanceID: 0}
+- Class: 72
+  Script: {instanceID: 0}
+- Class: 109
+  Script: {instanceID: 0}
+Assets:
+- Assets/BrunetonsImprovedAtmosphere/Shaders/IrradianceFunctions.cginc
+- Assets/TUBIS/Shaders/ScatteringFunctions.hlsl
+- Assets/BrunetonsImprovedAtmosphere/Shaders/Write.compute
+- Assets/BrunetonsImprovedAtmosphere/Shaders/Precomputation.compute
+- Assets/TUBIS/Shaders/TransmittanceFunctions.hlsl
+- Assets/BrunetonsImprovedAtmosphere/Shaders/ScatteringFunctions.cginc
+- Assets/BrunetonsImprovedAtmosphere/Shaders/Definitions.cginc
+- Assets/TUBIS/Shaders/TU-BIS.shader
+- Assets/TUBIS/Shaders/RenderingFunctions.hlsl
+- Assets/BrunetonsImprovedAtmosphere/Shaders/RenderingFunctions.cginc
+- Assets/BrunetonsImprovedAtmosphere/Shaders/TransmittanceFunctions.cginc
+- Assets/BrunetonsImprovedAtmosphere/Shaders/UtilityFunctions.cginc
+- Assets/TUBIS/Shaders/UtilityFunctions.hlsl
+- Assets/BrunetonsImprovedAtmosphere/Shaders/Read.compute
+- Assets/TUBIS/Shaders/Definitions.hlsl
+- Assets/TUBIS/Shaders/IrradianceFunctions.hlsl
+Dependencies: []

@@ -82,17 +82,12 @@ MonoBehaviour:
   enabled:
     overrideState: 1
     value: 1
-  kLengthUnitInMeters: 100000
-  Sun: {fileID: 0}
-  planet: {fileID: 0}
-  UseConstantSolarSpectrum: 0
-  UseOzone: 1
-  UseCombinedTextures: 1
-  UseHalfPrecision: 0
-  DoWhiteBalance: 0
-  UseLuminance: 0
-  Exposure: 1000
-  m_compute: {fileID: 0}
+  Exposure:
+    overrideState: 1
+    value: 5
+  DoWhiteBalance:
+    overrideState: 1
+    value: 0
 --- !u!114 &11400000
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -108,7 +103,6 @@ MonoBehaviour:
   settings:
   - {fileID: -3905780299630945876}
   - {fileID: -3987044383104512508}
-  - {fileID: 7908320933409407563}
 --- !u!114 &7908320933409407563
 MonoBehaviour:
   m_ObjectHideFlags: 3

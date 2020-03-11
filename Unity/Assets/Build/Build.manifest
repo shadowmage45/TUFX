@@ -1,0 +1,7 @@
+ManifestFileVersion: 0
+CRC: 4281594003
+AssetBundleManifest:
+  AssetBundleInfos:
+    Info_0:
+      Name: tufx-scattering.ssf
+      Dependencies: {}

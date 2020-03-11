@@ -61,6 +61,7 @@
   <ItemGroup>
     <Compile Include="Addon\TexturesUnlimitedFXLoader.cs" />
     <Compile Include="GUI\ConfigurationGUI.cs" />
+    <Compile Include="GUI\DebugGUI.cs" />
     <Compile Include="GUI\SplineConfigurationGUI.cs" />
     <Compile Include="PostProcessing\Attributes\DisplayNameAttribute.cs" />
     <Compile Include="PostProcessing\Attributes\MaxAttribute.cs" />
@@ -119,6 +120,7 @@
     <Compile Include="PostProcessing\Utils\TextureLerper.cs" />
     <Compile Include="PostProcessing\Utils\XRSettings.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Scattering\TUFXScatteringManager.cs" />
     <Compile Include="Settings\TUFXGameSettings.cs" />
     <Compile Include="TUFXProfile.cs" />
     <Compile Include="TUFXEffectTextureList.cs" />
@@ -127,6 +129,7 @@
   <ItemGroup>
     <None Include="PostProcessing\Unity.Postprocessing.Runtime.asmdef" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PostBuildEvent>copy "$(TargetPath)" "$(SolutionDir)\..\GameData\TUFX\Plugins\$(TargetFileName)"

@@ -8,6 +8,8 @@ namespace TUFX
 
     public class Model
     {
+
+        #region REGION - Constants
         private const int READ = 0;
         private const int WRITE = 1;
 
@@ -17,6 +19,9 @@ namespace TUFX
 
         private const int kLambdaMin = 360;
         private const int kLambdaMax = 830;
+        #endregion
+
+        #region REGION - Physical Properties (Precompute)
 
         /// <summary>
         /// The wavelength values, in nanometers, and sorted in increasing order, for
@@ -175,6 +180,10 @@ namespace TUFX
         /// </summary>
         public bool HalfPrecision { get; set; }
 
+        #endregion
+
+        #region REGION - RenderTexture Cache
+
         public RenderTexture TransmittanceTexture { get; private set; }
 
         public RenderTexture ScatteringTexture { get; private set; }
@@ -182,6 +191,22 @@ namespace TUFX
         public RenderTexture IrradianceTexture { get; private set; }
 
         public RenderTexture OptionalSingleMieScatteringTexture { get; private set; }
+
+        #endregion
+
+        #region REGION - Runtime Properties
+
+        /// <summary>
+        /// World-space planet center
+        /// </summary>
+        public Vector3 PlanetCenter { get; set; }
+
+        /// <summary>
+        /// World space vector from the (planet) to the sun/light-source
+        /// </summary>
+        public Vector3 SunDirection { get; set; }
+
+        #endregion
 
         public Model()
         {
