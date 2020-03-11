@@ -149,6 +149,8 @@ namespace TUFX
                     }
                 }
                 bundle.Unload(false);
+                TUFXScatteringResources.PrecomputeShader = getComputeShader("Precomputation"); ;
+                TUFXScatteringResources.ScatteringShader = getShader("TU/BIS");
             }
             catch(Exception e)
             {
@@ -603,6 +605,7 @@ namespace TUFX
                     tufxProfile.Enable(volume);
                 }
                 Log.log("Profile enabled: " + profileName);
+                TUFXScatteringManager.INSTANCE.debugProfileSetup(volume, layer);
             }
             else if (string.IsNullOrEmpty(profileName))
             {
@@ -612,7 +615,7 @@ namespace TUFX
             {
                 Log.exception("Profile load was requested for: " + profileName + ", but no profile exists for that name.");
             }
-
+            
         }
 
         /// <summary>

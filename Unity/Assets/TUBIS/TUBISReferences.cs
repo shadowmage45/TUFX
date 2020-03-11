@@ -166,8 +166,8 @@ namespace TUFX
             model.Wavelengths = wavelengths;
             model.SolarIrradiance = solar_irradiance;
             model.SunAngularRadius = kSunAngularRadius;
-            model.BottomRadius = kBottomRadius;
-            model.TopRadius = kTopRadius;
+            model.BottomRadius = 600000;
+            model.TopRadius = 670000;
             model.RayleighDensity = rayleigh_layer;
             model.RayleighScattering = rayleigh_scattering;
             model.MieDensity = mie_layer;

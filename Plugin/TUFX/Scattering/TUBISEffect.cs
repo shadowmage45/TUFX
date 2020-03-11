@@ -1,4 +1,3 @@
-using BrunetonsImprovedAtmosphere;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -23,6 +22,15 @@ namespace TUFX
             return base.IsEnabledAndSupported(context) && TUFXScatteringResources.PrecomputeShader!=null && TUFXScatteringResources.ScatteringShader!=null;
         }
 
+        public override void Load(ConfigNode config)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override void Save(ConfigNode config)
+        {
+            throw new NotImplementedException();
+        }
     }
 
     public class BISRenderer : PostProcessEffectRenderer<TUBISEffect>
