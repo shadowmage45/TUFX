@@ -156,8 +156,8 @@ namespace TUFX
             model.SunDirection = -sun.transform.forward;
 
             int numScatteringOrders = 6;
-            model.Init(TUFXScatteringResources.PrecomputeShader, numScatteringOrders);
-            TUFXScatteringResources.Models.Add(model);
+            //model.Init(TUFXScatteringResources.PrecomputeShader, numScatteringOrders);
+            //TUFXScatteringResources.Models.Add(model);
 
 
             kRayleighScaleHeight /= 2;

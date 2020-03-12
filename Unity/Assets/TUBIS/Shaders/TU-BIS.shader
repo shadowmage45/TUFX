@@ -52,16 +52,6 @@
 		float3 _Left2;
 		float3 _Right2;
 
-		//frustum bounding vectors for near clip, used to determine world-space view direction from inside screen space shader
-		float3 _NLeft;
-		float3 _NRight;
-		float3 _NLeft2;
-		float3 _NRight2;
-
-		//farClip - nearClip - used to recreate world-space position from depth buffer
-		//may or may not be correct...
-		float _ClipDepth;
-
 		float exposure;
 		float3 white_point;
 		float3 earth_center;
@@ -77,6 +67,7 @@
 		TEXTURE3D_SAMPLER3D(single_mie_scattering_texture, sampler_single_mie_scattering_texture);
 		TEXTURE2D_SAMPLER2D(_CameraDepthTexture, sampler_CameraDepthTexture);
 
+		//include this here, as it needs the texture refs, variables, and samplers declared above
 		#include "RenderingFunctions.hlsl"
 
 		struct at
@@ -89,7 +80,6 @@
 			float4 vertex : SV_POSITION;
 			float2 uv : TEXCOORD0;
 			float3 view_ray : TEXCOORD1;
-			float3 view_ray2 : TEXCOORD2;
 		};
 
 		vertout vert(at v)
@@ -103,10 +93,6 @@
 			float3 left = lerp(_Left2, _Left, o.uv.y);
 			float3 right = lerp(_Right2, _Right, o.uv.y);
 			o.view_ray = lerp(left, right, o.uv.x);
-
-			left = lerp(_NLeft2, _NLeft, o.uv.y);
-			right = lerp(_NRight2, _NRight, o.uv.y);
-			o.view_ray2 = lerp(left, right, o.uv.x);
 
 			return o;
 		}
@@ -156,26 +142,16 @@
 			float p_dot_v = dot(p, view_direction);
 			float p_dot_p = dot(p, p);
 			float ray_earth_center_squared_distance = p_dot_p - p_dot_v * p_dot_v;
-			float distance_to_intersection = -p_dot_v - sqrt(bottom_radius * bottom_radius - ray_earth_center_squared_distance);
+			float distanceToGround = -p_dot_v - sqrt(bottom_radius * bottom_radius - ray_earth_center_squared_distance);
 			float AT = sqrt(top_radius * top_radius - ray_earth_center_squared_distance);
-			float distance_to_intersection2 = -p_dot_v - AT;
+			float distanceToAtmoEntry = -p_dot_v - AT;
 			float distance_to_rear_intersection = -p_dot_v + AT;
+
+			//if camera is inside of the atmosphere, distance to start of atmosphere == 0
 			if(length(p) < top_radius)
 			{
-				distance_to_intersection2 = 0;
-				//distance_to_rear_intersection = -p_dot_v + 
+				distanceToAtmoEntry = 0;
 			}
-			//the above value is incorrect if the ray is started within the atmo
-
-
-			//huh, good info here... https://gamedev.stackexchange.com/questions/131978/shader-reconstructing-position-from-depth-in-vr-through-projection-matrix/140924#140924
-			//https://forum.unity.com/threads/world-space-position-in-a-post-processing-shader.114392/
-			//https://answers.unity.com/questions/1584649/how-do-you-port-old-shaders-to-hlsl-so-they-work-w.html
-			//https://forum.unity.com/threads/screen-space-multiple-scattering.446647/page-3#post-3316350
-
-			//fix for world-space recomposition from fulscreen triangle bullshit
-			//https://grrava.blogspot.com/2018/08/more-foggy-adventures.html
-			//https://michaldrobot.com/2014/04/01/gcn-execution-patterns-in-full-screen-passes/
 
 			//0-1 linear depth value; 0= no depth, 1 = max depth
 			//0 should be near clip plane, but it appears to actually be '0'
@@ -185,72 +161,47 @@
 			//float3 worldPos = camera + (depth * i.view_ray);
 
 			//distance from camera to the hit
-			float dist = depth * length(i.view_ray);
+			float distanceToDepthHit = depth * length(i.view_ray);
 
-			if(dist < distance_to_intersection2)
+
+
+
+			//the following special case functions mostly handle aerial perspective, calculating the scatter between the viewer and the object
+			//quick exit if the object hit in depth buffer was in front of the start of the atmosphere.
+			if (distanceToDepthHit < distanceToAtmoEntry)
 			{
 				return backgroundColor;
 			}
+			if (ray_earth_center_squared_distance > top_radius * top_radius)
+			{
+				return backgroundColor; 
+			}
 
+			float3 _origin = camera - earth_center;
 			// Compute the radiance reflected by the ground, if the ray intersects it.
 			float ground_alpha = 0.0;
-			float3 ground_radiance = float3(0,0,0);
-			if (dist < distance_to_intersection || (dist < distance_to_rear_intersection && ray_earth_center_squared_distance >= bottom_radius * bottom_radius))
+			float3 ground_radiance = float3(0, 0, 0);
+
+			float3 radiance = float3(0,0,0);
+			float3 transmittance = float3(0,0,0);
+
+
+			//this min/max handles most of the special casing...
+			distanceToGround = min(max(distanceToGround, 0), distanceToDepthHit);
+			distanceToGround = max(distanceToGround, distanceToDepthHit);
+
+			if (distanceToDepthHit < distance_to_rear_intersection && ray_earth_center_squared_distance >= bottom_radius * bottom_radius)
 			{
-				float3 _point = camera + view_direction * dist;
-				float3 normal = normalize(_point - earth_center);
-
-				// Compute the radiance reflected by the sphere.
-				float3 sky_irradiance;
-				float3 sun_irradiance = GetSunAndSkyIrradiance(_point - earth_center, normal, sun_direction, sky_irradiance);
-
-				ground_radiance = kGroundAlbedo * (1.0 / PI) * (sun_irradiance + sky_irradiance);
-
-				/*
-				Finally, we take into account the aerial perspective between the camera and
-				the sphere, which depends on the length of this segment which is in shadow:
-				*/
-				float shadow_length = max(0.0, min(shadow_out, dist) - shadow_in) * lightshaft_fadein_hack;
-
-				float3 transmittance;
-				float3 in_scatter = GetSkyRadianceToPoint(camera - earth_center, _point - earth_center, shadow_length, sun_direction, transmittance);
-				//return float4(in_scatter*100,1);
-				ground_alpha = 1;
-				ground_radiance = ground_radiance * transmittance + in_scatter;
-				ground_radiance = max(ground_radiance, float3(0, 0, 0));
+				//distanceToGround = distanceToDepthHit;
 			}
-			else if (distance_to_intersection2 <=0 && distance_to_intersection <=0 && depth < 0.995)
+			
+			if (distanceToGround > 0.0)
 			{
-				float3 _point = camera + view_direction * dist;
-				float3 normal = normalize(_point - earth_center);
 
-				// Compute the radiance reflected by the sphere.
-				float3 sky_irradiance;
-				float3 sun_irradiance = GetSunAndSkyIrradiance(_point - earth_center, normal, sun_direction, sky_irradiance);
-
-				ground_radiance = kGroundAlbedo * (1.0 / PI) * (sun_irradiance + sky_irradiance);
-
-				/*
-				Finally, we take into account the aerial perspective between the camera and
-				the sphere, which depends on the length of this segment which is in shadow:
-				*/
-				float shadow_length = max(0.0, min(shadow_out, dist) - shadow_in) * lightshaft_fadein_hack;
-
-				float3 transmittance;
-				float3 in_scatter = GetSkyRadianceToPoint(camera - earth_center, _point - earth_center, shadow_length, sun_direction, transmittance);
-				
-				ground_alpha = 1;
-				ground_radiance = ground_radiance * transmittance + in_scatter;
-				ground_radiance = max(ground_radiance, float3(0, 0, 0));
-				//return float4(1,0,0,1);
-			}
-			else if (distance_to_intersection > 0.0)
-			{
-				//TODO - this needs to utilize depth buffer to test for ground intersection
 				//TODO - how to get a normal direction for the ground without a normals buffer?
-				//TODO - might have to render a normals buffer somehow in a prepass...really only care about terrain
+				//TODO - might have to render a normals buffer somehow in a prepass...really only care about terrain, so materials not needed?
 
-				float3 _point = camera + view_direction * distance_to_intersection;
+				float3 _point = camera + view_direction * distanceToGround;
 				float3 normal = normalize(_point - earth_center);
 
 				// Compute the radiance reflected by the ground.
@@ -262,38 +213,39 @@
 
 				ground_radiance = kGroundAlbedo * (1.0 / PI) * (sun_irradiance * sunVis + sky_irradiance * skyVis);
 
-				float shadow_length = max(0.0, min(shadow_out, distance_to_intersection) - shadow_in) * lightshaft_fadein_hack;
+				float shadow_length = max(0.0, min(shadow_out, distanceToGround) - shadow_in) * lightshaft_fadein_hack;
 
-				float3 transmittance;
 				float3 in_scatter = GetSkyRadianceToPoint(camera - earth_center, _point - earth_center, shadow_length, sun_direction, transmittance);
 
 				ground_radiance = ground_radiance * transmittance + in_scatter;
 				ground_radiance = max(ground_radiance, float3(0, 0, 0));
 				ground_alpha = 1.0;
+				//return float4(0, 0, 1, 1);
 			}
-
-			/*
-			Finally, we compute the radiance and transmittance of the sky, and composite
-			together, from back to front, the radiance and opacities of all the objects of
-			the scene:
-			*/
-
-			// Compute the radiance of the sky.
-			float shadow_length = max(0.0, shadow_out - shadow_in) * lightshaft_fadein_hack;
-			float3 transmittance;
-			float3 radiance = GetSkyRadiance(camera - earth_center, view_direction, shadow_length, sun_direction, transmittance);
-
-			//TODO second pass if dist < distance_to_intersection; from dist as camera; subtract from base output
-
-			// If the view ray intersects the Sun, add the Sun radiance.
-			if (dot(view_direction, sun_direction) > sun_size.y)
+			else //ray did not intersect the ground, nor did it intersect anything else in the depth buffer, render clear sky
 			{
-				radiance = radiance + transmittance * GetSolarRadiance();
+
+				// Compute the radiance of the sky.
+				float shadow_length = max(0.0, shadow_out - shadow_in) * lightshaft_fadein_hack;
+				radiance = GetSkyRadiance(camera - earth_center, view_direction, shadow_length, sun_direction, transmittance);
+
+				// If the view ray intersects the Sun, add the Sun radiance.
+				if (dot(view_direction, sun_direction) > sun_size.y)
+				{
+					radiance = radiance + transmittance * GetSolarRadiance();
+				}
+
 			}
 
+			//lerp between the ground and clear sky rendering, based on the alpha factor
+			//TODO -- ground_alpha should be set based on edge detection/aliasing in the depth buffer
 			radiance = lerp(radiance, ground_radiance, ground_alpha);
 			radiance = pow(abs(float3(1, 1, 1) - exp(-radiance / white_point * exposure)), 1.0 / 2.2);
 
+			//finally, adjust the input sampled background color to account for how the light coming from it would be scattered;
+			//the scattering value is stored in the transmittance vector
+			backgroundColor.rgb *= transmittance;
+			//alternatively, using the radiance as an inverse scale factor also looks acceptable...
 			backgroundColor.rgb = saturate(backgroundColor.rgb * (1 - radiance));
 
 			return float4(saturate(radiance.rgb + backgroundColor.rgb), 1);
