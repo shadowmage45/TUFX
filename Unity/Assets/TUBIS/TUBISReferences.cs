@@ -14,12 +14,14 @@ namespace TUFX
 
         public ComputeShader precompute;
         public Shader shader;
+        public GameObject sun;
 
         public void Start()
         {
             MonoBehaviour.print("TURefs Start: " + GetHashCode());
             TUFXScatteringResources.PrecomputeShader = precompute;
             TUFXScatteringResources.ScatteringShader = shader;
+            sun = GameObject.Find("Sun");
 
             //create model here
             foreach (Model m in TUFXScatteringResources.Models) { m.Release(); }
@@ -92,7 +94,7 @@ namespace TUFX
 
 
 
-        DensityProfileLayer rayleigh_layer = new DensityProfileLayer("rayleigh", 0.0, 1.0, -1.0 / kRayleighScaleHeight, 0.0, 0.0);
+            DensityProfileLayer rayleigh_layer = new DensityProfileLayer("rayleigh", 0.0, 1.0, -1.0 / kRayleighScaleHeight, 0.0, 0.0);
             DensityProfileLayer mie_layer = new DensityProfileLayer("mie", 0.0, 1.0, -1.0 / kMieScaleHeight, 0.0, 0.0);
 
             // Density profile increasing linearly from 0 to 1 between 10 and 25km, and
@@ -151,12 +153,17 @@ namespace TUFX
             model.GroundAlbedo = ground_albedo;
             model.MaxSunZenithAngle = max_sun_zenith_angle;
             model.LengthUnitInMeters = kLengthUnitInMeters;
-            model.SunDirection = -Vector3.forward;
+            model.SunDirection = -sun.transform.forward;
 
             int numScatteringOrders = 6;
             model.Init(TUFXScatteringResources.PrecomputeShader, numScatteringOrders);
             TUFXScatteringResources.Models.Add(model);
 
+
+            kRayleighScaleHeight /= 2;
+            kMieScaleHeight /= 2;
+            rayleigh_layer = new DensityProfileLayer("rayleigh", 0.0, 1.0, -1.0 / kRayleighScaleHeight, 0.0, 0.0);
+            mie_layer = new DensityProfileLayer("mie", 0.0, 1.0, -1.0 / kMieScaleHeight, 0.0, 0.0);
 
             model = new Model();
 
@@ -178,15 +185,21 @@ namespace TUFX
             model.AbsorptionExtinction = absorption_extinction;
             model.GroundAlbedo = ground_albedo;
             model.MaxSunZenithAngle = max_sun_zenith_angle;
-            model.LengthUnitInMeters = kLengthUnitInMeters;
+            model.LengthUnitInMeters = 100;
 
             model.SunDirection = -Vector3.forward;
-            model.PlanetCenter = Vector3.up * 100;
+            model.PlanetCenter = Vector3.forward * 7005;
 
             numScatteringOrders = 6;
             model.Init(TUFXScatteringResources.PrecomputeShader, numScatteringOrders);
             TUFXScatteringResources.Models.Add(model);
 
+        }
+
+        public void Update()
+        {
+            if (sun == null) { return; }
+            foreach (Model m in TUFXScatteringResources.Models) { m.SunDirection = -sun.transform.forward; }
         }
 
     }

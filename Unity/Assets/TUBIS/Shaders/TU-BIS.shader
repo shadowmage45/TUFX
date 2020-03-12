@@ -111,6 +111,11 @@
 			return o;
 		}
 
+		float sampleDepth4x4(float2 uv)
+		{
+			//SAMPLE_DEPTH_TEXTURE(_CameraDepthTexture, sampler_CameraDepthTexture, float2(uv.x);
+		}
+
 		float4 frag(vertout i) : SV_TARGET
 		{
 			//we'll need this regardless of anything else that happens
@@ -155,7 +160,12 @@
 			float AT = sqrt(top_radius * top_radius - ray_earth_center_squared_distance);
 			float distance_to_intersection2 = -p_dot_v - AT;
 			float distance_to_rear_intersection = -p_dot_v + AT;
-
+			if(length(p) < top_radius)
+			{
+				distance_to_intersection2 = 0;
+				//distance_to_rear_intersection = -p_dot_v + 
+			}
+			//the above value is incorrect if the ray is started within the atmo
 
 
 			//huh, good info here... https://gamedev.stackexchange.com/questions/131978/shader-reconstructing-position-from-depth-in-vr-through-projection-matrix/140924#140924
@@ -182,23 +192,59 @@
 				return backgroundColor;
 			}
 
-			//the rest of the code needs more adjustment than this simple 'set hit to depth distance'
-			//because... erm... NFC
-			// can probably look at the code for the sphere stuff, as it likely had some implementation of 'cut the scattering distance to the hit distance'
-			if(dist < distance_to_intersection)
-			{
-				//float diff = distance_to_intersection - dist;
-				//return float4(diff, 0, 0, 1);
-				//return backgroundColor;
-				//distance_to_intersection = dist;
-				//shadow_in = dist;
-				//shadow_out = dist;
-			}
-
 			// Compute the radiance reflected by the ground, if the ray intersects it.
 			float ground_alpha = 0.0;
 			float3 ground_radiance = float3(0,0,0);
-			if (distance_to_intersection > 0.0)
+			if (dist < distance_to_intersection || (dist < distance_to_rear_intersection && ray_earth_center_squared_distance >= bottom_radius * bottom_radius))
+			{
+				float3 _point = camera + view_direction * dist;
+				float3 normal = normalize(_point - earth_center);
+
+				// Compute the radiance reflected by the sphere.
+				float3 sky_irradiance;
+				float3 sun_irradiance = GetSunAndSkyIrradiance(_point - earth_center, normal, sun_direction, sky_irradiance);
+
+				ground_radiance = kGroundAlbedo * (1.0 / PI) * (sun_irradiance + sky_irradiance);
+
+				/*
+				Finally, we take into account the aerial perspective between the camera and
+				the sphere, which depends on the length of this segment which is in shadow:
+				*/
+				float shadow_length = max(0.0, min(shadow_out, dist) - shadow_in) * lightshaft_fadein_hack;
+
+				float3 transmittance;
+				float3 in_scatter = GetSkyRadianceToPoint(camera - earth_center, _point - earth_center, shadow_length, sun_direction, transmittance);
+				//return float4(in_scatter*100,1);
+				ground_alpha = 1;
+				ground_radiance = ground_radiance * transmittance + in_scatter;
+				ground_radiance = max(ground_radiance, float3(0, 0, 0));
+			}
+			else if (distance_to_intersection2 <=0 && distance_to_intersection <=0 && depth < 0.995)
+			{
+				float3 _point = camera + view_direction * dist;
+				float3 normal = normalize(_point - earth_center);
+
+				// Compute the radiance reflected by the sphere.
+				float3 sky_irradiance;
+				float3 sun_irradiance = GetSunAndSkyIrradiance(_point - earth_center, normal, sun_direction, sky_irradiance);
+
+				ground_radiance = kGroundAlbedo * (1.0 / PI) * (sun_irradiance + sky_irradiance);
+
+				/*
+				Finally, we take into account the aerial perspective between the camera and
+				the sphere, which depends on the length of this segment which is in shadow:
+				*/
+				float shadow_length = max(0.0, min(shadow_out, dist) - shadow_in) * lightshaft_fadein_hack;
+
+				float3 transmittance;
+				float3 in_scatter = GetSkyRadianceToPoint(camera - earth_center, _point - earth_center, shadow_length, sun_direction, transmittance);
+				
+				ground_alpha = 1;
+				ground_radiance = ground_radiance * transmittance + in_scatter;
+				ground_radiance = max(ground_radiance, float3(0, 0, 0));
+				//return float4(1,0,0,1);
+			}
+			else if (distance_to_intersection > 0.0)
 			{
 				//TODO - this needs to utilize depth buffer to test for ground intersection
 				//TODO - how to get a normal direction for the ground without a normals buffer?
@@ -222,8 +268,8 @@
 				float3 in_scatter = GetSkyRadianceToPoint(camera - earth_center, _point - earth_center, shadow_length, sun_direction, transmittance);
 
 				ground_radiance = ground_radiance * transmittance + in_scatter;
+				ground_radiance = max(ground_radiance, float3(0, 0, 0));
 				ground_alpha = 1.0;
-				//return float4(ground_radiance, 1);
 			}
 
 			/*
@@ -233,7 +279,7 @@
 			*/
 
 			// Compute the radiance of the sky.
-			float shadow_length = 0;
+			float shadow_length = max(0.0, shadow_out - shadow_in) * lightshaft_fadein_hack;
 			float3 transmittance;
 			float3 radiance = GetSkyRadiance(camera - earth_center, view_direction, shadow_length, sun_direction, transmittance);
 
@@ -245,63 +291,10 @@
 				radiance = radiance + transmittance * GetSolarRadiance();
 			}
 
-			//if the depth-buffer hit was before the regular ground hit calc, do another ray from THAT hit to the ground
-			//and then subtract those results from the regular results, as that portion of the ray is occluded by whatever
-			//is in the depth buffer
-			if (dist < distance_to_intersection)
-			{
-				camera = camera + view_direction * dist;
-				p = camera - earth_center;
-				p_dot_v = dot(p, view_direction);
-				p_dot_p = dot(p, p);
-				ray_earth_center_squared_distance = p_dot_p - p_dot_v * p_dot_v;
-				distance_to_intersection = -p_dot_v - sqrt(bottom_radius * bottom_radius - ray_earth_center_squared_distance);
-
-				float ground_alpha2 = 0.0;
-				float3 ground_radiance2 = float3(0, 0, 0);
-
-				float3 _point = camera + view_direction * distance_to_intersection;
-				float3 normal = normalize(_point - earth_center);
-
-				// Compute the radiance reflected by the ground.
-				float3 sky_irradiance;
-				float3 sun_irradiance = GetSunAndSkyIrradiance(_point - earth_center, normal, sun_direction, sky_irradiance);
-
-				float sunVis = 1;
-				float skyVis = 1;
-
-				ground_radiance2 = kGroundAlbedo * (1.0 / PI) * (sun_irradiance * sunVis + sky_irradiance * skyVis);
-
-				shadow_length = max(0.0, min(shadow_out, distance_to_intersection) - shadow_in) * lightshaft_fadein_hack;
-
-				float3 in_scatter = GetSkyRadianceToPoint(camera - earth_center, _point - earth_center, shadow_length, sun_direction, transmittance);
-
-				ground_radiance2 = ground_radiance2 * transmittance + in_scatter;
-				ground_alpha2 = 1.0;
-				//return float4(0, 1, 0, 1);
-				//return float4(ground_radiance2, 1);
-				//return float4(ground_radiance, 1);
-				//ground_radiance2 = saturate(ground_radiance2);
-				//ground_radiance = max(ground_radiance, float3(0, 0, 0));
-				ground_radiance -= ground_radiance2;
-				ground_radiance = saturate(ground_radiance);
-				ground_radiance = max(ground_radiance, float3(0, 0, 0));
-			}
-			else if (dist < distance_to_rear_intersection && ray_earth_center_squared_distance >= bottom_radius * bottom_radius)
-			{
-				camera = camera + view_direction * dist;
-				float3 radiance2 = GetSkyRadiance(camera - earth_center, view_direction, shadow_length, sun_direction, transmittance);
-				//return float4(radiance * 10, 1);
-				//return float4(1, 0, 0, 1);
-				//return float4(radiance2 * 10, 1);
-				radiance2 = lerp(radiance2, ground_radiance, ground_alpha);
-				radiance -= radiance2;
-				radiance = max(radiance, float3(0, 0, 0));
-			}
-			//return float4(radiance*2, 1);
-
 			radiance = lerp(radiance, ground_radiance, ground_alpha);
-			radiance = pow(float3(1, 1, 1) - exp(-radiance / white_point * exposure), 1.0 / 2.2);
+			radiance = pow(abs(float3(1, 1, 1) - exp(-radiance / white_point * exposure)), 1.0 / 2.2);
+
+			backgroundColor.rgb = saturate(backgroundColor.rgb * (1 - radiance));
 
 			return float4(saturate(radiance.rgb + backgroundColor.rgb), 1);
 

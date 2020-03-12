@@ -1,9 +1,9 @@
 ManifestFileVersion: 0
-CRC: 217159882
+CRC: 310566967
 Hashes:
   AssetFileHash:
     serializedVersion: 2
-    Hash: e9ac966e099eadc4df94d48658cae294
+    Hash: ad9c15a06b32a380621920fa6ec1ee47
   TypeTreeHash:
     serializedVersion: 2
     Hash: 058083b70f8502aa8dd9e934f984ccb1
@@ -20,6 +20,7 @@ Assets:
 - Assets/TUBIS/Shaders/ScatteringFunctions.hlsl
 - Assets/BrunetonsImprovedAtmosphere/Shaders/Write.compute
 - Assets/BrunetonsImprovedAtmosphere/Shaders/Precomputation.compute
+- Assets/TUBIS/Shaders/Test.shader
 - Assets/TUBIS/Shaders/TransmittanceFunctions.hlsl
 - Assets/BrunetonsImprovedAtmosphere/Shaders/ScatteringFunctions.cginc
 - Assets/BrunetonsImprovedAtmosphere/Shaders/Definitions.cginc

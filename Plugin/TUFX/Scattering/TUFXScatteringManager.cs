@@ -37,7 +37,19 @@ namespace TUFX
 
         private void onLevelLoaded(GameScenes scene)
         {
-
+            if (scene == GameScenes.MAINMENU)
+            {
+                GameObject[] objects = GameObject.FindObjectsOfType<GameObject>();
+                foreach (GameObject go in objects)
+                {
+                    Log.debug("Main Menu Object: " + go.name + " pos: " + go.transform.position +" parent: "+go.transform.parent?.name);
+                }
+                if (debugModel != null)
+                {
+                    debugModel.PlanetCenter = GameObject.Find("Kerbin").transform.position;
+                    debugModel.SunDirection = Vector3.Normalize(-debugModel.PlanetCenter);
+                }
+            }
         }
 
         internal void debugProfileSetup(PostProcessVolume volume, PostProcessLayer layer)
@@ -54,6 +66,7 @@ namespace TUFX
                 Log.debug("Creating TUBIS Effect, and adding it to settings for active profile...");
                 effect = ScriptableObject.CreateInstance<TUBISEffect>();
                 effect.enabled.Override(true);
+                effect.Exposure.Override(5f);
                 volume.sharedProfile.settings.Add(effect);
             }
         }
@@ -68,9 +81,11 @@ namespace TUFX
                 CelestialBody body = FlightGlobals.currentMainBody;
                 if (body != null)
                 {
-                    Log.debug("Main body: " + body.name + " : " + body.position);
-                    Log.debug("Camera pos: " + Camera.main?.transform.position);
-                    debugModel.PlanetCenter = body.position;
+                    CelestialBody sun = FlightGlobals.Bodies[0];
+                    //Log.debug("Main body: " + body.name + " : " + body.transform.position);
+                    //Log.debug("Camera pos: " + Camera.main?.transform.position);
+                    worldCenter = body.transform.position;
+                    sunDir = Vector3.Normalize(sun.transform.position - body.transform.position);
                 }
                 //find world center, set to model
                 //find sun direction from world center, and set to model
@@ -80,9 +95,11 @@ namespace TUFX
                 CelestialBody body = FlightGlobals.currentMainBody;
                 if (body != null)
                 {
-                    Log.debug("Main body: " + body.name + " : " + body.position);
-                    Log.debug("Camera pos: " + Camera.main?.transform.position);
-                    debugModel.PlanetCenter = body.position;
+                    CelestialBody sun = FlightGlobals.Bodies[0];
+                    //Log.debug("Main body: " + body.name + " : " + body.position);
+                    //Log.debug("Camera pos: " + Camera.main?.transform.position);
+                    worldCenter = body.transform.position;
+                    sunDir = Vector3.Normalize(sun.transform.position - body.transform.position);
                 }
             }
             debugModel.PlanetCenter = worldCenter;
@@ -147,7 +164,7 @@ namespace TUFX
             // realistic, but was used in the original implementation).
             double kConstantSolarIrradiance = 1.5;
             double kBottomRadius    = 600000.0;
-            double kTopRadius       = 670000.0;
+            double kTopRadius       = 700000.0;
             double kRayleigh = 1.24062e-6;
             double kRayleighScaleHeight = 8000.0;
             double kMieScaleHeight = 1200.0;
@@ -159,7 +176,8 @@ namespace TUFX
             double max_sun_zenith_angle = (UseHalfPrecision ? 102.0 : 120.0) / 180.0 * Mathf.PI;
 
 
-
+            kRayleighScaleHeight /= 2;
+            kMieScaleHeight /= 2;
             DensityProfileLayer rayleigh_layer = new DensityProfileLayer("rayleigh", 0.0, 1.0, -1.0 / kRayleighScaleHeight, 0.0, 0.0);
             DensityProfileLayer mie_layer = new DensityProfileLayer("mie", 0.0, 1.0, -1.0 / kMieScaleHeight, 0.0, 0.0);
 
