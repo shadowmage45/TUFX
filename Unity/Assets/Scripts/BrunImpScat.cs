@@ -226,9 +226,6 @@ namespace BrunetonsImprovedAtmosphere
             m_material.SetVector("_Left2", botLeft);
             m_material.SetVector("_Right2", botRight);
 
-
-            //TODO -- need to add the far-clip vertices as well, to aid in depth-buffer-to-world-space recomposition
-
             frustumCorners = new Vector3[4];
             camera.CalculateFrustumCorners(new Rect(0, 0, 1, 1), camera.nearClipPlane, Camera.MonoOrStereoscopicEye.Mono, frustumCorners);
 
