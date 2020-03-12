@@ -127,7 +127,7 @@ IrradianceSpectrum GetCombinedScattering(
 
 #ifdef COMBINED_SCATTERING_TEXTURES
 	float4 combined_scattering = SAMPLE_TEXTURE3D(scattering_texture, scattering_sampler, uvw0) * (1.0 - lerp) + SAMPLE_TEXTURE3D(scattering_texture, scattering_sampler, uvw1) * lerp;
-	IrradianceSpectrum scattering = combined_scattering;
+	IrradianceSpectrum scattering = combined_scattering.rgb;
 	single_mie_scattering = GetExtrapolatedSingleMieScattering(combined_scattering);
 #else
 	IrradianceSpectrum scattering = SAMPLE_TEXTURE3D(scattering_texture, scattering_sampler, uvw0).xyz * (1.0 - lerp) + SAMPLE_TEXTURE3D(scattering_texture, scattering_sampler, uvw1).xyz * lerp;
