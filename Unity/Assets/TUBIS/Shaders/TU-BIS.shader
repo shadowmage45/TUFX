@@ -114,8 +114,8 @@
 			// Tangent of the angle subtended by this fragment.
 			float fragment_angular_size = length(ddx(i.view_ray) + ddy(i.view_ray)) / length(i.view_ray);
 
-			float shadow_in = 1;
-			float shadow_out = 1;
+			float shadow_in = 0;
+			float shadow_out = 0;
 
 			// Hack to fade out light shafts when the Sun is very close to the horizon.
 			float lightshaft_fadein_hack = smoothstep(
@@ -145,13 +145,7 @@
 			float distanceToGround = -p_dot_v - sqrt(bottom_radius * bottom_radius - ray_earth_center_squared_distance);
 			float AT = sqrt(top_radius * top_radius - ray_earth_center_squared_distance);
 			float distanceToAtmoEntry = -p_dot_v - AT;
-			float distance_to_rear_intersection = -p_dot_v + AT;
-
-			//if camera is inside of the atmosphere, distance to start of atmosphere == 0
-			if(length(p) < top_radius)
-			{
-				distanceToAtmoEntry = 0;
-			}
+			float distanceToAtmoExit = -p_dot_v + AT;
 
 			//0-1 linear depth value; 0= no depth, 1 = max depth
 			//0 should be near clip plane, but it appears to actually be '0'
@@ -163,8 +157,11 @@
 			//distance from camera to the hit
 			float distanceToDepthHit = depth * length(i.view_ray);
 
-
-
+			//if camera is inside of the atmosphere, distance to start of atmosphere == 0
+			if(length(p) < top_radius)
+			{
+				distanceToAtmoEntry = 0;
+			}
 
 			//the following special case functions mostly handle aerial perspective, calculating the scatter between the viewer and the object
 			//quick exit if the object hit in depth buffer was in front of the start of the atmosphere.
@@ -172,10 +169,12 @@
 			{
 				return backgroundColor;
 			}
+			//ray never passes through the planet
 			if (ray_earth_center_squared_distance > top_radius * top_radius)
 			{
 				return backgroundColor; 
 			}
+
 
 			float3 _origin = camera - earth_center;
 			// Compute the radiance reflected by the ground, if the ray intersects it.
@@ -185,16 +184,24 @@
 			float3 radiance = float3(0,0,0);
 			float3 transmittance = float3(0,0,0);
 
-
-			//this min/max handles most of the special casing...
+			//the below if statement, rewritten in analytics
+			//if (distanceToDepthHit < distanceToGround || distanceToDepthHit < distanceToAtmoExit)
+			//{
+			//	distanceToGround = distanceToDepthHit;
+			//}
+			distanceToDepthHit = min(distanceToDepthHit, distanceToAtmoExit);
 			distanceToGround = min(max(distanceToGround, 0), distanceToDepthHit);
-			distanceToGround = max(distanceToGround, distanceToDepthHit);
 
-			if (distanceToDepthHit < distance_to_rear_intersection && ray_earth_center_squared_distance >= bottom_radius * bottom_radius)
-			{
+			//no clue how to optimize this yet... ternery will do for now
+			//if (distanceToAtmoEntry == 0 && distanceToGround <= 0 && depth < 0.9995)
+			//{
+				////distanceToAtmoEntry will be zero if camera in the atmosphere
+				////distanceToGround will be negative or zero if no intersect
+				////depth buffer < 1 means something was rendered, occlude it
 				//distanceToGround = distanceToDepthHit;
-			}
-			
+			//}
+			distanceToGround = (distanceToAtmoEntry == 0 && distanceToGround <= 0 && depth < 0.9995) ? distanceToDepthHit : distanceToGround;
+
 			if (distanceToGround > 0.0)
 			{
 

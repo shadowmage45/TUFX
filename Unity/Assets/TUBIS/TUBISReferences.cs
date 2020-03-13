@@ -160,8 +160,8 @@ namespace TUFX
             //TUFXScatteringResources.Models.Add(model);
 
 
-            kRayleighScaleHeight /= 2;
-            kMieScaleHeight /= 2;
+            kRayleighScaleHeight *= 0.8;
+            kMieScaleHeight *= 0.8;
             rayleigh_layer = new DensityProfileLayer("rayleigh", 0.0, 1.0, -1.0 / kRayleighScaleHeight, 0.0, 0.0);
             mie_layer = new DensityProfileLayer("mie", 0.0, 1.0, -1.0 / kMieScaleHeight, 0.0, 0.0);
 
