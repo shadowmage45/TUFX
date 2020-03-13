@@ -19,18 +19,21 @@ namespace TUFX
 
         public override bool IsEnabledAndSupported(PostProcessRenderContext context)
         {
-            return base.IsEnabledAndSupported(context) && TUFXScatteringResources.PrecomputeShader!=null && TUFXScatteringResources.ScatteringShader!=null;
+            return base.IsEnabledAndSupported(context) && TUFXScatteringResources.PrecomputeShader != null && TUFXScatteringResources.ScatteringShader != null;
         }
 
         public override void Load(ConfigNode config)
         {
-            throw new NotImplementedException();
+            //throw new NotImplementedException();
+            //TODO
         }
 
         public override void Save(ConfigNode config)
         {
-            throw new NotImplementedException();
+            //throw new NotImplementedException();
+            //TODO
         }
+
     }
 
     public class BISRenderer : PostProcessEffectRenderer<TUBISEffect>
@@ -38,16 +41,18 @@ namespace TUFX
 
         public override void Render(PostProcessRenderContext context)
         {
+            context.command.BeginSample("TUBIS");
             Camera camera = context.camera;
             PropertySheet sheet = context.propertySheets.Get(TUFXScatteringResources.ScatteringShader);
             MaterialPropertyBlock material = sheet.properties;
 
+            //bounding box frustum corners, for world-space view direction decoding
             Vector3[] frustumCorners = new Vector3[4];
             camera.CalculateFrustumCorners(new Rect(0, 0, 1, 1), camera.farClipPlane, Camera.MonoOrStereoscopicEye.Mono, frustumCorners);
 
             for (int i = 0; i < 4; i++)
             {
-                //transform the vectors to contain frustum depth information, used to recompose world-space pos from depth-buffer
+                //transform the vectors to contain frustum depth information, used to recompose view ray and world-space pos from depth-buffer
                 frustumCorners[i] = camera.transform.TransformVector(frustumCorners[i]);
             }
 
@@ -56,7 +61,6 @@ namespace TUFX
             Vector3 topRight = frustumCorners[2];
             Vector3 botRight = frustumCorners[3];
 
-            //bounding box frustum corners, for world-space view direction decoding
             material.SetVector("_Left", topLeft);
             material.SetVector("_Right", topRight);
             material.SetVector("_Left2", botLeft);
@@ -80,11 +84,11 @@ namespace TUFX
                 }
                 context.command.BlitFullscreenTriangle(source, target, sheet, 0);
             }
-            for (int i = 0; i < len-1; i++)
+            for (int i = 0; i < len - 1; i++)
             {
                 context.command.ReleaseTemporaryRT(i);
             }
-
+            context.command.EndSample("TUBIS");
         }
 
         private void bindModel(MaterialPropertyBlock material, Model model)
@@ -106,9 +110,7 @@ namespace TUFX
                 white_point_g /= white_point;
                 white_point_b /= white_point;
             }
-
             material.SetVector("white_point", new Vector3((float)white_point_r, (float)white_point_g, (float)white_point_b));
-
         }
 
     }

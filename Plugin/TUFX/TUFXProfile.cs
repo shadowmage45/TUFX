@@ -25,6 +25,7 @@ namespace TUFX
         Grain,
         LensDistortion,
         MotionBlur,
+        Scattering,
         Vignette
     }
 
@@ -53,6 +54,8 @@ namespace TUFX
                     return ScriptableObject.CreateInstance<LensDistortion>();
                 case BuiltinEffect.MotionBlur:
                     return ScriptableObject.CreateInstance<MotionBlur>();
+                case BuiltinEffect.Scattering:
+                    return ScriptableObject.CreateInstance<TUBISEffect>();
                 case BuiltinEffect.Vignette:
                     return ScriptableObject.CreateInstance<Vignette>();
                 default:
@@ -72,6 +75,7 @@ namespace TUFX
             else if (settings is Grain) { return BuiltinEffect.Grain; }
             else if (settings is LensDistortion) { return BuiltinEffect.LensDistortion; }
             else if (settings is MotionBlur) { return BuiltinEffect.MotionBlur; }
+            else if (settings is TUBISEffect) { return BuiltinEffect.Scattering; }
             else if (settings is Vignette) { return BuiltinEffect.Vignette; }
             return BuiltinEffect.AmbientOcclusion;
         }

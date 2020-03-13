@@ -60,15 +60,15 @@ namespace TUFX
                 return;
             }
             createTestModel();
-            TUBISEffect effect = (TUBISEffect)volume.sharedProfile.settings.FirstOrDefault(m => m.GetType() == typeof(TUBISEffect));
-            if (effect == null)
-            {
-                Log.debug("Creating TUBIS Effect, and adding it to settings for active profile...");
-                effect = ScriptableObject.CreateInstance<TUBISEffect>();
-                effect.enabled.Override(true);
-                effect.Exposure.Override(5f);
-                volume.sharedProfile.settings.Add(effect);
-            }
+            //TUBISEffect effect = (TUBISEffect)volume.sharedProfile.settings.FirstOrDefault(m => m.GetType() == typeof(TUBISEffect));
+            //if (effect == null)
+            //{
+            //    Log.debug("Creating TUBIS Effect, and adding it to settings for active profile...");
+            //    effect = ScriptableObject.CreateInstance<TUBISEffect>();
+            //    effect.enabled.Override(true);
+            //    effect.Exposure.Override(5f);
+            //    volume.sharedProfile.settings.Add(effect);
+            //}
         }
 
         public void Update()

@@ -188,6 +188,7 @@ namespace TUFX
             renderGrainSettings();
             renderLensDistortionSettings();
             renderMotionBlurSettings();
+            renderScatteringSettings();
             renderVignetteSettings();
             GUILayout.EndScrollView();
         }
@@ -517,6 +518,24 @@ namespace TUFX
             {
                 AddFloatParameter("Shutter Angle", mb.shutterAngle, 0f, 360f);
                 AddIntParameter("Sample Count", mb.sampleCount, 4, 32);
+            }
+            GUILayout.BeginHorizontal();
+            GUILayout.Label("---------------------------------------");
+            GUILayout.EndHorizontal();
+        }
+
+        private void renderScatteringSettings()
+        {
+            TUBISEffect sc = TexturesUnlimitedFXLoader.INSTANCE.CurrentProfile.GetSettingsFor<TUBISEffect>();
+            bool enabled = sc != null && sc.enabled;
+            bool showProps = AddEffectHeader("Scattering", sc);
+            if (enabled != sc.enabled)
+            {
+                //TODO
+            }
+            if (enabled && showProps)
+            {
+                AddFloatParameter("Exposure", sc.Exposure, 0f, 50f);
             }
             GUILayout.BeginHorizontal();
             GUILayout.Label("---------------------------------------");
