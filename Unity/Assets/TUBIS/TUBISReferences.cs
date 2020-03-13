@@ -13,14 +13,16 @@ namespace TUFX
     {
 
         public ComputeShader precompute;
-        public Shader shader;
+        public Shader scateringShader;
         public GameObject sun;
+        public Shader waterShader;
 
         public void Start()
         {
             MonoBehaviour.print("TURefs Start: " + GetHashCode());
             TUFXScatteringResources.PrecomputeShader = precompute;
-            TUFXScatteringResources.ScatteringShader = shader;
+            TUFXScatteringResources.ScatteringShader = scateringShader;
+            TUFXScatteringResources.WaterShader = waterShader;
             sun = GameObject.Find("Sun");
 
             //create model here

@@ -177,7 +177,7 @@ namespace TUFX
             GUILayout.Label("Changes made in-game are not persistent.  You must export the profile and update the config files to make the changes permanent.");
             GUILayout.EndHorizontal();
             GUI.contentColor = c;
-            editScrollPos = GUILayout.BeginScrollView(editScrollPos, false, true);
+            editScrollPos = GUILayout.BeginScrollView(editScrollPos, false, true, (GUILayoutOption[])null);
             renderGeneralSettings();
             renderAmbientOcclusionSettings();
             renderAutoExposureSettings();
@@ -526,13 +526,14 @@ namespace TUFX
 
         private void renderScatteringSettings()
         {
+            //Log.debug("SC start");
             TUBISEffect sc = TexturesUnlimitedFXLoader.INSTANCE.CurrentProfile.GetSettingsFor<TUBISEffect>();
             bool enabled = sc != null && sc.enabled;
             bool showProps = AddEffectHeader("Scattering", sc);
-            if (enabled != sc.enabled)
-            {
-                //TODO
-            }
+            //if (enabled != sc.enabled)
+            //{
+            //    //TODO
+            //}
             if (enabled && showProps)
             {
                 AddFloatParameter("Exposure", sc.Exposure, 0f, 50f);
@@ -540,6 +541,7 @@ namespace TUFX
             GUILayout.BeginHorizontal();
             GUILayout.Label("---------------------------------------");
             GUILayout.EndHorizontal();
+            //Log.debug("SC end");
         }
 
         private void renderVignetteSettings()

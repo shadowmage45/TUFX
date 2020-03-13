@@ -31,6 +31,8 @@ namespace TUFX
         /// </summary>
         public static List<Model> Models { get; } = new List<Model>();
 
+        public static Shader WaterShader { get; set; }
+
     }
 
 }

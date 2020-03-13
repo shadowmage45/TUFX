@@ -205,13 +205,13 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 143464445}
-  m_LocalRotation: {x: 0, y: 0.6929615, z: 0, w: 0.7209746}
-  m_LocalPosition: {x: 78, y: 3, z: -572}
+  m_LocalRotation: {x: 0, y: 0.1409013, z: 0, w: 0.9900237}
+  m_LocalPosition: {x: 78, y: 0, z: -572}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 1
-  m_LocalEulerAnglesHint: {x: 0, y: 87.73, z: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 16.2, z: 0}
 --- !u!114 &143464448
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -464,7 +464,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 400000, guid: 229c0c57af5aebc4aa3489ef9674a1f3, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 0
+      value: -0
       objectReference: {fileID: 0}
     - target: {fileID: 400000, guid: 229c0c57af5aebc4aa3489ef9674a1f3, type: 3}
       propertyPath: m_LocalPosition.z
@@ -504,15 +504,15 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 400000, guid: 229c0c57af5aebc4aa3489ef9674a1f3, type: 3}
       propertyPath: m_LocalScale.x
-      value: 1
+      value: 0.99
       objectReference: {fileID: 0}
     - target: {fileID: 400000, guid: 229c0c57af5aebc4aa3489ef9674a1f3, type: 3}
       propertyPath: m_LocalScale.y
-      value: 1
+      value: 0.99
       objectReference: {fileID: 0}
     - target: {fileID: 400000, guid: 229c0c57af5aebc4aa3489ef9674a1f3, type: 3}
       propertyPath: m_LocalScale.z
-      value: 1
+      value: 0.99
       objectReference: {fileID: 0}
     - target: {fileID: 2300000, guid: 229c0c57af5aebc4aa3489ef9674a1f3, type: 3}
       propertyPath: m_Materials.Array.data[0]
@@ -777,13 +777,13 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1963258027}
-  m_LocalRotation: {x: 0, y: 0.6441237, z: 0, w: 0.7649214}
-  m_LocalPosition: {x: -114.2, y: 22, z: -9.23}
+  m_LocalRotation: {x: 0, y: 0.5276972, z: 0, w: 0.8494326}
+  m_LocalPosition: {x: -800.4, y: 306.6, z: 617.1}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 0
-  m_LocalEulerAnglesHint: {x: 0, y: 80.2, z: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 63.7, z: 0}
 --- !u!114 &1963258032
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -797,8 +797,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   precompute: {fileID: 7200000, guid: 9bdb6c8268980ce4a8444a708b68cdeb, type: 3}
-  shader: {fileID: 4800000, guid: 5f73f836595f4064782fe514e754dcc8, type: 3}
+  scateringShader: {fileID: 4800000, guid: 5f73f836595f4064782fe514e754dcc8, type: 3}
   sun: {fileID: 143464445}
+  waterShader: {fileID: 4800000, guid: 352f348f1e559f54481bdd3f8ec98001, type: 3}
 --- !u!114 &1963258033
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -875,11 +876,11 @@ MonoBehaviour:
   breakBeforeColorGrading: 0
   m_BeforeTransparentBundles: []
   m_BeforeStackBundles:
+  - assemblyQualifiedName: TUFX.TUWaterEffect, Assembly-CSharp, Version=0.0.0.0, Culture=neutral,
+      PublicKeyToken=null
   - assemblyQualifiedName: TUFX.TUBISEffect, Assembly-CSharp, Version=0.0.0.0, Culture=neutral,
       PublicKeyToken=null
-  m_AfterStackBundles:
-  - assemblyQualifiedName: TUFX.Grayscale, Assembly-CSharp, Version=0.0.0.0, Culture=neutral,
-      PublicKeyToken=null
+  m_AfterStackBundles: []
 --- !u!1001 &2141781468
 PrefabInstance:
   m_ObjectHideFlags: 0

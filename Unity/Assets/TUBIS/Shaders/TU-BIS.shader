@@ -253,7 +253,7 @@
 			//the scattering value is stored in the transmittance vector
 			backgroundColor.rgb *= transmittance;
 			//alternatively, using the radiance as an inverse scale factor also looks acceptable...
-			backgroundColor.rgb = saturate(backgroundColor.rgb * (1 - radiance));
+			//backgroundColor.rgb = saturate(backgroundColor.rgb * (1 - radiance));
 
 			return float4(saturate(radiance.rgb + backgroundColor.rgb), 1);
 
