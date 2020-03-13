@@ -9,9 +9,26 @@
 		float3 _Right;
 		float3 _Left2;
 		float3 _Right2;
-		float3 _PlanetCenter;
-		float3 _SunDirection;
-		float _Radius;
+
+		//scene setup parameters -- location and size of the planet, direction of the light source
+		float3 _PlanetCenter;//the world-space position of the center of the planet
+		float _Radius;//radius of the body; this is the 'sea level' value
+		float3 _SunDirection;//normalized direction of light source
+		float3 _LightColor;//light color and intensity
+
+		//effect setup parameters
+
+		float _MaxWaveHeight;//maximum displacement from sea level
+		float _RefractionStrength;
+		float _R0;//index of refraction, used in fresnel calculations
+
+		float _TransitionFactor;//transition factor for shorlines
+		
+		float3 _SurfaceColor;//color of the water surface
+		float3 _DepthColor;//no clue how/why this is used...
+		float3 _Extinction;//Meter depth at which RGB light from background objects is reduced
+
+		
 
 		TEXTURE2D_SAMPLER2D(_MainTex, sampler_MainTex);
 		TEXTURE2D_SAMPLER2D(_CameraDepthTexture, sampler_CameraDepthTexture);
@@ -41,6 +58,19 @@
 			o.view_ray = lerp(left, right, o.uv.x);
 
 			return o;
+		}
+
+		// Function calculating fresnel term.
+		// - normal - normalized normal vector
+		// - eyeVec - normalized eye vector
+		float fresnelTerm(float3 normal, float3 eyeVec)
+		{
+			_R0 = 0.5;
+			float angle = 1.0f - saturate(dot(normal, eyeVec));
+			float fresnel = angle * angle;
+			fresnel = fresnel * fresnel;
+			fresnel = fresnel * angle;
+			return saturate(fresnel * (1.0f - saturate(_R0)) + _R0 - _RefractionStrength);
 		}
 
 		float4 frag(vertout i) : SV_TARGET
@@ -105,6 +135,7 @@
 
 			float3 worldPos = camera + (distanceToSeaLevel * view_direction);
 			float3 normal = normalize(worldPos - _PlanetCenter);
+			float3 lightColor = float3(1, 0.95, 0.83);
 
 			//distort the surface normal by using the world position as inputs to distort tangent-space normal x/y			
 			float3 distort = float3(frac(worldPos.x*0.05)*0.25, frac(worldPos.y*0.05)*0.25, frac(worldPos.z*0.05)*0.25);
@@ -112,10 +143,27 @@
 			//float3 d2 = float3(distort.r 
 			//normal = normalize(abs(distort)*0.5 + normal);
 
-			//depth in (scaled) meters
+			//depth in (scaled) meters that the ray traverses through the medium
 			float oceanDepth = distanceToDepthHit - distanceToSeaLevel;
+
+			//extinction depths (meters):
+			//red = 4.5
+			//orange = 15
+			//yellow = 30
+			//violet = 30
+			//green = 75
+			//blue = 300
+			
+			//oceanDepth /= 100;
+			float eRed = 4.5;
+			float eGreen = 75;
+			float eBlue = 300;
+
+			float3 extinctionFactor = saturate(float3(4.5, 75, 300) / (oceanDepth));
+			//return float4(backgroundColor.rgb * extinctionFactor, 1);
+
 			float3 oceanColor = float3(0.5, 0.5, 1);
-			float3 lightColor = float3(1,0.95,0.83);
+			
 
 			
 			//standard blinn-phong lighting model
@@ -136,8 +184,22 @@
 			float3 light1 = lerp(float3(0,0,0), light, scalar);
 			
 
-			float3 color = lerp(oceanColor * light, backgroundColor * light1, scalar);
+			//float3 color = lerp(oceanColor * light, backgroundColor * extinctionFactor, scalar);
+			float3 color = backgroundColor.rgb * extinctionFactor;
+			float fresnel = fresnelTerm(normal, -view_direction);
+			//return float4(fresnel.rrr, 1);
 
+			half3 specular = 0.0f;
+			float shininess = 5;
+			half3 mirrorEye = (2.0f * dot(view_direction, normal) * normal - view_direction);
+			half dotSpec = saturate(dot(mirrorEye.xyz, -_SunDirection) * 0.5f + 0.5f);
+
+			specular = (1.0f - fresnel) * ((pow(dotSpec, 512.0f)) * (shininess * 1.8f + 0.2f))* lightColor;
+			specular += specular * 25 * saturate(1 - 0.05f) * lightColor;
+			float3 reflect = float3(0.4, 0.7, 1) * diff;
+			
+			color = lerp(color, reflect, fresnel);
+			color = saturate(color + spec);
 						
 			//backgroundColor.rgb = saturate(backgroundColor.rgb * (1 - color.bbb));
 			//color += spec.rrr*10;
