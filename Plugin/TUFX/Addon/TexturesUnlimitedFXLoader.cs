@@ -392,7 +392,7 @@ namespace TUFX
                 else if (debugAppButton != null)
                 {
                     debugAppButton.onTrue = debugGuiEnable;
-                    configAppButton.onFalse = debugGuiDisable;
+                    debugAppButton.onFalse = debugGuiDisable;
                 }
 #endif
             }
@@ -401,7 +401,11 @@ namespace TUFX
                 Log.debug("TUFX - Removing AppLauncher button...");
                 ApplicationLauncher.Instance.RemoveModApplication(configAppButton);
 #if DEBUG
-                ApplicationLauncher.Instance.RemoveModApplication(debugAppButton);
+                if (debugAppButton != null)
+                {
+                    Log.debug("TUFX - Removing DebugLauncher button...");
+                    ApplicationLauncher.Instance.RemoveModApplication(debugAppButton);
+                }
 #endif
             }
             
