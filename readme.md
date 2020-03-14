@@ -113,7 +113,11 @@ Listed below will be each effect included in TUFX, the name it uses within the c
 and the name of the parameters for the effects as used in both the profiles and texture 
 specifications.
 
-### Ambient Occlusion
+### Built-In Effects
+The following effects are provided as built-in effects to the Post Process Package v2.  They were 
+written and provided by the Unity development team, and are included here without modification.
+
+#### Ambient Occlusion
 Listed as 'AmbientOcclusion' in configuration files.  Has the following fields:
 * Mode
 * Intensity
@@ -127,7 +131,7 @@ Listed as 'AmbientOcclusion' in configuration files.  Has the following fields:
 * Radius
 * Quality
 
-### Auto Exposure
+#### Auto Exposure
 Listed as 'AutoExposure' in configuration files.  Has the following fields:
 * Filtering
 * MinLuminance
@@ -137,7 +141,7 @@ Listed as 'AutoExposure' in configuration files.  Has the following fields:
 * SpeedUp
 * SpeedDown
 
-### Bloom
+#### Bloom
 Listed as 'Bloom' in configuration files.  Has the following fields:
 * Intensity
 * Threshold
@@ -150,13 +154,13 @@ Listed as 'Bloom' in configuration files.  Has the following fields:
 * DirtTexture
 * DirtIntensity
 
-### Chromatic Aberration
+#### Chromatic Aberration
 Listed as 'ChromaticAberration' in configuration files.  Has the following fields:
 * SpectralLUT
 * Intensity
 * FastMode
 
-### Color Grading
+#### Color Grading
 Listed as 'ColorGrading' in configuration files.  Has the following fields:
 * GradingMode
 * ExternalLUT
@@ -198,21 +202,21 @@ Listed as 'ColorGrading' in configuration files.  Has the following fields:
 * SatVsSatCurve
 * LumVsSatCurve
 
-### Depth Of Field
+#### Depth Of Field
 Listed as 'DepthOfField' in configuration files.  Has the following fields:
 * FocusDistance
 * Aperture
 * FocalLength
 * KernelSize
 
-### Grain
+#### Grain
 Listed as 'Grain' in configuration files.  Has the following fields:
 * Colored
 * Intensity
 * Size
 * LumContrib
 
-### Lens Distortion
+#### Lens Distortion
 Listed as 'LensDistortion' in configuration files.  Has the following fields:
 * Intensity
 * IntensityX
@@ -221,12 +225,12 @@ Listed as 'LensDistortion' in configuration files.  Has the following fields:
 * CenterY
 * Scale
 
-### Motion Blur
+#### Motion Blur
 Listed as 'MotionBlur' in configuration files.  Has the following fields:
 * ShutterAngle
 * SampleCount
 
-### Vignette
+#### Vignette
 Listed as 'Vignette' in configuration files.  Has the following fields:
 * Mode
 * Color
@@ -237,6 +241,27 @@ Listed as 'Vignette' in configuration files.  Has the following fields:
 * Rounded
 * Mask
 * Opacity
+
+### Custom Effects
+The following are custom effects native to TUfx, not being provided by Unity.  Some of these effects
+ may be based upon the works of others (Scattering), while some are purely custom creations (oceans,
+ clouds).
+
+#### Scattering
+Listed as 'Scattering' in configuration files.
+Customized implementation of Bruneton's Improved Scattering, using the Unity port by Scrawk as the 
+basis.  When the effect is enabled, will disable the stock skybox/atmosphere effect on Kerbin.
+Has the following fields:
+* Exposure
+
+#### Ocean
+Listed as 'Oceans' in configuration files.
+Pure custom ocean rendering implementation.  Should be used alongside HDR to clean up issues with
+the stock ocean renderer, which causes NANs in the bloom effect.  WIP
+
+#### Cloud
+Listed as 'Clouds' in configuration files.
+Fully custom implementation of volumetric cloud rendering.  TODO
 
 ---
 ## Licensing:
