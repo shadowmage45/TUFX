@@ -201,7 +201,10 @@ namespace TUFX
         public void Update()
         {
             if (sun == null) { return; }
-            foreach (Model m in TUFXScatteringResources.Models) { m.SunDirection = -sun.transform.forward; }
+            foreach (Model m in TUFXScatteringResources.Models)
+            {
+                m.SunDirection = -sun.transform.forward;
+            }
         }
 
     }

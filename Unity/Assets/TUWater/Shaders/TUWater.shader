@@ -10,25 +10,29 @@
 		float3 _Left2;
 		float3 _Right2;
 
+		// _Time already is a value?
+		float _Timer;//input time value, seed value for effects
+
 		//scene setup parameters -- location and size of the planet, direction of the light source
 		float3 _PlanetCenter;//the world-space position of the center of the planet
+		float3 _SunCenter;//the world-space position of the center of the planet
 		float _Radius;//radius of the body; this is the 'sea level' value
 		float3 _SunDirection;//normalized direction of light source
 		float3 _LightColor;//light color and intensity
 
 		//effect setup parameters
+		float _R0;//schlicks
+		float _R2;//refraction strenght (scalar term)
 
-		float _MaxWaveHeight;//maximum displacement from sea level
-		float _RefractionStrength;
-		float _R0;//index of refraction, used in fresnel calculations
-
-		float _TransitionFactor;//transition factor for shorlines
+		float _S0;//specular angle? (hardness?)
+		float _S1;//specular strength (scalar)
 		
-		float3 _SurfaceColor;//color of the water surface
-		float3 _DepthColor;//no clue how/why this is used...
-		float3 _Extinction;//Meter depth at which RGB light from background objects is reduced
-
+		float _MaxDisplacement;//maximum displacement from sea level
+		float _ShoreHardness;//transition factor for shorlines
 		
+		float3 _WaterColor;//color of the water surface / fog color
+		float3 _Extinction;//ratio of color extinction
+		float _Clarity;//speed of color extinction; how 'murky' the water is		
 
 		TEXTURE2D_SAMPLER2D(_MainTex, sampler_MainTex);
 		TEXTURE2D_SAMPLER2D(_CameraDepthTexture, sampler_CameraDepthTexture);
@@ -65,12 +69,113 @@
 		// - eyeVec - normalized eye vector
 		float fresnelTerm(float3 normal, float3 eyeVec)
 		{
-			_R0 = 0.5;
 			float angle = 1.0f - saturate(dot(normal, eyeVec));
 			float fresnel = angle * angle;
 			fresnel = fresnel * fresnel;
 			fresnel = fresnel * angle;
-			return saturate(fresnel * (1.0f - saturate(_R0)) + _R0 - _RefractionStrength);
+			return saturate(fresnel * (1.0f - saturate(_R0)) + _R0 - _R2);
+		}
+
+		// Returns a three-vector tangent space matrix for the input normal, world-position, and uv coordinate
+		float3x3 tangentFrame(float3 normal, float3 P, float2 uv)
+		{
+			//because, apparently DDX and DDY do... some interesting semi-async stuff;
+			//they return the derivative of the input expression(value) for the currently running pixel patch
+			//so this is actually a value dependent upon the values of other nearby pixels (woof)
+			
+			float3 dp1 = ddx(P);
+			float3 dp2 = ddy(P);
+			float2 duv1 = ddx(uv);
+			float2 duv2 = ddy(uv);
+	
+			float3x3 M = float3x3(dp1, dp2, cross(dp1, dp2));
+			float2x3 inverseM = float2x3( cross( M[1], M[2] ), cross( M[2], M[0] ) );
+			float3 T = mul(float2(duv1.x, duv2.x), inverseM);
+			float3 B = mul(float2(duv1.y, duv2.y), inverseM);
+			return float3x3(normalize(T), normalize(B), normal);
+		}
+
+		//Returns the two intersects of the view direction with the sphere, or false if there are no intersects
+		bool raySphereIntersect(float3 origin, float3 center, float3 direction, float radius, out float entry, out float exit)
+		{
+			entry = exit = 0;
+			float t0, t1; // solutions for t if the ray intersects 
+			// geometric solution
+			float3 L = center - origin; 
+			float tca = dot(L, direction);
+			//ray does not intersect sphere in view direction
+			if (tca < 0) 
+			{
+				return false;
+			}			
+			float d2 = dot(L, L) - tca * tca;
+			//ray is entirely outside of the sphere
+			if (d2 > _Radius * _Radius)
+			{
+				return false; 
+			}
+			
+			float thc = sqrt(_Radius * _Radius - d2); 
+			t0 = tca - thc; 
+			t1 = tca + thc;
+			//both intersects are behind the ray
+			if(t0< 0 && t1 < 0)
+			{
+				return false;
+			}
+			entry = t0;
+			exit = t1;
+
+			if (t0 > t1)
+			{
+				float tt = t0;
+				//t0 = t1;
+				//t1 = tt;
+			}
+ 
+			if (t0 < 0) 
+			{ 
+				//t0 = t1; // if t0 is negative, let's use t1 instead 
+				if (t0 < 0)
+				{
+					//return false; // both t0 and t1 are negative 
+				} 
+			}
+			entry = t0;
+			exit = t1;
+ 
+			return true; 
+		}
+
+		//Calculates the distance a ray will travel to exit a sphere, when started at 'pos' (inside sphere)
+		// and cast along 'direction'
+		float sphereExitDistance(float3 pos, float3 center, float3 direction, float radius)
+		{
+			float3 p = center - pos;			
+			float tca = dot(p, direction);//distance along the ray to the shortest distance to sphere point
+			float d2 = dot(p, p) - tca * tca;
+			float thc = sqrt(radius * radius - d2);
+			return tca + thc;
+		}
+
+		//integrate over the distance between origin and end, calculating optical depth at each segment
+		//
+		float3 getIrradiance(float3 origin, float3 end, float3 center, float radius)
+		{
+			float3 ray = normalize(end - origin);
+			int steps = 32;
+			float dist = distance(origin, end);
+			float step = dist / steps;
+			float3 irradiance = float3(0,0,0);
+			for(int i = 0; i < steps; i++)
+			{
+				float d1 = i * step;//distance along the ray being sampled
+				float3 t = origin + ray * (d1);//point along the ray being sampled
+				float depth = sphereExitDistance(t, center, normalize(t - center), radius);//depth below the surface of the point being sampled
+				float3 color = pow(_Extinction * _LightColor, depth) * _WaterColor;//light extinction on the way to the sampled point
+				irradiance += pow(_Extinction, d1) * step * color;
+			}
+			return irradiance * _Clarity;
 		}
 
 		float4 frag(vertout i) : SV_TARGET
@@ -107,6 +212,7 @@
 			float depth = Linear01Depth(SAMPLE_DEPTH_TEXTURE(_CameraDepthTexture, sampler_CameraDepthTexture, i.uv));
 			//distance from camera to the hit
 			float distanceToDepthHit = depth * length(i.view_ray);
+			
 
 			if(ray_earth_center_squared_distance > _Radius * _Radius )
 			{
@@ -125,86 +231,71 @@
 				//return float4(0,1,1,1);
 				return backgroundColor;
 			}
-			if ( distanceToDepthHit > distanceToSeaExit && distanceToSeaLevel==0 )
-			{
-				//return float4(1,0,0,1);
-				//return backgroundColor;
-			}
 			
+			//the actual, final, end distance of the ray; this will either be the ocean surface (seen from below),
+			//the ocean bottom (from above), or the depth value of some obstruction (above or below)
+			//by this time it is guaranteed that the ray passes through at least some portion of water.
 			distanceToDepthHit = min(distanceToSeaExit, distanceToDepthHit);
 
-			float3 worldPos = camera + (distanceToSeaLevel * view_direction);
-			float3 normal = normalize(worldPos - _PlanetCenter);
-			float3 lightColor = float3(1, 0.95, 0.83);
+			//the world-space position of the 'distanceToDepthHit' coordinate //TODO -- adjust for underwater perspective
+			float3 worldPos = camera + (distanceToDepthHit * view_direction);
+			//surface normal of the ocean
+			float3 normal = normalize((camera + view_direction * distanceToSeaLevel)  - _PlanetCenter);
 
-			//distort the surface normal by using the world position as inputs to distort tangent-space normal x/y			
-			float3 distort = float3(frac(worldPos.x*0.05)*0.25, frac(worldPos.y*0.05)*0.25, frac(worldPos.z*0.05)*0.25);
-			float dotdn = dot(distort, normal);
-			//float3 d2 = float3(distort.r 
-			//normal = normalize(abs(distort)*0.5 + normal);
+			float3 startPos = camera + (distanceToSeaLevel * view_direction);
+
 
 			//depth in (scaled) meters that the ray traverses through the medium
-			float oceanDepth = distanceToDepthHit - distanceToSeaLevel;
 
-			//extinction depths (meters):
-			//red = 4.5
-			//orange = 15
-			//yellow = 30
-			//violet = 30
-			//green = 75
-			//blue = 300
-			
-			//oceanDepth /= 100;
-			float eRed = 4.5;
-			float eGreen = 75;
-			float eBlue = 300;
+			//this is the depth that the view ray travels through the ocean before it hits the 'point' (or exits from the surface)			
+			float viewOceanDepth = distanceToDepthHit - distanceToSeaLevel;
+			//this is the depth that the sun ray must travel through the ocean to impact the surface that was hit
+			float sunOceanDepth = sphereExitDistance(worldPos, _PlanetCenter, _SunDirection, _Radius);
+			//the transmittance value of the light reaching the surface
+			float3 sunRayTransmittance = pow(_Extinction, sunOceanDepth * _Clarity);
+			backgroundColor.rgb = backgroundColor.rgb * sunRayTransmittance;
 
-			float3 extinctionFactor = saturate(float3(4.5, 75, 300) / (oceanDepth));
-			//return float4(backgroundColor.rgb * extinctionFactor, 1);
-
-			float3 oceanColor = float3(0.5, 0.5, 1);
-			
-
-			
-			//standard blinn-phong lighting model
+			//standard blinn-phong lighting model from legacy specular shaders...
 			//diffuse light intensity, from surface normal and light direction
 			float diff = max (0, dot (normal, _SunDirection));
 			
 			//specular light calculations for the surface
 			float3 h = normalize (_SunDirection - view_direction);
-			float nh = max (0, dot (normal, h));
-			float angle = 1;//what dimension is this?
-			float spec = pow (nh, angle * 128);
-
-			//exponential depth fog
-			float scalar = 0.001;
-			scalar = exp2(-scalar * oceanDepth);
-
-			float3 light = diff * lightColor + spec.rrr * lightColor;
-			float3 light1 = lerp(float3(0,0,0), light, scalar);
+			float nh = max (0, dot (normal, h));			
+			float spec = pow (nh, _S0 * 128) * _S1;
 			
+			//return float4(getIrradiance(startPos, worldPos, _PlanetCenter, _Radius)*1.0*diff, 1);
 
-			//float3 color = lerp(oceanColor * light, backgroundColor * extinctionFactor, scalar);
-			float3 color = backgroundColor.rgb * extinctionFactor;
 			float fresnel = fresnelTerm(normal, -view_direction);
 			//return float4(fresnel.rrr, 1);
+			float3 reflectionVector = normalize(2 * dot(normal, -view_direction) * normal + view_direction);
+			//return float4(reflectionVector, 1);
 
-			half3 specular = 0.0f;
-			float shininess = 5;
-			half3 mirrorEye = (2.0f * dot(view_direction, normal) * normal - view_direction);
-			half dotSpec = saturate(dot(mirrorEye.xyz, -_SunDirection) * 0.5f + 0.5f);
+			//this does not deal with distortion/displacement
+			float3 refraction = backgroundColor.rgb * diff;
+			//transmittance for the background based purely on depth; this is what causes the bluish tint,
+			//and occludes background objects as they get too far away
+			float3 transmittance = pow(_Extinction, viewOceanDepth * _Clarity);
+			//return float4(transmittance, 1);
+			float3 irradiance = getIrradiance(startPos, worldPos, _PlanetCenter, _Radius);
+			//return float4(irradiance, 1);
+			refraction = saturate(refraction * transmittance + irradiance);
+			float3 reflection = diff * float3(0.4, 0.4, 0.8);//sky reflection
 
-			specular = (1.0f - fresnel) * ((pow(dotSpec, 512.0f)) * (shininess * 1.8f + 0.2f))* lightColor;
-			specular += specular * 25 * saturate(1 - 0.05f) * lightColor;
-			float3 reflect = float3(0.4, 0.7, 1) * diff;
+			if(length(p) < _Radius)
+			{
+				fresnel = 0;//TODO - find a way to get reflection data...
+			}			
+			float3 wColor = _WaterColor;
+			float3 color = lerp(refraction, reflection, fresnel);
+			color = saturate(color + _LightColor * spec);
+			//color = lerp(refraction, color, saturate(oceanDepth, _ShoreHardness));//TODO - only aerial perspective
 			
-			color = lerp(color, reflect, fresnel);
-			color = saturate(color + spec);
 						
 			//backgroundColor.rgb = saturate(backgroundColor.rgb * (1 - color.bbb));
 			//color += spec.rrr*10;
 
-			return float4(saturate(color), 1);
+			return float4(color,1);
 		}
 
 	ENDHLSL

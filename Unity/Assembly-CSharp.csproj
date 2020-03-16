@@ -81,11 +81,14 @@
      <Compile Include="Assets\TUBIS\TUBISReferences.cs" />
      <Compile Include="Assets\TUBIS\TUFXScatteringResources.cs" />
      <Compile Include="Assets\TUWater\TUWaterEffect.cs" />
+     <None Include="Assets\TUWater\Shaders\TUWaterSurfaceShader.shader" />
      <None Include="Assets\BrunetonsImprovedAtmosphere\Shaders\IrradianceFunctions.cginc" />
      <None Include="Assets\TUBIS\Shaders\ScatteringFunctions.hlsl" />
      <None Include="Assets\Shaders\Scatter\EXTERNAL-Scattering (Simple).shader" />
      <None Include="Assets\BrunetonsImprovedAtmosphere\Shaders\Write.compute" />
+     <None Include="Assets\TUWater\Shaders\Functions.hlsl" />
      <None Include="Assets\BrunetonsImprovedAtmosphere\Shaders\Precomputation.compute" />
+     <None Include="Assets\TUWater\Shaders\GBuffer1.shader" />
      <None Include="Assets\TUBIS\Shaders\TransmittanceFunctions.hlsl" />
      <None Include="Assets\BrunetonsImprovedAtmosphere\Shaders\ScatteringFunctions.cginc" />
      <None Include="Assets\Shaders\Scatter\RenderSky2.shader" />
@@ -93,6 +96,7 @@
      <None Include="Assets\TUBIS\Shaders\TU-BIS.shader" />
      <None Include="Assets\Shaders\Noise\RandomNoise\randomNoise2.cginc" />
      <None Include="Assets\TUBIS\Shaders\RenderingFunctions.hlsl" />
+     <None Include="Assets\TUWater\Shaders\randomNoise2.cginc" />
      <None Include="Assets\Shaders\Scatter\TU-Scattering.shader" />
      <None Include="Assets\BrunetonsImprovedAtmosphere\Shaders\RenderingFunctions.cginc" />
      <None Include="Assets\BrunetonsImprovedAtmosphere\Shaders\TransmittanceFunctions.cginc" />
@@ -101,6 +105,7 @@
      <None Include="Assets\Shaders\Scatter\TU-ScatterExternal.shader" />
      <None Include="Assets\BrunetonsImprovedAtmosphere\Shaders\Read.compute" />
      <None Include="Assets\TUBIS\Shaders\Definitions.hlsl" />
+     <None Include="Assets\TUWater\Shaders\randomNoise.cginc" />
      <None Include="Assets\TUBIS\Shaders\IrradianceFunctions.hlsl" />
      <None Include="Assets\Shaders\Scatter\TU-Clouds.shader" />
      <None Include="Assets\TUWater\Shaders\TUWater.shader" />

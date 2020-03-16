@@ -16,6 +16,36 @@ MonoBehaviour:
   enabled:
     overrideState: 1
     value: 1
+  MaxDisplacement:
+    overrideState: 1
+    value: 2
+  LightColor:
+    overrideState: 1
+    value: {r: 1, g: 0.95, b: 0.83, a: 1}
+  WaterColor:
+    overrideState: 1
+    value: {r: 0.8443396, g: 0.8443396, b: 1, a: 1}
+  ExtinctionRatio:
+    overrideState: 1
+    value: {x: 0.014551, y: 0.24251, z: 0.97004}
+  WaterClarity:
+    overrideState: 1
+    value: 1
+  R0:
+    overrideState: 1
+    value: 0.333
+  R2:
+    overrideState: 1
+    value: 0
+  S0:
+    overrideState: 1
+    value: 0.2
+  S1:
+    overrideState: 1
+    value: 1
+  ShoreHardness:
+    overrideState: 1
+    value: 1
 --- !u!114 &-5170847893754043367
 MonoBehaviour:
   m_ObjectHideFlags: 3
