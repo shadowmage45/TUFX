@@ -184,7 +184,7 @@
 			float texSize = 90/dist;//this is wrong, but should work for approximation
 			
 			float2 longlat = cartesianToSpherical(pos);
-			float xSkew = cos(longlat.y + PI * 0.5);
+			float xSkew = 1 / cos(longlat.y + PI * 0.5);
 			
 			float nL = noise3(sphericalToCartesian(float2(longlat.x - texSize * xSkew, longlat.y)));
 			float nR = noise3(sphericalToCartesian(float2(longlat.x + texSize * xSkew, longlat.y)));
@@ -218,7 +218,7 @@
 			//if(ns==0){return backgroundColor;}
 			
 			return float4((normal.rgb), 1);
-			//return float4(ns.rrr, 1);
+			return float4(ns.rrr, 1);
 			
 						//specular light calculations for the surface
 			float3 h = normalize (_SunDirection - view_direction);
