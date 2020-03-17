@@ -206,7 +206,7 @@
 			{
 
 				//TODO - how to get a normal direction for the ground without a normals buffer?
-				//TODO - might have to render a normals buffer somehow in a prepass...really only care about terrain, so materials not needed?
+				//TODO - might have to render a normals buffer somehow in a prepass...really only care about terrain/geometry, so materials not needed?
 
 				float3 _point = camera + view_direction * distanceToGround;
 				float3 normal = normalize(_point - earth_center);

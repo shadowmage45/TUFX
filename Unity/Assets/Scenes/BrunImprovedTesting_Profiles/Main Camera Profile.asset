@@ -39,10 +39,10 @@ MonoBehaviour:
     value: 0
   S0:
     overrideState: 1
-    value: 0.2
+    value: 0.1
   S1:
     overrideState: 1
-    value: 1
+    value: 0.5
   ShoreHardness:
     overrideState: 1
     value: 1
