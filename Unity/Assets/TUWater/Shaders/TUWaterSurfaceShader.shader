@@ -105,7 +105,7 @@
 			noise += snoise(normalize(pos) * scaleFactor * 0.25) * 0.300;
 			noise += snoise(normalize(pos) * scaleFactor * 0.05) * 0.500;	
 			noise = snoise(normalize(pos) * scaleFactor * 0.05);		
-			return ((noise + 1) * 0.5)*0.5;
+			return ((noise + 1) * 0.5) * 0.5;
 		}
 
 		float sampleNoiseView(float3 viewRay, float2 uv, out float3 normal, out float3 pos)
@@ -191,6 +191,27 @@
 			float nU = noise3(sphericalToCartesian(float2(longlat.x, longlat.y + texSize)));
 			float nD = noise3(sphericalToCartesian(float2(longlat.x, longlat.y - texSize)));
 
+			//TODO return to this
+			// the intent is to derive a tangent the same way you would for three vertices
+			// but working backwards from UV coordinates
+			float3 npos = normalize(pos);
+			float2 uv = cartesianToUV(npos);
+			float3 v3 = UVToCartesian(float2(uv.x + 1/360, uv.y));
+			float lx = length(npos-v3);
+			float3 v2 = UVToCartesian(float2(uv.x, uv.y + 1/360));
+			float ly = length(npos-v2);
+			float3 rPos = UVToCartesian(uv);
+
+			//tangent and bitangents
+			float3 t = normalize(npos - v3);
+			float3 b = normalize(npos - v2);
+			b = normalize(cross(normal, t));
+
+			nL = noise3(npos + t*lx);
+			nR = noise3(npos - t*lx);
+			nU = noise3(npos + b*ly);
+			nD = noise3(npos - b*ly);
+
 			//http://corysimon.github.io/articles/uniformdistn-on-sphere/
 			//https://math.libretexts.org/Bookshelves/Calculus/Book%3A_Calculus_(OpenStax)/12%3A_Vectors_in_Space/12.7%3A_Cylindrical_and_Spherical_Coordinates
 			//convert from cartesian to spherical coordinates
@@ -198,8 +219,9 @@
 			//add skewed(X),Y
 			//convert back to cartesian
 
-			float tangent = normalize(float3(2*(nL - nR), 2*(nU - nD), -4));
-			normal = normalize(sphereTangentToWorld(normal, tangent) + normal);
+			float tangentSpaceNormal = normalize(float3(2*(nR - nL), 2*(nU - nD), 4));
+			normal = float3(dot(tangentSpaceNormal, t), dot(tangentSpaceNormal, b), dot(tangentSpaceNormal, normal))+normal;
+			normal = normalize(normal);
 			//normal = (1 + -normal) * 0.5;
 			return (nO + 1) * 0.5;
 		}
@@ -217,15 +239,15 @@
 			float ns = sampleNoise(i.uv, normal);
 			//if(ns==0){return backgroundColor;}
 			
-			return float4((normal.rgb), 1);
-			return float4(ns.rrr, 1);
+			return float4(abs(normal.rgb), 1);
+			//return float4(ns.rrr, 1);
 			
 						//specular light calculations for the surface
 			float3 h = normalize (_SunDirection - view_direction);
 			float nh = max (0, dot (normal, h));			
 			float spec = pow (nh, _S0 * 128) * _S1;
 			float diff = max (0, dot (normal, _SunDirection));
-			return float4(ns, spec, ns + spec,  1);
+			return float4(ns, 0, spec,  1);
 			return float4(backgroundColor.rgb * diff + spec.rrr, 1);
 
 			float3 p = camera - _PlanetCenter;

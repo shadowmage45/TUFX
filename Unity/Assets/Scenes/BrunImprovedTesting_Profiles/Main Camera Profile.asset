@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a15cc30d9fed8c64f8dbb4c2f83981f5, type: 3}
   m_Name: TUWaterEffect
   m_EditorClassIdentifier: 
-  active: 1
+  active: 0
   enabled:
     overrideState: 1
     value: 1
@@ -39,10 +39,10 @@ MonoBehaviour:
     value: 0
   S0:
     overrideState: 1
-    value: 0.1
+    value: 0.5
   S1:
     overrideState: 1
-    value: 0.5
+    value: 1
   ShoreHardness:
     overrideState: 1
     value: 1

@@ -89,11 +89,13 @@
      <None Include="Assets\BrunetonsImprovedAtmosphere\Shaders\Write.compute" />
      <None Include="Assets\TUWater\Shaders\Functions.hlsl" />
      <None Include="Assets\BrunetonsImprovedAtmosphere\Shaders\Precomputation.compute" />
+     <None Include="Assets\TUWater\Shaders\ScreenSpaceShadowDepth.shader" />
      <None Include="Assets\TUBIS\Shaders\TransmittanceFunctions.hlsl" />
      <None Include="Assets\BrunetonsImprovedAtmosphere\Shaders\ScatteringFunctions.cginc" />
      <None Include="Assets\Shaders\Scatter\RenderSky2.shader" />
      <None Include="Assets\BrunetonsImprovedAtmosphere\Shaders\Definitions.cginc" />
      <None Include="Assets\TUBIS\Shaders\TU-BIS.shader" />
+     <None Include="Assets\TUWater\Shaders\TUShadowMap.shader" />
      <None Include="Assets\TUWater\Shaders\TUNormBuffer.shader" />
      <None Include="Assets\Shaders\Noise\RandomNoise\randomNoise2.cginc" />
      <None Include="Assets\TUBIS\Shaders\RenderingFunctions.hlsl" />

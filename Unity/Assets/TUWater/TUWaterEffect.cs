@@ -53,7 +53,7 @@ namespace TUFX
             CommandBuffer cmd = context.command;
             cmd.BeginSample("TUWater");
             Camera camera = context.camera;
-            PropertySheet sheet = context.propertySheets.Get(TUFXScatteringResources.WaterShader);
+            PropertySheet sheet = context.propertySheets.Get(Shader.Find("TU/ScreenSpaceShadowDepth"));// TUFXScatteringResources.WaterShader);
             MaterialPropertyBlock material = sheet.properties;
 
             //bounding box frustum corners, for world-space view direction decoding
@@ -75,7 +75,11 @@ namespace TUFX
             material.SetVector("_Right", topRight);
             material.SetVector("_Left2", botLeft);
             material.SetVector("_Right2", botRight);
-            material.SetVector("_Up", camera.transform.up);
+
+            GameObject sun = GameObject.Find("Sun");            
+            material.SetVector("_LightUp", sun.transform.up);
+            material.SetVector("_LightLeft", -sun.transform.right);
+            material.SetVector("_LightForward", sun.transform.forward);
 
             int len = TUFXScatteringResources.Models.Count;
             RenderTargetIdentifier source = context.source;

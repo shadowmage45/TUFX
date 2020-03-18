@@ -33,6 +33,34 @@ float2 sphericalToEquirectangular(float2 spherical)
 	return float2(x,y);
 }
 
+//Input is a sphere-centric surface world-position
+//Output is the UV coordinate of that position, assuming equirectangular UV mapping
+float2 cartesianToUV(float3 worldPos)
+{
+	//https://en.wikipedia.org/wiki/UV_mapping
+	//http://paulbourke.net/geometry/transformationprojection/
+	worldPos = normalize(worldPos);
+	float u = 0.5 + (atan2(worldPos.z, worldPos.x) / (2 * PI));
+	float v = 0.5 - (asin(worldPos.y) / PI);
+	return float2(u, v);
+}
+
+float3 UVToCartesian(float2 uv)
+{
+	float theta = 2 * PI * (uv.x);
+	float phi = PI * (uv.y);
+	float x = cos(theta) * sin(phi);
+	float y = -cos(phi);
+	float z = sin(theta) * sin(phi);
+	return float3(x,y,z);
+}
+
+float2 UVToSpherical(float2 uv)
+{
+	uv.x *= 2 * PI;
+	return uv;
+}
+
 // Function calculating fresnel term.
 // - normal - normalized normal vector
 // - eyeVec - normalized eye vector

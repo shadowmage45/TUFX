@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
+using UnityEngine.Rendering;
 
 namespace Assets.TUBIS
 {
@@ -16,13 +17,37 @@ namespace Assets.TUBIS
     /// * Material Buffers (metalic and shininess properties)
     /// * Reflection data (?)
     /// </summary>
+    [ExecuteInEditMode]
     public class TUFXRenderHelper : MonoBehaviour
     {
 
-        public void Start()
+        public Camera cam;
+        public GameObject sun;
+        public GameObject planet;
+        public float radius;
+        public RenderTexture texture;
+
+        public void OnEnable()
         {
-            Camera camera = GetComponent<Camera>();
-            camera.SetReplacementShader(Shader.Find("TU/NormBuffer"), string.Empty);
+            cam = GetComponent<Camera>();
+            cam.SetReplacementShader(Shader.Find("TU/ShadowMap"), string.Empty);
+        }
+
+        public void OnDisable()
+        {
+            Camera cam = GetComponent<Camera>();
+            cam.ResetReplacementShader();
+        }
+
+        public void Update()
+        {
+            if (sun == null || planet == null || texture==null) { return; }
+            Vector3 pos = planet.transform.position - sun.transform.forward * radius;
+            cam.orthographicSize = radius;
+            cam.farClipPlane = radius * 1.1f;
+            cam.gameObject.transform.position = pos;
+            cam.gameObject.transform.rotation = sun.transform.rotation;
+            Shader.SetGlobalTexture("_ShadowMap", texture);
         }
 
     }
