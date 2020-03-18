@@ -76,7 +76,8 @@ namespace TUFX
             material.SetVector("_Left2", botLeft);
             material.SetVector("_Right2", botRight);
 
-            GameObject sun = GameObject.Find("Sun");            
+            GameObject sun = GameObject.Find("Sun");
+            
             material.SetVector("_LightUp", sun.transform.up);
             material.SetVector("_LightLeft", -sun.transform.right);
             material.SetVector("_LightForward", sun.transform.forward);

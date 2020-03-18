@@ -75,15 +75,15 @@
 			float3 objectHit = depthHit - _PlanetCenter;//distance from center of the object
 			float3 sphereHit = normalize(objectHit);
 
-			float3 lightHit = float3(dot(sphereHit, _LightLeft), dot(sphereHit, _LightUp), dot(sphereHit, _LightForward))*0.885; //no clue; where does this correction factor come from?
+			float3 lightHit = float3(dot(sphereHit, _LightLeft), dot(sphereHit, _LightUp), dot(sphereHit, _LightForward)); //no clue; where does this correction factor come from?
+			lightHit = lightHit * length(objectHit);//normalized vector to camera space position
+			lightHit = lightHit / 6700;//denormalized into -1 to +1 range
 			float2 lightXY = ((lightHit + 1)/2).xy;
 			lightXY.x = 1 - lightXY.x;
 			
 			float4 shadow = SAMPLE_TEXTURE2D(_ShadowMap, sampler_ShadowMap, lightXY);
 
 			return float4(shadow.rrr, 1);
-
-			return float4(shadow);
 		}
 
 		float4 frag2(vertout i) : SV_TARGET

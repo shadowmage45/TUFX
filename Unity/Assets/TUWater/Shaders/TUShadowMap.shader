@@ -1,11 +1,12 @@
 ﻿Shader "TU/ShadowMap"
 {
-	HLSLINCLUDE	
+	HLSLINCLUDE
 		//this is basically some slapped together/hacked monstrosity of CG and HLSL combined...
-		#include "UnityCG.cginc"
-		//as it is basically a geometry shader, don't neeed all the screen-space stuff from post-process package
-		//#include "Packages/com.unity.postprocessing/PostProcessing/Shaders/StdLib.hlsl"
-		
+#include "UnityCG.cginc"
+//as it is basically a geometry shader, don't neeed all the screen-space stuff from post-process package
+//#include "Packages/com.unity.postprocessing/PostProcessing/Shaders/StdLib.hlsl"
+
+		float _LinearDepth;
 
 		struct at
 		{
@@ -36,7 +37,7 @@
 		{
 			float3 cam = _WorldSpaceCameraPos;
 			float depth = length(i.vertexw - cam);
-			depth = depth / (7370);			
+			depth = depth / (_LinearDepth);			
 			//depth = 1 - depth;
 			return float4(depth.rrr, 1);
 		}

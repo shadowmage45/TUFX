@@ -48,6 +48,10 @@ namespace Assets.TUBIS
             cam.gameObject.transform.position = pos;
             cam.gameObject.transform.rotation = sun.transform.rotation;
             Shader.SetGlobalTexture("_ShadowMap", texture);
+            Shader.SetGlobalFloat("_LinearDepth", 7370);//TODO -- this needs to be set based on the model/etc.
+            //TODO - the bounds and depth of the shadow map camera should be dynamically set based on current main-world camera frustum
+            //TODO - also include stuff inbetween the light-source and the planet, such as -other bodies-; these could be captured with a secondary back-facing camera.
+            //material.SetFloat("_LinearDepth", (float)(model.TopRadius / model.LengthUnitInMeters) * 1.1f);
         }
 
     }
