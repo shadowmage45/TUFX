@@ -101,8 +101,7 @@ namespace TUFX
 
             // Density profile increasing linearly from 0 to 1 between 10 and 25km, and
             // decreasing linearly from 1 to 0 between 25 and 40km. This is an approximate
-            // profile from http://www.kln.ac.lk/science/Chemistry/Teaching_Resources/
-            // Documents/Introduction%20to%20atmospheric%20chemistry.pdf (page 10).
+            // profile from http://www.kln.ac.lk/science/Chemistry/Teaching_Resources/Documents/Introduction%20to%20atmospheric%20chemistry.pdf (page 10).
             List<DensityProfileLayer> ozone_density = new List<DensityProfileLayer>();
             ozone_density.Add(new DensityProfileLayer("absorption0", 25000.0, 0.0, 0.0, 1.0 / 15000.0, -2.0 / 3.0));
             ozone_density.Add(new DensityProfileLayer("absorption1", 0.0, 0.0, 0.0, -1.0 / 15000.0, 8.0 / 3.0));
