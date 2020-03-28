@@ -311,6 +311,7 @@ namespace TUFX
             bool showProps = AddEffectHeader("Ambient Occlusion", ao);
             if (enabled && showProps)
             {
+                AddEnumParameter("Mode", ao.mode);
                 AddFloatParameter("Intensity", ao.intensity, 0, 10);
                 AddColorParameter("Color", ao.color);
                 AddBoolParameter("Ambient Only", ao.ambientOnly);
