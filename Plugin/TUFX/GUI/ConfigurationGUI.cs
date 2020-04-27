@@ -400,7 +400,7 @@ namespace TUFX
                 }
                 else if (cg.gradingMode == GradingMode.LowDefinitionRange)
                 {
-                    AddTextureParameter("LDR LUT", cg.ldrLut, BuiltinEffect.ColorGrading.ToString(), "ldrLut");
+                    AddTextureParameter("LDR LUT", cg.ldrLut, BuiltinEffect.ColorGrading.ToString(), "LdrLut");
                     AddFloatParameter("LDR LUT Contrib.", cg.ldrLutContribution, 0, 1);
                 }
                 else if (cg.gradingMode == GradingMode.HighDefinitionRange)

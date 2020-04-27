@@ -397,8 +397,8 @@ namespace UnityEngine.Rendering.PostProcessing
             loadFloatParameter(config, "ToneCurveShoulderLength", toneCurveShoulderLength);
             loadFloatParameter(config, "ToneCurveShoulderAngle", toneCurveShoulderAngle);
             loadFloatParameter(config, "ToneCurveGamma", toneCurveGamma);
-            loadTextureParameter(config, "LDRLut", ldrLut);
-            loadFloatParameter(config, "LDRLutContribution", ldrLutContribution);
+            loadTextureParameter(config, "LdrLut", ldrLut);
+            loadFloatParameter(config, "LdrLutContribution", ldrLutContribution);
             loadFloatParameter(config, "Temperature", temperature);
             loadFloatParameter(config, "Tint", tint);
             loadColorParameter(config, "ColorFilter", colorFilter);
@@ -439,8 +439,8 @@ namespace UnityEngine.Rendering.PostProcessing
             saveFloatParameter(config, "ToneCurveShoulderLength", toneCurveShoulderLength);
             saveFloatParameter(config, "ToneCurveShoulderAngle", toneCurveShoulderAngle);
             saveFloatParameter(config, "ToneCurveGamma", toneCurveGamma);
-            saveTextureParameter(config, "LDRLut", ldrLut);
-            saveFloatParameter(config, "LDRLutContribution", ldrLutContribution);
+            saveTextureParameter(config, "LdrLut", ldrLut);
+            saveFloatParameter(config, "LdrLutContribution", ldrLutContribution);
             saveFloatParameter(config, "Temperature", temperature);
             saveFloatParameter(config, "Tint", tint);
             saveColorParameter(config, "ColorFilter", colorFilter);

@@ -156,18 +156,12 @@ namespace UnityEngine.Rendering.PostProcessing
             {
                 return;
             }
-            string texName = node.GetValue(name);
+            string texName = node.GetStringValue(name);
+
             Texture2D texture = null;
-            if (texName.StartsWith("BUILTIN:"))
-            {
-                texName = texName.Substring(8);
-                texture = TexturesUnlimitedFXLoader.INSTANCE.getTexture(texName);
-            }
-            else
-            {
-                texName = texName.Substring(7);
-                texture = GameDatabase.Instance.GetTexture(texName, false);
-            }
+            
+            texture = GameDatabase.Instance.GetTexture(texName, false);
+            
             if (texture != null)
             {
                 param.Override(texture);
