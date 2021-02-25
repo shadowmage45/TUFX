@@ -417,6 +417,7 @@ namespace UnityEngine.Rendering.PostProcessing
             loadFloatParameter(config, "MixerBlueOutGreenIn", mixerBlueOutGreenIn);
             loadFloatParameter(config, "MixerBlueOutBlueIn", mixerBlueOutBlueIn);
             loadVector4Parameter(config, "Lift", lift);
+            loadVector4Parameter(config, "Gamma", gamma);
             loadVector4Parameter(config, "Gain", gain);
             loadSplineParameter(config, "MasterCurve", masterCurve);
             loadSplineParameter(config, "RedCurve", redCurve);
