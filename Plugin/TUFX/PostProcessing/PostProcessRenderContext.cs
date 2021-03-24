@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using TUFX.PostProcessing;
 
 namespace UnityEngine.Rendering.PostProcessing
 {

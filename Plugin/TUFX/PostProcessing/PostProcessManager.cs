@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using TUFX.PostProcessing;
 using UnityEngine.Assertions;
 
 namespace UnityEngine.Rendering.PostProcessing

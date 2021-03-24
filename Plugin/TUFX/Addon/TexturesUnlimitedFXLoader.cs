@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using TUFX.PostProcessing;
 using UnityEngine;
 using UnityEngine.Rendering.PostProcessing;
 
@@ -62,7 +63,7 @@ namespace TUFX
         /// Reference to the Unity Post Processing 'Resources' class.  Used to store references to the shaders and textures used by the post-processing system internals.
         /// Does not include references to the 'included' but 'external' resources such as the built-in lens-dirt textures or any custom LUTs.
         /// </summary>
-        public PostProcessResources Resources { get; private set; }
+        public static PostProcessResources Resources { get; private set; }
 
         public void Start()
         {
@@ -558,6 +559,8 @@ namespace TUFX
         {
             currentProfile = null;
             Camera activeCam = getActiveCamera();
+            
+            
             Log.debug("TUFX: enableProfile( " + profileName + " )  scene: ( "+HighLogic.LoadedScene+" ) map: ( "+isMapScene+" ) camera: ( "+activeCam?.name+" )");
             Log.debug(System.Environment.StackTrace);
             if (previousCamera != activeCam)

@@ -1,3 +1,5 @@
+using TUFX.PostProcessing;
+
 namespace UnityEngine.Rendering.PostProcessing
 {
     /// <summary>

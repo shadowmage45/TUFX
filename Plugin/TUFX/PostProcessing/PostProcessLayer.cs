@@ -1,9 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEngine;
 using UnityEngine.Assertions;
+using UnityEngine.Rendering;
+using UnityEngine.Rendering.PostProcessing;
 
-namespace UnityEngine.Rendering.PostProcessing
+namespace TUFX.PostProcessing
 {
 #if UNITY_2017_2_OR_NEWER && ENABLE_VR
     using XRSettings = UnityEngine.XR.XRSettings;
