@@ -590,11 +590,11 @@ namespace TUFX
                 Log.debug("Profile (hashcode): " + tufxProfile?.GetHashCode() + " :: "+tufxProfile?.ProfileName);
                 Log.log("Setting HDR for camera: " + activeCam.name + " to: " + tufxProfile.HDREnabled);
                 activeCam.allowHDR = tufxProfile.HDREnabled;
-                onAntiAliasingSelected(tufxProfile.AntiAliasing, false);
                 layer = activeCam.gameObject.AddOrGetComponent<PostProcessLayer>();
                 layer.Init(Resources);
                 layer.volumeLayer = ~0;//everything //TODO -- fix layer assignment...
                 Log.debug("Layer: " + layer?.GetHashCode());
+                onAntiAliasingSelected(tufxProfile.AntiAliasing, false);
                 volume = activeCam.gameObject.AddOrGetComponent<PostProcessVolume>();
                 volume.isGlobal = true;
                 volume.priority = 100;
