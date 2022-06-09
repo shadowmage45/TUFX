@@ -152,20 +152,21 @@ namespace UnityEngine.Rendering.PostProcessing
 
         internal void loadTextureParameter(ConfigNode node, string name, ParameterOverride<Texture> param)
         {
+            const string BUILTIN_PREFIX = "BUILTIN:";
+
             if (!node.HasValue(name))
             {
                 return;
             }
             string texName = node.GetValue(name);
             Texture2D texture = null;
-            if (texName.StartsWith("BUILTIN:"))
+            if (texName.StartsWith(BUILTIN_PREFIX))
             {
-                texName = texName.Substring(8);
+                texName = texName.Substring(BUILTIN_PREFIX.Length);
                 texture = TexturesUnlimitedFXLoader.INSTANCE.getTexture(texName);
             }
             else
             {
-                texName = texName.Substring(7);
                 texture = GameDatabase.Instance.GetTexture(texName, false);
             }
             if (texture != null)
