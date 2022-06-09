@@ -137,7 +137,7 @@ namespace TUFX
 
         private void renderSelectionWindow()
         {
-            AddLabelRow("Current Scene: " + HighLogic.LoadedScene +" map view active: " + MapView.MapIsEnabled + " internal cam active: " + InternalCamera.Instance.isActive);
+            AddLabelRow("Current Scene: " + HighLogic.LoadedScene +" map view active: " + MapView.MapIsEnabled + " internal cam active: " + (InternalCamera.Instance != null && InternalCamera.Instance.isActive));
             AddLabelRow("Current Profile: " + TexturesUnlimitedFXLoader.INSTANCE.CurrentProfileName);
             AddLabelRow("Select a new profile for current scene: ");
             scrollPos = GUILayout.BeginScrollView(scrollPos);
