@@ -41,8 +41,6 @@ namespace TUFX
         private PostProcessLayer layer;
         private PostProcessVolume volume;
         private GameScenes previousScene=GameScenes.LOADING;
-        private bool isMapScene;
-        private bool wasMapScene;
         private Camera previousCamera;
 
         /// <summary>
@@ -70,10 +68,9 @@ namespace TUFX
             INSTANCE = this;
             DontDestroyOnLoad(this);
             GameEvents.onLevelWasLoaded.Add(new EventData<GameScenes>.OnEvent(onLevelLoaded));
-            GameEvents.OnMapEntered.Add(new EventVoid.OnEvent(mapEntered));
-            GameEvents.OnMapExited.Add(new EventVoid.OnEvent(mapExited));
+            GameEvents.OnCameraChange.Add(new EventData<CameraManager.CameraMode>.OnEvent(cameraChange));
         }
-        
+
         public void ModuleManagerPostLoad()
         {
             Log.log("TUFXLoader - MMPostLoad()");
@@ -410,51 +407,13 @@ namespace TUFX
             }
             
             configGuiDisable();
-            //on scene change, reset the map-scene flag
-            //scene change into flight-scene is never directly into map mode, so this will only be true if the current scene is the tracking station
-            isMapScene = scene == GameScenes.TRACKSTATION;
             //finally, enable the profile for the current scene
             enableProfileForCurrentScene();
         }
 
-        /// <summary>
-        /// GameEvents Callback for when map view has been entered.
-        /// </summary>
-        private void mapEntered()
+        private void cameraChange(CameraManager.CameraMode newCameraMode)
         {
-            configGuiDisable();
-            Log.debug("Map view entered ( " + HighLogic.LoadedScene + " ).\n" + System.Environment.StackTrace);
-            Log.debug("Main camera: " + Camera.main?.GetHashCode());
-            Log.debug("Flight camera: " + FlightCamera.fetch?.mainCamera?.GetHashCode());
-            Log.debug("Editor camera: " + EditorCamera.Instance?.cam?.GetHashCode());
-            Log.debug("Planetarium Camera: " + PlanetariumCamera.Camera?.GetHashCode());
-            isMapScene = true;
-            //tracking station will ALSO call this method when entered, so ensure to
-            //only update profile if mapEntered() was called from elsewhere (only flight?)
-            if (HighLogic.LoadedScene != GameScenes.TRACKSTATION)//this could also simply be 'if scene==flight'....
-            {
-                enableProfileForCurrentScene();
-            }
-        }
-
-        /// <summary>
-        /// GameEvents Callback for when map view has been exited.
-        /// </summary>
-        private void mapExited()
-        {
-            configGuiDisable();
-            Log.debug("Map view closed ( "+HighLogic.LoadedScene+" ).\n" + System.Environment.StackTrace);
-            Log.debug("Main camera: " + Camera.main?.GetHashCode());
-            Log.debug("Flight camera: " + FlightCamera.fetch?.mainCamera?.GetHashCode());
-            Log.debug("Editor camera: " + EditorCamera.Instance?.cam?.GetHashCode());
-            Log.debug("Planetarium Camera: " + PlanetariumCamera.Camera?.GetHashCode());            
-            isMapScene = false;
-            //tracking station will ALSO call this method when exited, so ensure to
-            //only update profile if mapExited() was called from elsewhere (only flight?)
-            if (HighLogic.LoadedScene != GameScenes.TRACKSTATION)//this could also simply be 'if scene==flight'....
-            {
-                enableProfileForCurrentScene();
-            }
+            enableProfileForCurrentScene();
         }
 
         /// <summary>
@@ -465,7 +424,7 @@ namespace TUFX
         /// <param name="scene">the game scene to which the new profile should be applied</param>
         /// <param name="isMapScene">Update the 'flight map scene' if this is true and scene==flight</param>
         /// <param name="enableNow">True to enable the profile for the current scene</param>
-        internal void setProfileForScene(string profile, GameScenes scene, bool isMapScene, bool enableNow = false)
+        internal void setProfileForScene(string profile, GameScenes scene, bool enableNow = false)
         {
             switch (scene)
             {
@@ -479,13 +438,18 @@ namespace TUFX
                     HighLogic.CurrentGame.Parameters.CustomParams<TUFXGameSettings>().EditorSceneProfile = profile;
                     break;
                 case GameScenes.FLIGHT:
-                    if (isMapScene)
+                    switch (CameraManager.Instance.currentCameraMode)
                     {
-                        HighLogic.CurrentGame.Parameters.CustomParams<TUFXGameSettings>().MapSceneProfile = profile;
-                    }
-                    else
-                    {
-                        HighLogic.CurrentGame.Parameters.CustomParams<TUFXGameSettings>().FlightSceneProfile = profile;
+                        case CameraManager.CameraMode.Flight:
+                            HighLogic.CurrentGame.Parameters.CustomParams<TUFXGameSettings>().FlightSceneProfile = profile;
+                            break;
+                        case CameraManager.CameraMode.Map:
+                            HighLogic.CurrentGame.Parameters.CustomParams<TUFXGameSettings>().MapSceneProfile = profile;
+                            break;
+                        case CameraManager.CameraMode.IVA:
+                        case CameraManager.CameraMode.Internal:
+                            HighLogic.CurrentGame.Parameters.CustomParams<TUFXGameSettings>().IVAProfile = profile;
+                            break;
                     }
                     break;
                 case GameScenes.TRACKSTATION:
@@ -516,20 +480,25 @@ namespace TUFX
                     profileName = HighLogic.CurrentGame.Parameters.CustomParams<TUFXGameSettings>().EditorSceneProfile;
                     break;
                 case GameScenes.FLIGHT:
-                    if (isMapScene)
+                    switch (CameraManager.Instance.currentCameraMode)
                     {
-                        profileName = HighLogic.CurrentGame.Parameters.CustomParams<TUFXGameSettings>().MapSceneProfile;
-                    }
-                    else
-                    {
-                        profileName = HighLogic.CurrentGame.Parameters.CustomParams<TUFXGameSettings>().FlightSceneProfile;
+                        case CameraManager.CameraMode.Flight:
+                            profileName = HighLogic.CurrentGame.Parameters.CustomParams<TUFXGameSettings>().FlightSceneProfile;
+                            break;
+                        case CameraManager.CameraMode.Map:
+                            profileName = HighLogic.CurrentGame.Parameters.CustomParams<TUFXGameSettings>().MapSceneProfile;
+                            break;
+                        case CameraManager.CameraMode.IVA:
+                        case CameraManager.CameraMode.Internal:
+                            profileName = HighLogic.CurrentGame.Parameters.CustomParams<TUFXGameSettings>().IVAProfile;
+                            break;
                     }
                     break;
                 case GameScenes.TRACKSTATION:
                     profileName = HighLogic.CurrentGame.Parameters.CustomParams<TUFXGameSettings>().TrackingStationProfile;
                     break;
             }
-            Log.debug("TUFX - Enabling profile for current scene: " + HighLogic.LoadedScene + " map: " + isMapScene + " profile: " + profileName);
+            Log.debug("TUFX - Enabling profile for current scene: " + HighLogic.LoadedScene + " profile: " + profileName);
             enableProfile(profileName);
         }
 
@@ -545,7 +514,17 @@ namespace TUFX
             //else if (HighLogic.LoadedScene == GameScenes.EDITOR) { activeCam = null; }// EditorCamera.Instance.cam; } // TODO simply referencing this camera screws up the editor scene... (incorrect matrix? wrong camera ref? is this a UI camera?)
             //else if (HighLogic.LoadedScene == GameScenes.EDITOR) { activeCam = null; }// Camera.main; }//TODO -- this one isn't the right camera either....
             else if (HighLogic.LoadedScene == GameScenes.SPACECENTER) { activeCam = Camera.main; }
-            else if (HighLogic.LoadedScene == GameScenes.FLIGHT) { activeCam = isMapScene ? PlanetariumCamera.Camera : FlightCamera.fetch.mainCamera; }
+            else if (HighLogic.LoadedScene == GameScenes.FLIGHT)
+            {
+                if (InternalCamera.Instance.isActive)
+                {
+                    activeCam = InternalCamera.Instance.GetComponent<Camera>();
+                }
+                else
+                {
+                    activeCam = CameraManager.GetCurrentCamera(); // NOTE: this will return one of EditorLogic.fetch.editorCamera, PlanetariumCamera.Camera, or FlightCamera.fetch.mainCamera
+                }
+            }
             else { Log.exception("Could not locate camera for scene: " + HighLogic.LoadedScene); }
             return activeCam;
         }
@@ -558,7 +537,9 @@ namespace TUFX
         {
             currentProfile = null;
             Camera activeCam = getActiveCamera();
-            Log.debug("TUFX: enableProfile( " + profileName + " )  scene: ( "+HighLogic.LoadedScene+" ) map: ( "+isMapScene+" ) camera: ( "+activeCam?.name+" )");
+            
+            
+            Log.debug("TUFX: enableProfile( " + profileName + " )  scene: ( "+HighLogic.LoadedScene+" ) camera: ( "+activeCam?.name+" )");
             Log.debug(System.Environment.StackTrace);
             if (previousCamera != activeCam)
             {
@@ -573,7 +554,6 @@ namespace TUFX
                     volume = null;
                 }
                 previousScene = HighLogic.LoadedScene;
-                wasMapScene = isMapScene;
                 previousCamera = activeCam;
             }
 

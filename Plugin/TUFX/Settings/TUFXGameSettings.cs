@@ -28,6 +28,9 @@ namespace TUFX
         [GameParameters.CustomStringParameterUI("Flight Scene Profile: ", gameMode = GameParameters.GameMode.ANY, lines = 1, toolTip = "Active Profile in the Flight Scene")]
         public string FlightSceneProfile = "Default-Flight";
 
+        [GameParameters.CustomStringParameterUI("Flight Scene Profile: ", gameMode = GameParameters.GameMode.ANY, lines = 1, toolTip = "Active Profile when in IVA")]
+        public string IVAProfile = "Default-Flight";
+
         [GameParameters.CustomStringParameterUI("Map Scene Profile: ", gameMode = GameParameters.GameMode.ANY, lines = 1, toolTip = "Active Profile in the Map Scene")]
         public string MapSceneProfile = "Default-Flight";
 
