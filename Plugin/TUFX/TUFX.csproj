@@ -27,12 +27,28 @@
     <DebugType>portable</DebugType>
     <Optimize>true</Optimize>
     <OutputPath>bin\Release\</OutputPath>
-    <DefineConstants>TRACE;UNITY_2017_1_OR_NEWER, UNITY_2017_2_OR_NEWER, UNITY_2019_1_OR_NEWER, UNITY_2018_2_OR_NEWER, UNITY_STANDALONE, UNITY_2018_3_OR_NEWER,UNITY_2018_1_OR_NEWER</DefineConstants>
+    <DefineConstants>UNITY_2017_1_OR_NEWER, UNITY_2017_2_OR_NEWER, UNITY_2019_1_OR_NEWER, UNITY_2018_2_OR_NEWER, UNITY_STANDALONE, UNITY_2018_3_OR_NEWER,UNITY_2018_1_OR_NEWER</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
+  <!--Import targets now, which will import KSPCommunityFixes.csproj.user where the path to the KSP install root must be defined in ReferencePath-->
+  <!--This must be done after the main project poperties are defined because it needs the target framework property to be defined -->
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!--Parse KSP platform-specific paths and set the start action-->
+  <PropertyGroup>
+    <KSPExecutable Condition="$([MSBuild]::IsOsPlatform('Windows'))">KSP_x64.exe</KSPExecutable>
+    <KSPExecutable Condition="$([MSBuild]::IsOsPlatform('OSX'))">KSP.app</KSPExecutable>
+    <KSPExecutable Condition="$([MSBuild]::IsOsPlatform('Linux'))">KSP.x86_64</KSPExecutable>
+    <ManagedRelativePath Condition="$([MSBuild]::IsOsPlatform('Windows'))">KSP_x64_Data\Managed</ManagedRelativePath>
+    <ManagedRelativePath Condition="$([MSBuild]::IsOsPlatform('OSX'))">KSP.app\Contents\Resources\Data\Managed</ManagedRelativePath>
+    <ManagedRelativePath Condition="$([MSBuild]::IsOsPlatform('Linux'))">KSP_Data\Managed</ManagedRelativePath>
+    <ManagedPath>$(ReferencePath)\$(ManagedRelativePath)</ManagedPath>
+    <StartAction>Program</StartAction>
+    <StartProgram>$(ReferencePath)\$(KSPExecutable)</StartProgram>
+    <StartWorkingDirectory>$(ReferencePath)</StartWorkingDirectory>
+  </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Assembly-CSharp">
+    <Reference Include="$(ManagedPath)\Assembly-CSharp.dll">
       <Private>false</Private>
     </Reference>
     <Reference Include="System" />
@@ -43,19 +59,19 @@
     <Reference Include="System.Data" />
     <Reference Include="System.Net.Http" />
     <Reference Include="System.Xml" />
-    <Reference Include="UnityEngine.AnimationModule">
+    <Reference Include="$(ManagedPath)\UnityEngine.AnimationModule.dll">
       <Private>false</Private>
     </Reference>
-    <Reference Include="UnityEngine.AssetBundleModule">
+    <Reference Include="$(ManagedPath)\UnityEngine.AssetBundleModule.dll">
       <Private>false</Private>
     </Reference>
-    <Reference Include="UnityEngine.CoreModule">
+    <Reference Include="$(ManagedPath)\UnityEngine.CoreModule.dll">
       <Private>false</Private>
     </Reference>
-    <Reference Include="UnityEngine.IMGUIModule">
+    <Reference Include="$(ManagedPath)\UnityEngine.IMGUIModule.dll">
       <Private>false</Private>
     </Reference>
-    <Reference Include="UnityEngine.PhysicsModule">
+    <Reference Include="$(ManagedPath)\UnityEngine.PhysicsModule.dll">
       <Private>false</Private>
     </Reference>
   </ItemGroup>
@@ -139,7 +155,6 @@
     <None Include="PostProcessing\Unity.Postprocessing.Runtime.asmdef" />
   </ItemGroup>
   <ItemGroup />
-  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PostBuildEvent>
 			copy "$(TargetPath)" "$(SolutionDir)\..\GameData\TUFX\Plugins\$(TargetFileName)"
