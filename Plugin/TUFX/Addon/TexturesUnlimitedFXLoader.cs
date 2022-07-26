@@ -520,6 +520,10 @@ namespace TUFX
                 {
                     activeCam = InternalCamera.Instance.GetComponent<Camera>();
                 }
+                else if (CameraManager.Instance.currentCameraMode == CameraManager.CameraMode.Map)
+                {
+                    activeCam = ScaledCamera.Instance.cam;
+                }
                 else
                 {
                     activeCam = CameraManager.GetCurrentCamera(); // NOTE: this will return one of EditorLogic.fetch.editorCamera, PlanetariumCamera.Camera, or FlightCamera.fetch.mainCamera
