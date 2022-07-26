@@ -522,7 +522,14 @@ namespace TUFX
                 }
                 else
                 {
-                    activeCam = CameraManager.GetCurrentCamera(); // NOTE: this will return one of EditorLogic.fetch.editorCamera, PlanetariumCamera.Camera, or FlightCamera.fetch.mainCamera
+                    if (CameraManager.Instance.currentCameraMode == CameraManager.CameraMode.Map)
+                    {
+                        activeCam = ScaledCamera.Instance.cam;
+                    }
+                    else
+                    {
+                        activeCam = CameraManager.GetCurrentCamera(); // NOTE: this will return one of EditorLogic.fetch.editorCamera, PlanetariumCamera.Camera, or FlightCamera.fetch.mainCamera
+                    }
                 }
             }
             else { Log.exception("Could not locate camera for scene: " + HighLogic.LoadedScene); }
