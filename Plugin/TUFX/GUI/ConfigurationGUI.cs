@@ -396,11 +396,11 @@ namespace TUFX
                 AddEnumParameter("Mode", cg.gradingMode);
                 if (cg.gradingMode == GradingMode.External)
                 {
-                    AddTextureParameter("External LUT", cg.externalLut, BuiltinEffect.ColorGrading.ToString(), "ExternalLUT");
+                    AddTextureParameter("External LUT", cg.externalLut, BuiltinEffect.ColorGrading.ToString(), "ExternalLut");
                 }
                 else if (cg.gradingMode == GradingMode.LowDefinitionRange)
                 {
-                    AddTextureParameter("LDR LUT", cg.ldrLut, BuiltinEffect.ColorGrading.ToString(), "LDRLUT");
+                    AddTextureParameter("LDR LUT", cg.ldrLut, BuiltinEffect.ColorGrading.ToString(), "LdrLut");
                     AddFloatParameter("LDR LUT Contrib.", cg.ldrLutContribution, 0, 1);
                 }
                 else if (cg.gradingMode == GradingMode.HighDefinitionRange)
