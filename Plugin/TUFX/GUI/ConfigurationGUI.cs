@@ -468,6 +468,7 @@ namespace TUFX
                 AddFloatParameter("Aperture", df.aperture, 0.05f, 32f);
                 AddFloatParameter("Focal Length", df.focalLength, 1f, 300f);
                 AddEnumParameter("Kernel Size", df.kernelSize);
+                AddBoolParameter("Use Camera Fov", df.useCameraFov);
             }
             GUILayout.BeginHorizontal();
             GUILayout.Label("---------------------------------------");

@@ -70,6 +70,9 @@ namespace UnityEngine.Rendering.PostProcessing
         [DisplayName("Max Blur Size"), Tooltip("Convolution kernel size of the bokeh filter, which determines the maximum radius of bokeh. It also affects performances (the larger the kernel is, the longer the GPU time is required).")]
         public KernelSizeParameter kernelSize = new KernelSizeParameter { value = KernelSize.Medium };
 
+        [Tooltip("Calculate the focal length automatically from the field-of-view value set on the camera. Using this setting isn't recommended.")]
+        public BoolParameter useCameraFov = new BoolParameter{value = false};
+
         /// <inheritdoc />
         public override bool IsEnabledAndSupported(PostProcessRenderContext context)
         {
@@ -83,6 +86,7 @@ namespace UnityEngine.Rendering.PostProcessing
             loadFloatParameter(config, "Aperture", aperture);
             loadFloatParameter(config, "FocalLength", focalLength);
             loadEnumParameter(config, "KernelSize", kernelSize, typeof(KernelSize));
+            loadBoolParameter(config, "UseCameraFov", useCameraFov);
         }
 
         public override void Save(ConfigNode config)
@@ -91,6 +95,7 @@ namespace UnityEngine.Rendering.PostProcessing
             saveFloatParameter(config, "Aperture", aperture);
             saveFloatParameter(config, "FocalLength", focalLength);
             saveEnumParameter(config, "KernelSize", kernelSize);
+            saveBoolParameter(config, "UseCameraFov", useCameraFov);
         }
 
     }
@@ -151,6 +156,16 @@ namespace UnityEngine.Rendering.PostProcessing
             return RenderTextureFormat.Default;
         }
 
+        float CalculateFocalLength(Camera camera)
+        {
+            if (!settings.useCameraFov)
+                return settings.focalLength / 1000f;
+
+            float fov = camera.fieldOfView * Mathf.Deg2Rad;
+            return 0.5f * k_FilmHeight / Mathf.Tan(0.5f * fov);
+        }
+
+
         float CalculateMaxCoCRadius(int screenHeight)
         {
             // Estimate the allowable maximum radius of CoC from the kernel
@@ -195,7 +210,7 @@ namespace UnityEngine.Rendering.PostProcessing
 
             // Material setup
             float scaledFilmHeight = k_FilmHeight * (context.height / 1080f);
-            var f = settings.focalLength.value / 1000f;
+            var f = CalculateFocalLength(context.camera);
             var s1 = Mathf.Max(settings.focusDistance.value, f);
             var aspect = (float)context.screenWidth / (float)context.screenHeight;
             var coeff = f * f / (settings.aperture.value * (s1 - f) * scaledFilmHeight * 2f);
