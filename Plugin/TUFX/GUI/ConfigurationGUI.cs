@@ -377,7 +377,7 @@ namespace TUFX
             bool showProps = AddEffectHeader("Chromatic Aberration", ca);
             if (enabled && showProps)
             {
-                AddTextureParameter("Spectral LUT", ca.spectralLut, BuiltinEffect.ChromaticAberration.ToString(), "SpectralLUT");
+                AddTextureParameter("Spectral LUT", ca.spectralLut, BuiltinEffect.ChromaticAberration.ToString(), "SpectralLut");
                 AddFloatParameter("Intensity", ca.intensity, 0, 1);
                 AddBoolParameter("Fast Mode", ca.fastMode);
             }

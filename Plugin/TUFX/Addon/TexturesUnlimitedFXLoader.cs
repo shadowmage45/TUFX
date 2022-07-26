@@ -60,7 +60,7 @@ namespace TUFX
         /// Reference to the Unity Post Processing 'Resources' class.  Used to store references to the shaders and textures used by the post-processing system internals.
         /// Does not include references to the 'included' but 'external' resources such as the built-in lens-dirt textures or any custom LUTs.
         /// </summary>
-        public PostProcessResources Resources { get; private set; }
+        public static PostProcessResources Resources { get; private set; }
 
         public void Start()
         {

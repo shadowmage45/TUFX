@@ -158,7 +158,8 @@ namespace UnityEngine.Rendering.PostProcessing
             {
                 return;
             }
-            string texName = node.GetValue(name);
+            string texName = node.GetStringValue(name);
+
             Texture2D texture = null;
             if (texName.StartsWith(BUILTIN_PREFIX))
             {
