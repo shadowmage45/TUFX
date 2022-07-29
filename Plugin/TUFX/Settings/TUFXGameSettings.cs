@@ -32,7 +32,7 @@ namespace TUFX
         public string IVAProfile = "Default-Flight";
 
         [GameParameters.CustomStringParameterUI("Map Scene Profile: ", gameMode = GameParameters.GameMode.ANY, lines = 1, toolTip = "Active Profile in the Map Scene")]
-        public string MapSceneProfile = "Default-Flight";
+        public string MapSceneProfile = "Default-Tracking";
 
         [GameParameters.CustomStringParameterUI("Editor Scene Profile: ", gameMode = GameParameters.GameMode.ANY, lines = 1, toolTip = "Active Profile in the Editor Scene")]
         public string EditorSceneProfile = "Default-Editor";
