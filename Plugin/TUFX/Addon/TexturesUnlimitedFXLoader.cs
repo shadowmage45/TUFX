@@ -41,7 +41,7 @@ namespace TUFX
             [Persistent] public bool ShowToolbarButton = true;
         }
 
-		private Configuration configuration = new Configuration();
+		internal Configuration configuration = new Configuration();
 
         private PostProcessLayer layer;
         private PostProcessVolume volume;
@@ -467,42 +467,56 @@ namespace TUFX
             }
         }
 
-        /// <summary>
-        /// Looks up the profile for the current scene from the game persistence data and attempts to enable it.
-        /// </summary>
-        internal void enableProfileForCurrentScene()
+		public string GetProfileNameForCurrentScene(TUFXGameSettings gameSettings)
+		{
+			string profileName = string.Empty;
+			switch (HighLogic.LoadedScene)
+			{
+				case GameScenes.MAINMENU:
+					profileName = configuration.MainMenuProfile;
+					break;
+				case GameScenes.SPACECENTER:
+					profileName = gameSettings.SpaceCenterSceneProfile;
+					break;
+				case GameScenes.EDITOR:
+					profileName = gameSettings.EditorSceneProfile;
+					break;
+				case GameScenes.FLIGHT:
+					switch (CameraManager.Instance.currentCameraMode)
+					{
+						case CameraManager.CameraMode.Flight:
+							profileName = gameSettings.FlightSceneProfile;
+							break;
+						case CameraManager.CameraMode.Map:
+							profileName = gameSettings.MapSceneProfile;
+							break;
+						case CameraManager.CameraMode.IVA:
+						case CameraManager.CameraMode.Internal:
+							profileName = gameSettings.IVAProfile;
+							break;
+					}
+					break;
+				case GameScenes.TRACKSTATION:
+					profileName = gameSettings.TrackingStationProfile;
+					break;
+			}
+
+			return profileName;
+		}
+
+		/// <summary>
+		/// Looks up the profile for the current scene from the game persistence data and attempts to enable it.
+		/// </summary>
+		internal void enableProfileForCurrentScene()
         {
-            string profileName = string.Empty;
-            switch (HighLogic.LoadedScene)
+            string profileName = GetProfileNameForCurrentScene(HighLogic.CurrentGame?.Parameters?.CustomParams<TUFXGameSettings>());
+            if (string.IsNullOrEmpty(profileName) || !Profiles.ContainsKey(profileName))
             {
-                case GameScenes.MAINMENU:
-                    profileName = configuration.MainMenuProfile;
-                    break;
-                case GameScenes.SPACECENTER:
-                    profileName = HighLogic.CurrentGame.Parameters.CustomParams<TUFXGameSettings>().SpaceCenterSceneProfile;
-                    break;
-                case GameScenes.EDITOR:
-                    profileName = HighLogic.CurrentGame.Parameters.CustomParams<TUFXGameSettings>().EditorSceneProfile;
-                    break;
-                case GameScenes.FLIGHT:
-                    switch (CameraManager.Instance.currentCameraMode)
-                    {
-                        case CameraManager.CameraMode.Flight:
-                            profileName = HighLogic.CurrentGame.Parameters.CustomParams<TUFXGameSettings>().FlightSceneProfile;
-                            break;
-                        case CameraManager.CameraMode.Map:
-                            profileName = HighLogic.CurrentGame.Parameters.CustomParams<TUFXGameSettings>().MapSceneProfile;
-                            break;
-                        case CameraManager.CameraMode.IVA:
-                        case CameraManager.CameraMode.Internal:
-                            profileName = HighLogic.CurrentGame.Parameters.CustomParams<TUFXGameSettings>().IVAProfile;
-                            break;
-                    }
-                    break;
-                case GameScenes.TRACKSTATION:
-                    profileName = HighLogic.CurrentGame.Parameters.CustomParams<TUFXGameSettings>().TrackingStationProfile;
-                    break;
+                Log.debug($"TUFX - game settings for scene {HighLogic.LoadedScene} named {profileName} not found; falling back to defaults");
+                var defaultSettings = new TUFXGameSettings();
+                profileName = GetProfileNameForCurrentScene(defaultSettings);
             }
+
             Log.debug("TUFX - Enabling profile for current scene: " + HighLogic.LoadedScene + " profile: " + profileName);
             enableProfile(profileName);
         }
