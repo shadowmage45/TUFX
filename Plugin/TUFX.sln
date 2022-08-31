@@ -1,9 +1,14 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.28307.168
+# Visual Studio Version 17
+VisualStudioVersion = 17.1.32210.238
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TUFX", "TUFX\TUFX.csproj", "{02EFB286-38A9-47C4-83CD-6DD59077AA2F}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{331EFB55-4FAD-4254-84E0-37941244750F}"
+	ProjectSection(SolutionItems) = preProject
+		..\GameData\TUFX\TexturesUnlimitedFX.version = ..\GameData\TUFX\TexturesUnlimitedFX.version
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
