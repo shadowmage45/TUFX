@@ -80,7 +80,7 @@ namespace UnityEngine.Rendering.PostProcessing
         /// </summary>
         [Tooltip("Check this box to mark this volume as global. This volume's Profile will be applied to the whole Scene.")]
         public bool isGlobal = false;
-        
+
         /// <summary>
         /// The outer distance to start blending from. A value of 0 means no blending and the volume
         /// overrides will be applied immediatly upon entry.
@@ -94,7 +94,7 @@ namespace UnityEngine.Rendering.PostProcessing
         /// </summary>
         [Range(0f, 1f), Tooltip("The total weight of this Volume in the Scene. A value of 0 signifies that it will have no effect, 1 signifies full effect.")]
         public float weight = 1f;
-        
+
         /// <summary>
         /// The volume priority in the stack. Higher number means higher priority. Negative values
         /// are supported.
@@ -212,7 +212,7 @@ namespace UnityEngine.Rendering.PostProcessing
 
             if (isGlobal || colliders == null)
                 return;
-            
+
 #if UNITY_EDITOR
             // Can't access the UnityEditor.Rendering.PostProcessing namespace from here, so
             // we'll get the preferred color manually

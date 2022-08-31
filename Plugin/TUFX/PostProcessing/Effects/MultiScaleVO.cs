@@ -5,7 +5,6 @@ namespace UnityEngine.Rendering.PostProcessing
     // Multi-scale volumetric obscurance
     // TODO: Fix VR support
 
-#if UNITY_2017_1_OR_NEWER
     [UnityEngine.Scripting.Preserve]
     [Serializable]
     internal sealed class MultiScaleVO : IAmbientOcclusionMethod
@@ -40,8 +39,9 @@ namespace UnityEngine.Rendering.PostProcessing
         readonly float[] m_InvThicknessTable = new float[12];
         readonly float[] m_SampleWeightTable = new float[12];
 
-        readonly int[] m_Widths = new int[7];
-        readonly int[] m_Heights = new int[7];
+        // Scaled dimensions used with dynamic resolution
+        readonly int[] m_ScaledWidths = new int[7];
+        readonly int[] m_ScaledHeights = new int[7];
 
         AmbientOcclusion m_Settings;
         PropertySheet m_PropertySheet;
@@ -79,13 +79,16 @@ namespace UnityEngine.Rendering.PostProcessing
             int sizeId = (int)size;
             cmd.GetTemporaryRT(id, new RenderTextureDescriptor
             {
-                width = m_Widths[sizeId],
-                height = m_Heights[sizeId],
+                width = m_ScaledWidths[sizeId],
+                height = m_ScaledHeights[sizeId],
                 colorFormat = format,
                 depthBufferBits = 0,
                 volumeDepth = 1,
                 autoGenerateMips = false,
                 msaaSamples = 1,
+#if UNITY_2019_2_OR_NEWER
+                mipCount = 1,
+#endif
                 enableRandomWrite = uav,
                 dimension = TextureDimension.Tex2D,
                 sRGB = false
@@ -97,13 +100,16 @@ namespace UnityEngine.Rendering.PostProcessing
             int sizeId = (int)size;
             cmd.GetTemporaryRT(id, new RenderTextureDescriptor
             {
-                width = m_Widths[sizeId],
-                height = m_Heights[sizeId],
+                width = m_ScaledWidths[sizeId],
+                height = m_ScaledHeights[sizeId],
                 colorFormat = format,
                 depthBufferBits = 0,
                 volumeDepth = 16,
                 autoGenerateMips = false,
                 msaaSamples = 1,
+#if UNITY_2019_2_OR_NEWER
+                mipCount = 1,
+#endif
                 enableRandomWrite = uav,
                 dimension = TextureDimension.Tex2DArray,
                 sRGB = false
@@ -135,26 +141,31 @@ namespace UnityEngine.Rendering.PostProcessing
 
         Vector2 GetSize(MipLevel mip)
         {
-            return new Vector2(m_Widths[(int)mip], m_Heights[(int)mip]);
+            return new Vector2(m_ScaledWidths[(int)mip], m_ScaledHeights[(int)mip]);
         }
 
         Vector3 GetSizeArray(MipLevel mip)
         {
-            return new Vector3(m_Widths[(int)mip], m_Heights[(int)mip], 16);
+            return new Vector3(m_ScaledWidths[(int)mip], m_ScaledHeights[(int)mip], 16);
         }
 
         public void GenerateAOMap(CommandBuffer cmd, Camera camera, RenderTargetIdentifier destination, RenderTargetIdentifier? depthMap, bool invert, bool isMSAA)
         {
             // Base size
-            m_Widths[0] = camera.pixelWidth * (RuntimeUtilities.isSinglePassStereoEnabled ? 2 : 1);
-            m_Heights[0] = camera.pixelHeight;
+#if UNITY_2017_3_OR_NEWER
+            m_ScaledWidths[0] = camera.scaledPixelWidth * (RuntimeUtilities.isSinglePassStereoEnabled ? 2 : 1);
+            m_ScaledHeights[0] = camera.scaledPixelHeight;
+#else
+            m_ScaledWidths[0] = camera.pixelWidth * (RuntimeUtilities.isSinglePassStereoEnabled ? 2 : 1);
+            m_ScaledHeights[0] = camera.pixelHeight;
+#endif
 
             // L1 -> L6 sizes
             for (int i = 1; i < 7; i++)
             {
                 int div = 1 << i;
-                m_Widths[i]  = (m_Widths[0]  + (div - 1)) / div;
-                m_Heights[i] = (m_Heights[0] + (div - 1)) / div;
+                m_ScaledWidths[i]  = (m_ScaledWidths[0]  + (div - 1)) / div;
+                m_ScaledHeights[i] = (m_ScaledHeights[0] + (div - 1)) / div;
             }
 
             // Allocate temporary textures
@@ -180,7 +191,7 @@ namespace UnityEngine.Rendering.PostProcessing
 
         void PushAllocCommands(CommandBuffer cmd, bool isMSAA)
         {
-            if(isMSAA)
+            if (isMSAA)
             {
                 Alloc(cmd, ShaderIDs.LinearDepth, MipLevel.Original, RenderTextureFormat.RGHalf, true);
 
@@ -266,7 +277,7 @@ namespace UnityEngine.Rendering.PostProcessing
             cmd.SetComputeVectorParam(cs, "ZBufferParams", CalculateZBufferParams(camera));
             cmd.SetComputeTextureParam(cs, kernel, "Depth", depthMapId);
 
-            cmd.DispatchCompute(cs, kernel, m_Widths[(int)MipLevel.L4], m_Heights[(int)MipLevel.L4], 1);
+            cmd.DispatchCompute(cs, kernel, m_ScaledWidths[(int)MipLevel.L4], m_ScaledHeights[(int)MipLevel.L4], 1);
 
             if (needDepthMapRelease)
                 Release(cmd, ShaderIDs.DepthCopy);
@@ -281,7 +292,7 @@ namespace UnityEngine.Rendering.PostProcessing
             cmd.SetComputeTextureParam(cs, kernel, "DS8xAtlas", ShaderIDs.TiledDepth3);
             cmd.SetComputeTextureParam(cs, kernel, "DS16xAtlas", ShaderIDs.TiledDepth4);
 
-            cmd.DispatchCompute(cs, kernel, m_Widths[(int)MipLevel.L6], m_Heights[(int)MipLevel.L6], 1);
+            cmd.DispatchCompute(cs, kernel, m_ScaledWidths[(int)MipLevel.L6], m_ScaledHeights[(int)MipLevel.L6], 1);
         }
 
         void PushRenderCommands(CommandBuffer cmd, int source, int destination, Vector3 sourceSize, float tanHalfFovH, bool isMSAA)
@@ -320,16 +331,16 @@ namespace UnityEngine.Rendering.PostProcessing
             // in front are the number of samples with this weight because we sum the samples
             // together before multiplying by the weight, so as an aggregate all of those samples
             // matter more. After generating this table, the weights are normalized.
-            m_SampleWeightTable[ 0] = 4 * m_SampleThickness[ 0];    // Axial
-            m_SampleWeightTable[ 1] = 4 * m_SampleThickness[ 1];    // Axial
-            m_SampleWeightTable[ 2] = 4 * m_SampleThickness[ 2];    // Axial
-            m_SampleWeightTable[ 3] = 4 * m_SampleThickness[ 3];    // Axial
-            m_SampleWeightTable[ 4] = 4 * m_SampleThickness[ 4];    // Diagonal
-            m_SampleWeightTable[ 5] = 8 * m_SampleThickness[ 5];    // L-shaped
-            m_SampleWeightTable[ 6] = 8 * m_SampleThickness[ 6];    // L-shaped
-            m_SampleWeightTable[ 7] = 8 * m_SampleThickness[ 7];    // L-shaped
-            m_SampleWeightTable[ 8] = 4 * m_SampleThickness[ 8];    // Diagonal
-            m_SampleWeightTable[ 9] = 8 * m_SampleThickness[ 9];    // L-shaped
+            m_SampleWeightTable[0] = 4 * m_SampleThickness[0];      // Axial
+            m_SampleWeightTable[1] = 4 * m_SampleThickness[1];      // Axial
+            m_SampleWeightTable[2] = 4 * m_SampleThickness[2];      // Axial
+            m_SampleWeightTable[3] = 4 * m_SampleThickness[3];      // Axial
+            m_SampleWeightTable[4] = 4 * m_SampleThickness[4];      // Diagonal
+            m_SampleWeightTable[5] = 8 * m_SampleThickness[5];      // L-shaped
+            m_SampleWeightTable[6] = 8 * m_SampleThickness[6];      // L-shaped
+            m_SampleWeightTable[7] = 8 * m_SampleThickness[7];      // L-shaped
+            m_SampleWeightTable[8] = 4 * m_SampleThickness[8];      // Diagonal
+            m_SampleWeightTable[9] = 8 * m_SampleThickness[9];      // L-shaped
             m_SampleWeightTable[10] = 8 * m_SampleThickness[10];    // L-shaped
             m_SampleWeightTable[11] = 4 * m_SampleThickness[11];    // Diagonal
 
@@ -387,9 +398,9 @@ namespace UnityEngine.Rendering.PostProcessing
             else
             {
                 kernel = cs.FindKernel(highResAO == null ? invert
-                ? "MultiScaleVOUpSample_MSAA_invert"
-                : "MultiScaleVOUpSample_MSAA"
-                : "MultiScaleVOUpSample_MSAA_blendout");
+                    ? "MultiScaleVOUpSample_MSAA_invert"
+                    : "MultiScaleVOUpSample_MSAA"
+                    : "MultiScaleVOUpSample_MSAA_blendout");
             }
 
 
@@ -451,7 +462,11 @@ namespace UnityEngine.Rendering.PostProcessing
 
         void CheckAOTexture(PostProcessRenderContext context)
         {
-            if (m_AmbientOnlyAO == null || !m_AmbientOnlyAO.IsCreated() || m_AmbientOnlyAO.width != context.width || m_AmbientOnlyAO.height != context.height)
+            bool AOUpdateNeeded = m_AmbientOnlyAO == null || !m_AmbientOnlyAO.IsCreated() || m_AmbientOnlyAO.width != context.width || m_AmbientOnlyAO.height != context.height;
+#if UNITY_2017_3_OR_NEWER
+            AOUpdateNeeded = AOUpdateNeeded || m_AmbientOnlyAO.useDynamicScale != context.camera.allowDynamicResolution;
+#endif
+            if (AOUpdateNeeded)
             {
                 RuntimeUtilities.Destroy(m_AmbientOnlyAO);
 
@@ -459,7 +474,10 @@ namespace UnityEngine.Rendering.PostProcessing
                 {
                     hideFlags = HideFlags.DontSave,
                     filterMode = FilterMode.Point,
-                    enableRandomWrite = true
+                    enableRandomWrite = true,
+#if UNITY_2017_3_OR_NEWER
+                    useDynamicScale = context.camera.allowDynamicResolution
+#endif
                 };
                 m_AmbientOnlyAO.Create();
             }
@@ -524,42 +542,4 @@ namespace UnityEngine.Rendering.PostProcessing
             m_AmbientOnlyAO = null;
         }
     }
-#else
-    [Serializable]
-    public sealed class MultiScaleVO : IAmbientOcclusionMethod
-    {
-        public MultiScaleVO(AmbientOcclusion settings)
-        {
-        }
-
-        public void SetResources(PostProcessResources resources)
-        {
-        }
-
-        public DepthTextureMode GetCameraFlags()
-        {
-            return DepthTextureMode.None;
-        }
-
-        public void GenerateAOMap(CommandBuffer cmd, Camera camera, RenderTargetIdentifier destination, RenderTargetIdentifier? depthMap, bool invert, bool isMSAA)
-        {
-        }
-
-        public void RenderAfterOpaque(PostProcessRenderContext context)
-        {
-        }
-
-        public void RenderAmbientOnly(PostProcessRenderContext context)
-        {
-        }
-
-        public void CompositeAmbientOnly(PostProcessRenderContext context)
-        {
-        }
-
-        public void Release()
-        {
-        }
-    }
-#endif
 }

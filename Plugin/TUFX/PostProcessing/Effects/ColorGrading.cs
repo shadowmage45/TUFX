@@ -24,7 +24,7 @@ namespace UnityEngine.Rendering.PostProcessing
         HighDefinitionRange,
 
         /// <summary>
-        /// This mode allows you to provide a custom 3D LUT authored in an external software. 
+        /// This mode allows you to provide a custom 3D LUT authored in an external software.
         /// </summary>
         External
     }
@@ -40,16 +40,16 @@ namespace UnityEngine.Rendering.PostProcessing
         None,
 
         /// <summary>
-        /// This method only does range-remapping with minimal impact on color hue & saturation and
+        /// This method only does range-remapping with minimal impact on color hue &amp; saturation and
         /// is generally a great starting point for extensive color grading.
         /// </summary>
         Neutral,
 
         /// <summary>
         /// This method uses a close approximation of the reference ACES tonemapper for a more
-        /// filmic look. Because of that, it is more contrasted than <see cref="Neutral"/>and has an
-        /// effect on actual color hue & saturation. Note that if you enable this tonemapper all the
-        /// grading operations will be done in the ACES color spaces for optimal precision and
+        /// filmic look. Because of that, it is more contrasted than <see cref="Neutral"/> and has
+        /// an effect on actual color hue &amp; saturation. Note that if you enable this tonemapper all
+        /// the grading operations will be done in the ACES color spaces for optimal precision and
         /// results.
         /// </summary>
         ACES,
@@ -64,7 +64,7 @@ namespace UnityEngine.Rendering.PostProcessing
     /// A volume parameter holding a <see cref="GradingMode"/> value.
     /// </summary>
     [Serializable]
-    public sealed class GradingModeParameter : ParameterOverride<GradingMode> { }
+    public sealed class GradingModeParameter : ParameterOverride<GradingMode> {}
 
     /// <summary>
     /// A volume parameter holding a <see cref="Tonemapper"/> value.
@@ -75,7 +75,7 @@ namespace UnityEngine.Rendering.PostProcessing
     /// <summary>
     /// This class holds settings for the Color Grading effect.
     /// </summary>
-    //  Could use some refactoring, too much duplicated code here
+    // TODO: Could use some refactoring, too much duplicated code here
     [Serializable]
     [PostProcess(typeof(ColorGradingRenderer), "Unity/Color Grading")]
     public sealed class ColorGrading : PostProcessEffectSettings
@@ -374,7 +374,11 @@ namespace UnityEngine.Rendering.PostProcessing
         /// </summary>
         public SplineParameter lumVsSatCurve = new SplineParameter { value = new Spline(new AnimationCurve(), 0.5f, false, new Vector2(0f, 1f)) };
 
-        /// <inheritdoc />
+        /// <summary>
+        /// Returns <c>true</c> if the effect is currently enabled and supported.
+        /// </summary>
+        /// <param name="context">The current post-processing render context</param>
+        /// <returns><c>true</c> if the effect is currently enabled and supported</returns>
         public override bool IsEnabledAndSupported(PostProcessRenderContext context)
         {
             if (gradingMode.value == GradingMode.External)
@@ -474,9 +478,7 @@ namespace UnityEngine.Rendering.PostProcessing
 
     }
 
-#if UNITY_2017_1_OR_NEWER
     [UnityEngine.Scripting.Preserve]
-#endif
     internal sealed class ColorGradingRenderer : PostProcessEffectRenderer<ColorGrading>
     {
         enum Pass
@@ -534,7 +536,7 @@ namespace UnityEngine.Rendering.PostProcessing
 
         // HDR color pipeline is rendered to a 3D lut; it requires Texture3D & compute shaders
         // support - Desktop / Consoles / Some high-end mobiles
-        // Use ShaderIDs for compute once the compatible APIs go in
+        // TODO: Use ShaderIDs for compute once the compatible APIs go in
         void RenderHDRPipeline3D(PostProcessRenderContext context)
         {
             // Unfortunately because AnimationCurve doesn't implement GetHashCode and we don't have

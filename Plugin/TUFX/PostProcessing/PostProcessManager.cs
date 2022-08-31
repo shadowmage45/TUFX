@@ -61,6 +61,7 @@ namespace UnityEngine.Rendering.PostProcessing
         {
             instance.ReloadBaseTypes();
         }
+
 #endif
 
         void CleanBaseTypes()
@@ -80,12 +81,11 @@ namespace UnityEngine.Rendering.PostProcessing
             CleanBaseTypes();
 
             // Rebuild the base type map
-            var types = RuntimeUtilities.GetAllAssemblyTypes()
-                            .Where(
-                                t => t.IsSubclassOf(typeof(PostProcessEffectSettings))
-                                  && t.IsDefined(typeof(PostProcessAttribute), false)
-                                  && !t.IsAbstract
-                            );
+            var types = RuntimeUtilities.GetAllTypesDerivedFrom<PostProcessEffectSettings>()
+                .Where(
+                    t => t.IsDefined(typeof(PostProcessAttribute), false)
+                    && !t.IsAbstract
+                );
 
             foreach (var type in types)
             {

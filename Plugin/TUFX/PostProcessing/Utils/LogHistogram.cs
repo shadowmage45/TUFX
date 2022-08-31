@@ -1,10 +1,10 @@
 namespace UnityEngine.Rendering.PostProcessing
-{   
+{
     internal sealed class LogHistogram
     {
         public const int rangeMin = -9; // ev
         public const int rangeMax =  9; // ev
-        
+
         // Don't forget to update 'ExposureHistogram.hlsl' if you change these values !
         const int k_Bins = 128;
 

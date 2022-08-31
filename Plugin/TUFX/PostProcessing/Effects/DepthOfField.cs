@@ -70,10 +70,16 @@ namespace UnityEngine.Rendering.PostProcessing
         [DisplayName("Max Blur Size"), Tooltip("Convolution kernel size of the bokeh filter, which determines the maximum radius of bokeh. It also affects performances (the larger the kernel is, the longer the GPU time is required).")]
         public KernelSizeParameter kernelSize = new KernelSizeParameter { value = KernelSize.Medium };
 
+        // TUFX ADDED BEGIN
         [Tooltip("Calculate the focal length automatically from the field-of-view value set on the camera. Using this setting isn't recommended.")]
         public BoolParameter useCameraFov = new BoolParameter{value = false};
+        // TUFX ADDED END
 
-        /// <inheritdoc />
+        /// <summary>
+        /// Returns <c>true</c> if the effect is currently enabled and supported.
+        /// </summary>
+        /// <param name="context">The current post-processing render context</param>
+        /// <returns><c>true</c> if the effect is currently enabled and supported</returns>
         public override bool IsEnabledAndSupported(PostProcessRenderContext context)
         {
             return enabled.value
@@ -100,10 +106,8 @@ namespace UnityEngine.Rendering.PostProcessing
 
     }
 
-#if UNITY_2017_1_OR_NEWER
     [UnityEngine.Scripting.Preserve]
-#endif
-    // Doesn't play nice with alpha propagation, see if it can be fixed without killing performances
+    // TODO: Doesn't play nice with alpha propagation, see if it can be fixed without killing performances
     internal sealed class DepthOfFieldRenderer : PostProcessEffectRenderer<DepthOfField>
     {
         enum Pass
@@ -128,7 +132,7 @@ namespace UnityEngine.Rendering.PostProcessing
         int[] m_HistoryPingPong = new int[k_NumEyes];
 
         // Height of the 35mm full-frame format (36mm x 24mm)
-        // Should be set by a physical camera
+        // TODO: Should be set by a physical camera
         const float k_FilmHeight = 0.024f;
 
         public DepthOfFieldRenderer()
@@ -201,12 +205,6 @@ namespace UnityEngine.Rendering.PostProcessing
             // will result in a very weak near-blur.
             var colorFormat = context.camera.allowHDR ? RenderTextureFormat.ARGBHalf : RenderTextureFormat.ARGB32;
             var cocFormat = SelectFormat(RenderTextureFormat.R8, RenderTextureFormat.RHalf);
-
-            // Avoid using R8 on OSX with Metal. #896121, https://goo.gl/MgKqu6
-            #if (UNITY_EDITOR_OSX || UNITY_STANDALONE_OSX) && !UNITY_2017_1_OR_NEWER
-            if (SystemInfo.graphicsDeviceType == UnityEngine.Rendering.GraphicsDeviceType.Metal)
-                cocFormat = SelectFormat(RenderTextureFormat.RHalf, RenderTextureFormat.Default);
-            #endif
 
             // Material setup
             float scaledFilmHeight = k_FilmHeight * (context.height / 1080f);

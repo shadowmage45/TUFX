@@ -5,9 +5,7 @@ namespace UnityEngine.Rendering.PostProcessing
     /// <summary>
     /// This class holds settings for the Fog effect with the deferred rendering path.
     /// </summary>
-#if UNITY_2017_1_OR_NEWER
     [UnityEngine.Scripting.Preserve]
-#endif
     [Serializable]
     public sealed class Fog
     {
@@ -49,7 +47,7 @@ namespace UnityEngine.Rendering.PostProcessing
             sheet.properties.SetVector(ShaderIDs.FogParams, new Vector3(RenderSettings.fogDensity, RenderSettings.fogStartDistance, RenderSettings.fogEndDistance));
 
             var cmd = context.command;
-            cmd.BlitFullscreenTriangle(context.source, context.destination, sheet, excludeSkybox ? 1 : 0);
+            cmd.BlitFullscreenTriangle(context.source, context.destination, sheet, excludeSkybox ? 1 : 0, false, null, true);
         }
     }
 }

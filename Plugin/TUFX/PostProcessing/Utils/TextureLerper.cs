@@ -113,17 +113,17 @@ namespace UnityEngine.Rendering.PostProcessing
             if (t >= 1f) return to;
 
             bool is3D = from is Texture3D
-                    || (from is RenderTexture && ((RenderTexture)from).volumeDepth > 1);
+                || (from is RenderTexture && ((RenderTexture)from).volumeDepth > 1);
 
             RenderTexture rt;
 
             // 3D texture blending is a special case and only works on compute enabled platforms
             if (is3D)
             {
-                int dpth = @from is Texture3D ? ((Texture3D) @from).depth : ((RenderTexture) @from).volumeDepth;
+                int dpth = @from is Texture3D ? ((Texture3D)@from).depth : ((RenderTexture)@from).volumeDepth;
                 int size = Mathf.Max(from.width, from.height);
                 size = Mathf.Max(size, dpth);
-                
+
                 rt = Get(RenderTextureFormat.ARGBHalf, from.width, from.height, dpth, true, true);
 
                 var compute = m_Resources.computeShaders.texture3dLerp;
@@ -170,17 +170,17 @@ namespace UnityEngine.Rendering.PostProcessing
                 return from;
 
             bool is3D = from is Texture3D
-                    || (from is RenderTexture && ((RenderTexture)from).volumeDepth > 1);
+                || (from is RenderTexture && ((RenderTexture)from).volumeDepth > 1);
 
             RenderTexture rt;
 
             // 3D texture blending is a special case and only works on compute enabled platforms
             if (is3D)
             {
-                int dpth = @from is Texture3D ? ((Texture3D) @from).depth : ((RenderTexture) @from).volumeDepth;
+                int dpth = @from is Texture3D ? ((Texture3D)@from).depth : ((RenderTexture)@from).volumeDepth;
                 int size = Mathf.Max(from.width, from.height);
                 size = Mathf.Max(size, dpth);
-                
+
                 rt = Get(RenderTextureFormat.ARGBHalf, from.width, from.height, dpth, true, true);
 
                 var compute = m_Resources.computeShaders.texture3dLerp;
@@ -213,8 +213,7 @@ namespace UnityEngine.Rendering.PostProcessing
 
             return rt;
         }
-        
-        
+
         internal void Clear()
         {
             foreach (var rt in m_Actives)

@@ -81,7 +81,7 @@ namespace UnityEngine.Rendering.PostProcessing
             kernel = compute.FindKernel("KVectorscopeGather");
             cmd.SetComputeBufferParam(compute, kernel, "_VectorscopeBuffer", m_Data);
             cmd.SetComputeTextureParam(compute, kernel, "_Source", ShaderIDs.HalfResFinalCopy);
-            cmd.DispatchCompute(compute, kernel, 
+            cmd.DispatchCompute(compute, kernel,
                 Mathf.CeilToInt(parameters.x / k_ThreadGroupSizeX),
                 Mathf.CeilToInt(parameters.y / k_ThreadGroupSizeY),
                 1

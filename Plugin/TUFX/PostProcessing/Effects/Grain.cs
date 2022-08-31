@@ -33,8 +33,12 @@ namespace UnityEngine.Rendering.PostProcessing
         /// </summary>
         [Range(0f, 1f), DisplayName("Luminance Contribution"), Tooltip("Controls the noise response curve based on scene luminance. Lower values mean less noise in dark areas.")]
         public FloatParameter lumContrib = new FloatParameter { value = 0.8f };
-        
-        /// <inheritdoc />
+
+        /// <summary>
+        /// Returns <c>true</c> if the effect is currently enabled and supported.
+        /// </summary>
+        /// <param name="context">The current post-processing render context</param>
+        /// <returns><c>true</c> if the effect is currently enabled and supported</returns>
         public override bool IsEnabledAndSupported(PostProcessRenderContext context)
         {
             return enabled.value
@@ -61,9 +65,7 @@ namespace UnityEngine.Rendering.PostProcessing
 #if POSTFX_DEBUG_STATIC_GRAIN
     #pragma warning disable 414
 #endif
-#if UNITY_2017_1_OR_NEWER
     [UnityEngine.Scripting.Preserve]
-#endif
     internal sealed class GrainRenderer : PostProcessEffectRenderer<Grain>
     {
         RenderTexture m_GrainLookupRT;
@@ -135,7 +137,7 @@ namespace UnityEngine.Rendering.PostProcessing
             m_SampleIndex = 0;
         }
     }
-    
+
 #if POSTFX_DEBUG_STATIC_GRAIN
     #pragma warning restore 414
 #endif

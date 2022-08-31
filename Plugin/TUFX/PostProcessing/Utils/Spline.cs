@@ -28,17 +28,17 @@ namespace UnityEngine.Rendering.PostProcessing
         [SerializeField]
         bool m_Loop;
 
-        public bool Loop => m_Loop;
-
         [SerializeField]
         float m_ZeroValue;
-
-        public float ZeroValue => m_ZeroValue;
 
         [SerializeField]
         float m_Range;
 
+        // TUFX ADD BEGIN
+        public bool Loop => m_Loop;
+        public float ZeroValue => m_ZeroValue;
         public float Range => m_Range;
+        // TUFX ADD END
 
         AnimationCurve m_InternalLoopingCurve;
 

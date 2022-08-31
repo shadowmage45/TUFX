@@ -78,6 +78,7 @@ namespace UnityEngine.Rendering.PostProcessing
         {
             UpdateStates();
         }
+
 #endif
 
         void Reset()

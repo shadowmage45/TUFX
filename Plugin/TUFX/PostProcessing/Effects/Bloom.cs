@@ -86,7 +86,11 @@ namespace UnityEngine.Rendering.PostProcessing
         [Min(0f), Tooltip("The intensity of the lens dirtiness."), DisplayName("Intensity")]
         public FloatParameter dirtIntensity = new FloatParameter { value = 0f };
 
-        /// <inheritdoc />
+        /// <summary>
+        /// Returns <c>true</c> if the effect is currently enabled and supported.
+        /// </summary>
+        /// <param name="context">The current post-processing render context</param>
+        /// <returns><c>true</c> if the effect is currently enabled and supported</returns>
         public override bool IsEnabledAndSupported(PostProcessRenderContext context)
         {
             return enabled.value
@@ -122,9 +126,7 @@ namespace UnityEngine.Rendering.PostProcessing
 
     }
 
-#if UNITY_2017_1_OR_NEWER
     [UnityEngine.Scripting.Preserve]
-#endif
     internal sealed class BloomRenderer : PostProcessEffectRenderer<Bloom>
     {
         enum Pass
@@ -184,12 +186,12 @@ namespace UnityEngine.Rendering.PostProcessing
             int tw = Mathf.FloorToInt(context.screenWidth / (2f - rw));
             int th = Mathf.FloorToInt(context.screenHeight / (2f - rh));
             bool singlePassDoubleWide = (context.stereoActive && (context.stereoRenderingMode == PostProcessRenderContext.StereoRenderingMode.SinglePass) && (context.camera.stereoTargetEye == StereoTargetEyeMask.Both));
-            int tw_stereo = singlePassDoubleWide ? tw * 2 : tw; 
+            int tw_stereo = singlePassDoubleWide ? tw * 2 : tw;
 
             // Determine the iteration count
             int s = Mathf.Max(tw, th);
             float logs = Mathf.Log(s, 2f) + Mathf.Min(settings.diffusion.value, 10f) - 10f;
-            int logs_i = Mathf.FloorToInt(logs); 
+            int logs_i = Mathf.FloorToInt(logs);
             int iterations = Mathf.Clamp(logs_i, 1, k_MaxPyramidSize);
             float sampleScale = 0.5f + logs - logs_i;
             sheet.properties.SetFloat(ShaderIDs.SampleScale, sampleScale);

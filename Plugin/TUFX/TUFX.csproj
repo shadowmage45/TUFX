@@ -19,7 +19,7 @@
     <DebugType>portable</DebugType>
     <Optimize>false</Optimize>
     <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>TRACE;DEBUG;UNITY_2017_1_OR_NEWER, UNITY_2017_2_OR_NEWER, UNITY_2019_1_OR_NEWER, UNITY_2018_2_OR_NEWER, UNITY_STANDALONE, UNITY_2018_3_OR_NEWER,UNITY_2018_1_OR_NEWER</DefineConstants>
+    <DefineConstants>TRACE;DEBUG;UNITY_STANDALONE, UNITY_2017_1_OR_NEWER, UNITY_2017_2_OR_NEWER, UNITY_2017_3_OR_NEWER, UNITY_2018_1_OR_NEWER, UNITY_2018_2_OR_NEWER, UNITY_2018_3_OR_NEWER, UNITY_2019_1_OR_NEWER, UNITY_2019_2_OR_NEWER, UNITY_2019_3_OR_NEWER, ENABLE_VR_MODULE, ENABLE_VR</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
@@ -27,7 +27,7 @@
     <DebugType>portable</DebugType>
     <Optimize>true</Optimize>
     <OutputPath>bin\Release\</OutputPath>
-    <DefineConstants>UNITY_2017_1_OR_NEWER, UNITY_2017_2_OR_NEWER, UNITY_2019_1_OR_NEWER, UNITY_2018_2_OR_NEWER, UNITY_STANDALONE, UNITY_2018_3_OR_NEWER,UNITY_2018_1_OR_NEWER</DefineConstants>
+    <DefineConstants>UNITY_STANDALONE, UNITY_2017_1_OR_NEWER, UNITY_2017_2_OR_NEWER, UNITY_2017_3_OR_NEWER, UNITY_2018_1_OR_NEWER, UNITY_2018_2_OR_NEWER, UNITY_2018_3_OR_NEWER, UNITY_2019_1_OR_NEWER, UNITY_2019_2_OR_NEWER, UNITY_2019_3_OR_NEWER, ENABLE_VR_MODULE, ENABLE_VR</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
@@ -72,6 +72,9 @@
       <Private>false</Private>
     </Reference>
     <Reference Include="$(ManagedPath)\UnityEngine.PhysicsModule.dll">
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="$(ManagedPath)\UnityEngine.VRModule.dll">
       <Private>false</Private>
     </Reference>
   </ItemGroup>

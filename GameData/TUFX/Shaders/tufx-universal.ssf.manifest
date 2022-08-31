@@ -1,20 +1,19 @@
 ManifestFileVersion: 0
-CRC: 4100291788
+CRC: 3478683301
 Hashes:
   AssetFileHash:
     serializedVersion: 2
-    Hash: b680608d9288d27530b64b1e9595015e
+    Hash: 9b7877891b7c1a9d783e61dc9d91d40d
   TypeTreeHash:
     serializedVersion: 2
-    Hash: 058083b70f8502aa8dd9e934f984ccb1
+    Hash: d6617f579a21db6914d356f34a6c9a37
 HashAppended: 0
 ClassTypes:
 - Class: 48
   Script: {instanceID: 0}
 - Class: 72
   Script: {instanceID: 0}
-- Class: 109
-  Script: {instanceID: 0}
+SerializeReferenceClassIdentifiers: []
 Assets:
 - Packages/com.unity.postprocessing/PostProcessing/Shaders/Builtins/FinalPass.shader
 - Packages/com.unity.postprocessing/PostProcessing/Shaders/Builtins/Uber.shader
@@ -24,26 +23,15 @@ Assets:
 - Packages/com.unity.postprocessing/PostProcessing/Shaders/Builtins/CopyStdFromDoubleWide.shader
 - Packages/com.unity.postprocessing/PostProcessing/Shaders/Builtins/MultiScaleVOUpsample.compute
 - Packages/com.unity.postprocessing/PostProcessing/Shaders/Builtins/GaussianDownsample.compute
-- Packages/com.unity.postprocessing/PostProcessing/Shaders/Builtins/ScreenSpaceReflections.hlsl
 - Packages/com.unity.postprocessing/PostProcessing/Shaders/Builtins/DepthOfField.shader
 - Packages/com.unity.postprocessing/PostProcessing/Shaders/Builtins/DiscardAlpha.shader
 - Packages/com.unity.postprocessing/PostProcessing/Shaders/Builtins/Lut3DBaker.compute
-- Packages/com.unity.postprocessing/PostProcessing/Shaders/Builtins/Dithering.hlsl
 - Packages/com.unity.postprocessing/PostProcessing/Shaders/Builtins/GrainBaker.shader
-- Packages/com.unity.postprocessing/PostProcessing/Shaders/Builtins/ExposureHistogram.hlsl
-- Packages/com.unity.postprocessing/PostProcessing/Shaders/API/D3D12.hlsl
-- Packages/com.unity.postprocessing/PostProcessing/Shaders/API/OpenGL.hlsl
-- Packages/com.unity.postprocessing/PostProcessing/Shaders/Builtins/DiskKernels.hlsl
 - Packages/com.unity.postprocessing/PostProcessing/Shaders/Builtins/MultiScaleVODownsample2.compute
-- Packages/com.unity.postprocessing/PostProcessing/Shaders/Builtins/ScalableAO.hlsl
 - Packages/com.unity.postprocessing/PostProcessing/Shaders/Builtins/MultiScaleVODownsample1.compute
 - Packages/com.unity.postprocessing/PostProcessing/Shaders/Builtins/MultiScaleVO.shader
-- Packages/com.unity.postprocessing/PostProcessing/Shaders/Builtins/DepthOfField.hlsl
-- Packages/com.unity.postprocessing/PostProcessing/Shaders/Builtins/FastApproximateAntialiasing.hlsl
-- Packages/com.unity.postprocessing/PostProcessing/Shaders/Builtins/Fog.hlsl
 - Packages/com.unity.postprocessing/PostProcessing/Shaders/Builtins/MultiScaleVORender.compute
 - Packages/com.unity.postprocessing/PostProcessing/Shaders/Builtins/ScalableAO.shader
-- Packages/com.unity.postprocessing/PostProcessing/Shaders/Builtins/SubpixelMorphologicalAntialiasing.hlsl
 - Packages/com.unity.postprocessing/PostProcessing/Shaders/Builtins/MotionBlur.shader
 - Packages/com.unity.postprocessing/PostProcessing/Shaders/Builtins/SubpixelMorphologicalAntialiasing.shader
 - Packages/com.unity.postprocessing/PostProcessing/Shaders/Builtins/Texture2DLerp.shader
@@ -51,11 +39,8 @@ Assets:
 - Packages/com.unity.postprocessing/PostProcessing/Shaders/Builtins/CopyStdFromTexArray.shader
 - Packages/com.unity.postprocessing/PostProcessing/Shaders/Builtins/Lut2DBaker.shader
 - Packages/com.unity.postprocessing/PostProcessing/Shaders/Builtins/AutoExposure.compute
-- Packages/com.unity.postprocessing/PostProcessing/Shaders/Builtins/Distortion.hlsl
 - Packages/com.unity.postprocessing/PostProcessing/Shaders/Builtins/TemporalAntialiasing.shader
-- Packages/com.unity.postprocessing/PostProcessing/Shaders/Builtins/SubpixelMorphologicalAntialiasingBridge.hlsl
 - Packages/com.unity.postprocessing/PostProcessing/Shaders/Builtins/ScreenSpaceReflections.shader
 - Packages/com.unity.postprocessing/PostProcessing/Shaders/Builtins/Copy.shader
-- Packages/com.unity.postprocessing/PostProcessing/Shaders/API/D3D11.hlsl
 - Packages/com.unity.postprocessing/PostProcessing/Shaders/Builtins/ExposureHistogram.compute
 Dependencies: []

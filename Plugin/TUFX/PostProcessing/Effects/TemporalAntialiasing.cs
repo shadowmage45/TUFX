@@ -5,9 +5,7 @@ namespace UnityEngine.Rendering.PostProcessing
     /// <summary>
     /// This class holds settings for the Temporal Anti-aliasing (TAA) effect.
     /// </summary>
-#if UNITY_2017_1_OR_NEWER
     [UnityEngine.Scripting.Preserve]
-#endif
     [Serializable]
     public sealed class TemporalAntialiasing
     {
@@ -44,9 +42,14 @@ namespace UnityEngine.Rendering.PostProcessing
         [Range(0f, 0.99f)]
         public float motionBlending = 0.85f;
 
-        // For custom jittered matrices - use at your own risks
+        /// <summary>
+        /// Sets a custom function that will be called to generate the jittered projection matrice.
+        /// </summary>
         public Func<Camera, Vector2, Matrix4x4> jitteredMatrixFunc;
 
+        /// <summary>
+        /// The current jitter amount
+        /// </summary>
         public Vector2 jitter { get; private set; }
 
         enum Pass
@@ -59,6 +62,10 @@ namespace UnityEngine.Rendering.PostProcessing
         bool m_ResetHistory = true;
 
         const int k_SampleCount = 8;
+
+        /// <summary>
+        /// The current sample index.
+        /// </summary>
         public int sampleIndex { get; private set; }
 
         // Ping-pong between two history textures as we can't read & write the same target in the
@@ -67,8 +74,12 @@ namespace UnityEngine.Rendering.PostProcessing
         const int k_NumHistoryTextures = 2;
         readonly RenderTexture[][] m_HistoryTextures = new RenderTexture[k_NumEyes][];
 
-        readonly int[] m_HistoryPingPong = new int [k_NumEyes];
+        readonly int[] m_HistoryPingPong = new int[k_NumEyes];
 
+        /// <summary>
+        /// Returns <c>true</c> if the effect is currently enabled and supported.
+        /// </summary>
+        /// <returns><c>true</c> if the effect is currently enabled and supported</returns>
         public bool IsSupported()
         {
             return SystemInfo.supportedRenderTargetCount >= 2
@@ -94,9 +105,9 @@ namespace UnityEngine.Rendering.PostProcessing
             // The variance between 0 and the actual halton sequence values reveals noticeable instability
             // in Unity's shadow maps, so we avoid index 0.
             var offset = new Vector2(
-                    HaltonSeq.Get((sampleIndex & 1023) + 1, 2) - 0.5f,
-                    HaltonSeq.Get((sampleIndex & 1023) + 1, 3) - 0.5f
-                );
+                HaltonSeq.Get((sampleIndex & 1023) + 1, 2) - 0.5f,
+                HaltonSeq.Get((sampleIndex & 1023) + 1, 3) - 0.5f
+            );
 
             if (++sampleIndex >= k_SampleCount)
                 sampleIndex = 0;
@@ -104,6 +115,11 @@ namespace UnityEngine.Rendering.PostProcessing
             return offset;
         }
 
+        /// <summary>
+        /// Generates a jittered projection matrix for a given camera.
+        /// </summary>
+        /// <param name="camera">The camera to get a jittered projection matrix for.</param>
+        /// <returns>A jittered projection matrix.</returns>
         public Matrix4x4 GetJitteredProjectionMatrix(Camera camera)
         {
             Matrix4x4 cameraProj;
@@ -125,6 +141,10 @@ namespace UnityEngine.Rendering.PostProcessing
             return cameraProj;
         }
 
+        /// <summary>
+        /// Prepares the jittered and non jittered projection matrices.
+        /// </summary>
+        /// <param name="context">The current post-processing context.</param>
         public void ConfigureJitteredProjectionMatrix(PostProcessRenderContext context)
         {
             var camera = context.camera;
@@ -133,6 +153,10 @@ namespace UnityEngine.Rendering.PostProcessing
             camera.useJitteredProjectionMatrixForTransparentRendering = false;
         }
 
+        /// <summary>
+        /// Prepares the jittered and non jittered projection matrices for stereo rendering.
+        /// </summary>
+        /// <param name="context">The current post-processing context.</param>
         // TODO: We'll probably need to isolate most of this for SRPs
         public void ConfigureStereoJitteredProjectionMatrices(PostProcessRenderContext context)
         {
@@ -148,7 +172,7 @@ namespace UnityEngine.Rendering.PostProcessing
                 var originalProj = context.camera.GetStereoNonJitteredProjectionMatrix(eye);
 
                 // Currently no support for custom jitter func, as VR devices would need to provide
-                // original projection matrix as input along with jitter 
+                // original projection matrix as input along with jitter
                 var jitteredMatrix = RuntimeUtilities.GenerateJitteredProjectionMatrixFromOriginal(context, originalProj, jitter);
                 context.camera.SetStereoProjectionMatrix(eye, jitteredMatrix);
             }
@@ -244,7 +268,7 @@ namespace UnityEngine.Rendering.PostProcessing
                 {
                     if (m_HistoryTextures[i] == null)
                         continue;
-                    
+
                     for (int j = 0; j < m_HistoryTextures[i].Length; j++)
                     {
                         RenderTexture.ReleaseTemporary(m_HistoryTextures[i][j]);
@@ -258,7 +282,7 @@ namespace UnityEngine.Rendering.PostProcessing
             sampleIndex = 0;
             m_HistoryPingPong[0] = 0;
             m_HistoryPingPong[1] = 0;
-            
+
             ResetHistory();
         }
     }

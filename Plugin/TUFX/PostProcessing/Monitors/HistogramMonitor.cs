@@ -102,7 +102,7 @@ namespace UnityEngine.Rendering.PostProcessing
             cmd.SetComputeVectorParam(compute, "_Params", parameters);
             cmd.SetComputeTextureParam(compute, kernel, "_Source", ShaderIDs.HalfResFinalCopy);
             cmd.SetComputeBufferParam(compute, kernel, "_HistogramBuffer", m_Data);
-            cmd.DispatchCompute(compute, kernel, 
+            cmd.DispatchCompute(compute, kernel,
                 Mathf.CeilToInt(parameters.x / k_ThreadGroupSizeX),
                 Mathf.CeilToInt(parameters.y / k_ThreadGroupSizeY),
                 1

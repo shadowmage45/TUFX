@@ -244,9 +244,9 @@ namespace UnityEngine.Rendering.PostProcessing
                 {
                     new Vector3(-1f, -1f, 0f),
                     new Vector3(-1f,  3f, 0f),
-                    new Vector3( 3f, -1f, 0f)
+                    new Vector3(3f, -1f, 0f)
                 });
-                s_FullscreenTriangle.SetIndices(new [] { 0, 1, 2 }, MeshTopology.Triangles, 0, false);
+                s_FullscreenTriangle.SetIndices(new[] { 0, 1, 2 }, MeshTopology.Triangles, 0, false);
                 s_FullscreenTriangle.UploadMeshData(false);
 
                 return s_FullscreenTriangle;
@@ -419,6 +419,29 @@ namespace UnityEngine.Rendering.PostProcessing
         }
 
         /// <summary>
+        /// Sets the current render target using specified <see cref="RenderBufferLoadAction"/>.
+        /// </summary>
+        /// <param name="cmd">The command buffer to set the render target on</param>
+        /// <param name="rt">The render target to set</param>
+        /// <param name="loadAction">The load action</param>
+        /// <param name="storeAction">The store action</param>
+        /// <param name="depthLoadAction">The load action for the depth/stencil part of rt</param>
+        /// <param name="depthStoreAction">The store action for the depth/stencil part of rt</param>
+        /// <remarks>
+        /// <see cref="RenderBufferLoadAction"/> are only used on Unity 2018.2 or newer.
+        /// </remarks>
+        public static void SetRenderTargetWithLoadStoreAction(this CommandBuffer cmd, RenderTargetIdentifier rt,
+            RenderBufferLoadAction loadAction, RenderBufferStoreAction storeAction,
+            RenderBufferLoadAction depthLoadAction, RenderBufferStoreAction depthStoreAction)
+        {
+            #if UNITY_2018_2_OR_NEWER
+            cmd.SetRenderTarget(rt, loadAction, storeAction, depthLoadAction, depthStoreAction);
+            #else
+            cmd.SetRenderTarget(rt);
+            #endif
+        }
+
+        /// <summary>
         /// Sets the current render target and its depth using specified <see cref="RenderBufferLoadAction"/>.
         /// </summary>
         /// <param name="cmd">The command buffer to set the render target on</param>
@@ -447,10 +470,12 @@ namespace UnityEngine.Rendering.PostProcessing
         /// <param name="destination">The destination render target</param>
         /// <param name="clear">Should the destination target be cleared?</param>
         /// <param name="viewport">An optional viewport to consider for the blit</param>
-        public static void BlitFullscreenTriangle(this CommandBuffer cmd, RenderTargetIdentifier source, RenderTargetIdentifier destination, bool clear = false, Rect? viewport = null)
+        /// <param name="preserveDepth">Should the depth buffer be preserved?</param>
+        public static void BlitFullscreenTriangle(this CommandBuffer cmd, RenderTargetIdentifier source, RenderTargetIdentifier destination, bool clear = false, Rect? viewport = null, bool preserveDepth = false)
         {
             cmd.SetGlobalTexture(ShaderIDs.MainTex, source);
-            cmd.SetRenderTargetWithLoadStoreAction(destination, viewport == null ? LoadAction.DontCare : LoadAction.Load, StoreAction.Store);
+            var colorLoad = viewport == null ? LoadAction.DontCare : LoadAction.Load;
+            cmd.SetRenderTargetWithLoadStoreAction(destination, colorLoad, StoreAction.Store, preserveDepth ? LoadAction.Load : colorLoad, StoreAction.Store);
 
             if (viewport != null)
                 cmd.SetViewport(viewport.Value);
@@ -471,17 +496,21 @@ namespace UnityEngine.Rendering.PostProcessing
         /// <param name="pass">The pass from the material to use</param>
         /// <param name="loadAction">The load action for this blit</param>
         /// <param name="viewport">An optional viewport to consider for the blit</param>
-        public static void BlitFullscreenTriangle(this CommandBuffer cmd, RenderTargetIdentifier source, RenderTargetIdentifier destination, PropertySheet propertySheet, int pass, RenderBufferLoadAction loadAction, Rect? viewport = null)
+        /// <param name="preserveDepth">Should the depth buffer be preserved?</param>
+        public static void BlitFullscreenTriangle(this CommandBuffer cmd, RenderTargetIdentifier source, RenderTargetIdentifier destination, PropertySheet propertySheet, int pass, RenderBufferLoadAction loadAction, Rect? viewport = null, bool preserveDepth = false)
         {
             cmd.SetGlobalTexture(ShaderIDs.MainTex, source);
             #if UNITY_2018_2_OR_NEWER
             bool clear = (loadAction == LoadAction.Clear);
-            if(clear)
+            if (clear)
                 loadAction = LoadAction.DontCare;
             #else
             bool clear = false;
             #endif
-            cmd.SetRenderTargetWithLoadStoreAction(destination, viewport == null ? loadAction : LoadAction.Load, StoreAction.Store);
+            if (viewport != null)
+                loadAction = LoadAction.Load;
+
+            cmd.SetRenderTargetWithLoadStoreAction(destination, loadAction, StoreAction.Store, preserveDepth ? LoadAction.Load : loadAction, StoreAction.Store);
 
             if (viewport != null)
                 cmd.SetViewport(viewport.Value);
@@ -502,13 +531,15 @@ namespace UnityEngine.Rendering.PostProcessing
         /// <param name="pass">The pass from the material to use</param>
         /// <param name="clear">Should the destination target be cleared?</param>
         /// <param name="viewport">An optional viewport to consider for the blit</param>
-        public static void BlitFullscreenTriangle(this CommandBuffer cmd, RenderTargetIdentifier source, RenderTargetIdentifier destination, PropertySheet propertySheet, int pass, bool clear = false, Rect? viewport = null)
+        /// <param name="preserveDepth">Should the depth buffer be preserved?</param>
+        public static void BlitFullscreenTriangle(this CommandBuffer cmd, RenderTargetIdentifier source, RenderTargetIdentifier destination, PropertySheet propertySheet, int pass, bool clear = false, Rect? viewport = null, bool preserveDepth = false)
         {
             #if UNITY_2018_2_OR_NEWER
-            cmd.BlitFullscreenTriangle(source, destination, propertySheet, pass, clear ? LoadAction.Clear : LoadAction.DontCare, viewport);
+            cmd.BlitFullscreenTriangle(source, destination, propertySheet, pass, clear ? LoadAction.Clear : LoadAction.DontCare, viewport, preserveDepth);
             #else
             cmd.SetGlobalTexture(ShaderIDs.MainTex, source);
-            cmd.SetRenderTargetWithLoadStoreAction(destination, viewport == null ? LoadAction.DontCare : LoadAction.Load, StoreAction.Store);
+            var loadAction = viewport == null ? LoadAction.DontCare : LoadAction.Load;
+            cmd.SetRenderTargetWithLoadStoreAction(destination, loadAction, StoreAction.Store, preserveDepth ? LoadAction.Load : loadAction, StoreAction.Store);
 
             if (viewport != null)
                 cmd.SetViewport(viewport.Value);
@@ -587,7 +618,6 @@ namespace UnityEngine.Rendering.PostProcessing
         /// <param name="cmd">The command buffer to use</param>
         /// <param name="source">The source render target</param>
         /// <param name="destination">The destination render target</param>
-        /// <param name="depth">The depth render target</param>
         /// <param name="propertySheet">The property sheet to use</param>
         /// <param name="pass">The pass from the material to use</param>
         /// <param name="clear">Should the destination target be cleared?</param>
@@ -730,7 +760,11 @@ namespace UnityEngine.Rendering.PostProcessing
         /// </summary>
         public static bool scriptableRenderPipelineActive
         {
-            get { return GraphicsSettings.renderPipelineAsset != null; } // 5.6+ only
+#if UNITY_2019_3_OR_NEWER
+            get { return GraphicsSettings.currentRenderPipeline != null; }
+#else
+            get { return GraphicsSettings.renderPipelineAsset != null; }
+#endif
         }
 
         /// <summary>
@@ -762,8 +796,12 @@ namespace UnityEngine.Rendering.PostProcessing
         {
             get
             {
-                return PlayerSettings.virtualRealitySupported
+#if (ENABLE_VR_MODULE && ENABLE_VR) && !UNITY_2020_1_OR_NEWER
+                return UnityEditorInternal.VR.VREditor.GetVREnabledOnTargetGroup(BuildPipeline.GetBuildTargetGroup(EditorUserBuildSettings.activeBuildTarget))
                     && PlayerSettings.stereoRenderingPath == UnityEditor.StereoRenderingPath.SinglePass;
+#else
+                return false;
+#endif
             }
         }
 #endif
@@ -781,12 +819,10 @@ namespace UnityEngine.Rendering.PostProcessing
             {
 #if UNITY_EDITOR
                 return isSinglePassStereoSelected && Application.isPlaying;
-#elif !ENABLE_VR
+#elif !(ENABLE_VR_MODULE && ENABLE_VR)
                 return false;
-#elif UNITY_2017_2_OR_NEWER
-                return UnityEngine.XR.XRSettings.eyeTextureDesc.vrUsage == VRTextureUsage.TwoEyes;
 #else
-                return false;
+                return UnityEngine.XR.XRSettings.eyeTextureDesc.vrUsage == VRTextureUsage.TwoEyes;
 #endif
             }
         }
@@ -798,14 +834,12 @@ namespace UnityEngine.Rendering.PostProcessing
         {
             get
             {
-#if UNITY_EDITOR
-                return UnityEditor.PlayerSettings.virtualRealitySupported;
-#elif UNITY_XBOXONE || !ENABLE_VR
+#if (ENABLE_VR_MODULE && ENABLE_VR) && UNITY_EDITOR && !UNITY_2020_1_OR_NEWER
+                return UnityEditorInternal.VR.VREditor.GetVREnabledOnTargetGroup(BuildPipeline.GetBuildTargetGroup(EditorUserBuildSettings.activeBuildTarget));
+#elif UNITY_XBOXONE || !(ENABLE_VR_MODULE && ENABLE_VR)
                 return false;
-#elif UNITY_2017_2_OR_NEWER
+#else
                 return UnityEngine.XR.XRSettings.enabled;
-#elif UNITY_5_6_OR_NEWER
-                return UnityEngine.VR.VRSettings.enabled;
 #endif
             }
         }
@@ -848,9 +882,9 @@ namespace UnityEngine.Rendering.PostProcessing
         public static bool isFloatingPointFormat(RenderTextureFormat format)
         {
             return format == RenderTextureFormat.DefaultHDR || format == RenderTextureFormat.ARGBHalf || format == RenderTextureFormat.ARGBFloat ||
-                   format == RenderTextureFormat.RGFloat || format == RenderTextureFormat.RGHalf ||
-                   format == RenderTextureFormat.RFloat || format == RenderTextureFormat.RHalf ||
-                   format == RenderTextureFormat.RGB111110Float;
+                format == RenderTextureFormat.RGFloat || format == RenderTextureFormat.RGHalf ||
+                format == RenderTextureFormat.RFloat || format == RenderTextureFormat.RHalf ||
+                format == RenderTextureFormat.RGB111110Float;
         }
 
         /// <summary>
@@ -1069,14 +1103,13 @@ namespace UnityEngine.Rendering.PostProcessing
         /// <returns>A jittered projection matrix</returns>
         public static Matrix4x4 GenerateJitteredProjectionMatrixFromOriginal(PostProcessRenderContext context, Matrix4x4 origProj, Vector2 jitter)
         {
-#if UNITY_2017_2_OR_NEWER
             var planes = origProj.decomposeProjection;
 
             float vertFov = Math.Abs(planes.top) + Math.Abs(planes.bottom);
             float horizFov = Math.Abs(planes.left) + Math.Abs(planes.right);
 
             var planeJitter = new Vector2(jitter.x * horizFov / context.screenWidth,
-                                          jitter.y * vertFov / context.screenHeight);
+                jitter.y * vertFov / context.screenHeight);
 
             planes.left += planeJitter.x;
             planes.right += planeJitter.x;
@@ -1086,48 +1119,6 @@ namespace UnityEngine.Rendering.PostProcessing
             var jitteredMatrix = Matrix4x4.Frustum(planes);
 
             return jitteredMatrix;
-#else
-            var rTan = (1.0f + origProj[0, 2]) / origProj[0, 0];
-            var lTan = (-1.0f + origProj[0, 2]) / origProj[0, 0];
-
-            var tTan = (1.0f + origProj[1, 2]) / origProj[1, 1];
-            var bTan = (-1.0f + origProj[1, 2]) / origProj[1, 1];
-
-            float tanVertFov = Math.Abs(tTan) + Math.Abs(bTan);
-            float tanHorizFov = Math.Abs(lTan) + Math.Abs(rTan);
-
-            jitter.x *= tanHorizFov / context.screenWidth;
-            jitter.y *= tanVertFov / context.screenHeight;
-
-            float left = jitter.x + lTan;
-            float right = jitter.x + rTan;
-            float top = jitter.y + tTan;
-            float bottom = jitter.y + bTan;
-
-            var jitteredMatrix = new Matrix4x4();
-
-            jitteredMatrix[0, 0] = 2f / (right - left);
-            jitteredMatrix[0, 1] = 0f;
-            jitteredMatrix[0, 2] = (right + left) / (right - left);
-            jitteredMatrix[0, 3] = 0f;
-
-            jitteredMatrix[1, 0] = 0f;
-            jitteredMatrix[1, 1] = 2f / (top - bottom);
-            jitteredMatrix[1, 2] = (top + bottom) / (top - bottom);
-            jitteredMatrix[1, 3] = 0f;
-
-            jitteredMatrix[2, 0] = 0f;
-            jitteredMatrix[2, 1] = 0f;
-            jitteredMatrix[2, 2] = origProj[2, 2];
-            jitteredMatrix[2, 3] = origProj[2, 3];
-
-            jitteredMatrix[3, 0] = 0f;
-            jitteredMatrix[3, 1] = 0f;
-            jitteredMatrix[3, 2] = -1f;
-            jitteredMatrix[3, 3] = 0f;
-
-            return jitteredMatrix;
-#endif
         }
 
         #endregion
@@ -1141,8 +1132,10 @@ namespace UnityEngine.Rendering.PostProcessing
         /// </summary>
         /// <returns>A list of all currently available assembly types</returns>
         /// <remarks>
-        /// This method is slow and should be use with extreme caution.
+        /// This method is slow and should be use with extreme caution. We recommend you use
+        /// <see cref="GetAllTypesDerivedFrom{T}"/> instead if possible.
         /// </remarks>
+        /// <seealso cref="GetAllTypesDerivedFrom{T}"/>
         public static IEnumerable<Type> GetAllAssemblyTypes()
         {
             if (m_AssemblyTypes == null)
@@ -1156,12 +1149,26 @@ namespace UnityEngine.Rendering.PostProcessing
                         {
                             innerTypes = t.GetTypes();
                         }
-                        catch { }
+                        catch {}
                         return innerTypes;
                     });
             }
 
             return m_AssemblyTypes;
+        }
+
+        /// <summary>
+        /// Gets all currently available assembly types derived from type <typeparamref name="T"/>.
+        /// </summary>
+        /// <typeparam name="T">The type to look for</typeparam>
+        /// <returns>A list of all currently available assembly types derived from type <typeparamref name="T"/></returns>
+        public static IEnumerable<Type> GetAllTypesDerivedFrom<T>()
+        {
+#if UNITY_EDITOR && UNITY_2019_2_OR_NEWER
+            return UnityEditor.TypeCache.GetTypesDerivedFrom<T>();
+#else
+            return GetAllAssemblyTypes().Where(t => t.IsSubclassOf(typeof(T)));
+#endif
         }
 
         /// <summary>

@@ -7,7 +7,6 @@ using System.Collections.Generic;
 
 namespace UnityEngine.Rendering.PostProcessing
 {
-
     /// <summary>
     /// The base class for all post-processing effect settings. Any <see cref="ParameterOverride"/>
     /// members found in this class will be automatically handled and interpolated by the volume
@@ -88,7 +87,7 @@ namespace UnityEngine.Rendering.PostProcessing
                 prop.overrideState = state;
             }
         }
-        
+
         /// <summary>
         /// Returns <c>true</c> if the effect is currently enabled and supported.
         /// </summary>
