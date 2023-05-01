@@ -83,7 +83,7 @@ namespace UnityEngine.Rendering.PostProcessing
         /// The degree of darkness added by ambient occlusion.
         /// </summary>
         [Range(0f, 4f), Tooltip("The degree of darkness added by ambient occlusion. Higher values produce darker areas.")]
-        public FloatParameter intensity = new FloatParameter { value = 0f };
+        public FloatParameter intensity = new FloatParameter { value = 0.5f };
 
         /// <summary>
         /// A custom color to use for the ambient occlusion.
@@ -125,6 +125,12 @@ namespace UnityEngine.Rendering.PostProcessing
         /// </summary>
         [Range(1f, 10f), Tooltip("This modifies the thickness of occluders. It increases the size of dark areas and also introduces a dark halo around objects.")]
         public FloatParameter thicknessModifier = new FloatParameter { value = 1f };
+
+        /// <summary>
+        /// Add a bias distance to sampled depth in AO to reduce self-shadowing aliasing artifacts.
+        /// </summary>
+        [Range(0f, 0.001f), Tooltip("Add a bias distance to sampled depth in AO to reduce self-shadowing aliasing artifacts. ")]
+        public FloatParameter zBias = new FloatParameter { value = 1e-7f };
 
         // HDRP-only parameters
 
@@ -207,6 +213,7 @@ namespace UnityEngine.Rendering.PostProcessing
             loadFloatParameter(config, "BlurTolerance", blurTolerance);
             loadFloatParameter(config, "UpsampleTolerance", upsampleTolerance);
             loadFloatParameter(config, "ThicknessModifier", thicknessModifier);
+            loadFloatParameter(config, "ZBias", zBias);
             loadFloatParameter(config, "DirectLightingStrength", directLightingStrength);
             loadFloatParameter(config, "Radius", radius);
             loadEnumParameter(config, "Quality", quality, typeof(AmbientOcclusionQuality));
@@ -222,6 +229,7 @@ namespace UnityEngine.Rendering.PostProcessing
             saveFloatParameter(config, "BlurTolerance", blurTolerance);
             saveFloatParameter(config, "UpsampleTolerance", upsampleTolerance);
             saveFloatParameter(config, "ThicknessModifier", thicknessModifier);
+            saveFloatParameter(config, "ZBias", zBias);
             saveFloatParameter(config, "DirectLightingStrength", directLightingStrength);
             saveFloatParameter(config, "Radius", radius);
             saveEnumParameter(config, "Quality", quality);

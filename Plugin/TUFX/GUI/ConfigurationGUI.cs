@@ -319,6 +319,7 @@ namespace TUFX
                 AddFloatParameter("BlurTolerance", ao.blurTolerance, -8, -1);
                 AddFloatParameter("UpsampleTolerance", ao.upsampleTolerance, -12, -1);
                 AddFloatParameter("ThicknessModifier", ao.thicknessModifier, 0, 5);
+                AddFloatParameter("ZBias", ao.zBias, 0, 1);
                 AddFloatParameter("DirectLightStr", ao.directLightingStrength, 0, 1);
                 AddFloatParameter("Radius", ao.radius, 0, 1);
             }
