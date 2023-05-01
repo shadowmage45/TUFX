@@ -129,7 +129,7 @@ namespace UnityEngine.Rendering.PostProcessing
         /// <summary>
         /// Add a bias distance to sampled depth in AO to reduce self-shadowing aliasing artifacts.
         /// </summary>
-        [Range(0f, 0.001f), Tooltip("Add a bias distance to sampled depth in AO to reduce self-shadowing aliasing artifacts. ")]
+        [Range(0f, 1f), Tooltip("Add a bias distance to sampled depth in AO to reduce self-shadowing aliasing artifacts. ")]
         public FloatParameter zBias = new FloatParameter { value = 1e-7f };
 
         // HDRP-only parameters
