@@ -64,6 +64,7 @@
      <Compile Include="Assets\BrunetonsImprovedAtmosphere\Scripts\RotateCamera.cs" />
      <Compile Include="Assets\BrunetonsImprovedAtmosphere\Scripts\RotateLight.cs" />
      <Compile Include="Assets\BrunetonsImprovedAtmosphere\Scripts\TextureBuffer.cs" />
+     <Compile Include="Assets\FlyCamera.cs" />
      <Compile Include="Assets\Scripts\BrunImpScat.cs" />
      <Compile Include="Assets\Scripts\TUScatteringScript.cs" />
      <Compile Include="Assets\Shaders\Noise\ProceduralNoise\Noise\FractalNoise.cs" />
@@ -82,38 +83,74 @@
      <Compile Include="Assets\TUBIS\TUFXScatteringResources.cs" />
      <Compile Include="Assets\TUBIS\TextureBuffer.cs" />
      <Compile Include="Assets\TUWater\TUWaterEffect.cs" />
+     <None Include="Assets\StockShaders\SpecularCutoff.shader" />
+     <None Include="Assets\StockShaders\Specular.shader" />
      <None Include="Assets\BrunetonsImprovedAtmosphere\Shaders\Definitions.cginc" />
      <None Include="Assets\BrunetonsImprovedAtmosphere\Shaders\RenderSky.shader" />
      <None Include="Assets\BrunetonsImprovedAtmosphere\Shaders\Write.compute" />
      <None Include="Assets\BrunetonsImprovedAtmosphere\Shaders\Read.compute" />
+     <None Include="Assets\StockShaders\BumpedSpecularCutoffOpaque.shader" />
      <None Include="Assets\TUBIS\Shaders\TransmittanceFunctions.hlsl" />
      <None Include="Assets\TUWater\Shaders\randomNoise2.cginc" />
+     <None Include="Assets\StockShaders\LightingKSP.cginc" />
      <None Include="Assets\BrunetonsImprovedAtmosphere\Shaders\RenderingFunctions.cginc" />
+     <None Include="Assets\StockShaders\KSPParticle AddSmooth.shader" />
+     <None Include="Assets\StockShaders\Emissive.shader" />
+     <None Include="Assets\StockShaders\EmissiveBumpedSpecularMapped.shader" />
+     <None Include="Assets\StockShaders\SolidColorAlpha.shader" />
      <None Include="Assets\Shaders\Scatter\TU-ScatterExternal.shader" />
      <None Include="Assets\BrunetonsImprovedAtmosphere\Shaders\TransmittanceFunctions.cginc" />
+     <None Include="Assets\StockShaders\SpecularBumpTransparent.shader" />
      <None Include="Assets\TUWater\Shaders\TUWater.shader" />
      <None Include="Assets\TUWater\Shaders\ScreenSpaceShadowDepth.shader" />
      <None Include="Assets\TUBIS\Shaders\IrradianceFunctions.hlsl" />
      <None Include="Assets\BrunetonsImprovedAtmosphere\Shaders\UtilityFunctions.cginc" />
+     <None Include="Assets\StockShaders\AutoLight.cginc" />
      <None Include="Assets\Shaders\Noise\RandomNoise\randomNoise.cginc" />
+     <None Include="Assets\StockShaders\Cutoff.shader" />
      <None Include="Assets\Shaders\Scatter\TU-Clouds.shader" />
+     <None Include="Assets\StockShaders\UnlitColor.shader" />
      <None Include="Assets\TUBIS\Shaders\RenderingFunctions.hlsl" />
+     <None Include="Assets\StockShaders\AlphaBlendedZSorted.shader" />
+     <None Include="Assets\StockShaders\Alpha Half Sphere.shader" />
      <None Include="Assets\Shaders\Scatter\RenderSky2.shader" />
+     <None Include="Assets\StockShaders\Alpha.shader" />
+     <None Include="Assets\StockShaders\SpecularCutoffOpaque.shader" />
      <None Include="Assets\Shaders\Scatter\TU-Scattering.shader" />
+     <None Include="Assets\StockShaders\LightwrapSpecular.shader" />
      <None Include="Assets\TUWater\Shaders\Functions.hlsl" />
+     <None Include="Assets\StockShaders\DepthMask.shader" />
      <None Include="Assets\Shaders\Noise\RandomNoise\randomNoise2.cginc" />
+     <None Include="Assets\StockShaders\Unlit.shader" />
+     <None Include="Assets\StockShaders\InternalSpace.shader" />
+     <None Include="Assets\StockShaders\CutoffBumped.shader" />
      <None Include="Assets\TUBIS\Shaders\UtilityFunctions.hlsl" />
+     <None Include="Assets\StockShaders\SpecularTransparent.shader" />
      <None Include="Assets\TUWater\Shaders\randomNoise.cginc" />
      <None Include="Assets\BrunetonsImprovedAtmosphere\Shaders\Precomputation.compute" />
+     <None Include="Assets\StockShaders\BumpedSpecularMapped.shader" />
+     <None Include="Assets\StockShaders\ParticleAlpha.shader" />
+     <None Include="Assets\StockShaders\EmissiveBumpedSpecular.shader" />
+     <None Include="Assets\StockShaders\Diffuse.shader" />
+     <None Include="Assets\StockShaders\BumpedSpecularCutoff.shader" />
      <None Include="Assets\BrunetonsImprovedAtmosphere\Shaders\IrradianceFunctions.cginc" />
+     <None Include="Assets\StockShaders\AlphaAdditive.shader" />
      <None Include="Assets\TUWater\Shaders\TUShadowMap.shader" />
+     <None Include="Assets\StockShaders\UnlitTransparent.shader" />
+     <None Include="Assets\StockShaders\ScrollingUnlit.shader" />
      <None Include="Assets\BrunetonsImprovedAtmosphere\Shaders\ScatteringFunctions.cginc" />
+     <None Include="Assets\StockShaders\BumpedSpecular.shader" />
      <None Include="Assets\Shaders\Scatter\EXTERNAL-Scattering (Simple).shader" />
+     <None Include="Assets\StockShaders\Bumped.shader" />
+     <None Include="Assets\StockShaders\EmissiveSpecular.shader" />
      <None Include="Assets\TUWater\Shaders\TUWaterSurfaceShader.shader" />
      <None Include="Assets\TUBIS\Shaders\Definitions.hlsl" />
+     <None Include="Assets\StockShaders\CutoffBackground.shader" />
      <None Include="Assets\TUBIS\Shaders\TU-BIS.shader" />
      <None Include="Assets\TUBIS\Shaders\ScatteringFunctions.hlsl" />
      <None Include="Assets\TUWater\Shaders\TUNormBuffer.shader" />
+     <None Include="Assets\StockShaders\AlphaSpecular.shader" />
+     <None Include="Assets\StockShaders\ParticleAdd.shader" />
  <Reference Include="UnityEngine">
  <HintPath>C:/Program Files/Unity/Hub/Editor/2019.4.18f1/Editor/Data/Managed/UnityEngine/UnityEngine.dll</HintPath>
  </Reference>
@@ -642,14 +679,17 @@
  <Reference Include="System.Xml.Serialization">
  <HintPath>C:/Program Files/Unity/Hub/Editor/2019.4.18f1/Editor/Data/NetStandard/compat/2.0.0/shims/netfx/System.Xml.Serialization.dll</HintPath>
  </Reference>
+ <Reference Include="Unity.Timeline.Editor">
+ <HintPath>C:/Users/Jon/source/repos/TUFX/Unity/Library/ScriptAssemblies/Unity.Timeline.Editor.dll</HintPath>
+ </Reference>
  <Reference Include="Unity.VSCode.Editor">
  <HintPath>C:/Users/Jon/source/repos/TUFX/Unity/Library/ScriptAssemblies/Unity.VSCode.Editor.dll</HintPath>
  </Reference>
- <Reference Include="Unity.TextMeshPro.Editor">
- <HintPath>C:/Users/Jon/source/repos/TUFX/Unity/Library/ScriptAssemblies/Unity.TextMeshPro.Editor.dll</HintPath>
- </Reference>
  <Reference Include="UnityEngine.UI">
  <HintPath>C:/Users/Jon/source/repos/TUFX/Unity/Library/ScriptAssemblies/UnityEngine.UI.dll</HintPath>
+ </Reference>
+ <Reference Include="Unity.Timeline">
+ <HintPath>C:/Users/Jon/source/repos/TUFX/Unity/Library/ScriptAssemblies/Unity.Timeline.dll</HintPath>
  </Reference>
  <Reference Include="Unity.CollabProxy.Editor">
  <HintPath>C:/Users/Jon/source/repos/TUFX/Unity/Library/ScriptAssemblies/Unity.CollabProxy.Editor.dll</HintPath>
@@ -663,17 +703,8 @@
  <Reference Include="Unity.Postprocessing.Runtime">
  <HintPath>C:/Users/Jon/source/repos/TUFX/Unity/Library/ScriptAssemblies/Unity.Postprocessing.Runtime.dll</HintPath>
  </Reference>
- <Reference Include="Unity.TextMeshPro">
- <HintPath>C:/Users/Jon/source/repos/TUFX/Unity/Library/ScriptAssemblies/Unity.TextMeshPro.dll</HintPath>
- </Reference>
  <Reference Include="UnityEditor.UI">
  <HintPath>C:/Users/Jon/source/repos/TUFX/Unity/Library/ScriptAssemblies/UnityEditor.UI.dll</HintPath>
- </Reference>
- <Reference Include="Unity.Timeline.Editor">
- <HintPath>C:/Users/Jon/source/repos/TUFX/Unity/Library/ScriptAssemblies/Unity.Timeline.Editor.dll</HintPath>
- </Reference>
- <Reference Include="Unity.Timeline">
- <HintPath>C:/Users/Jon/source/repos/TUFX/Unity/Library/ScriptAssemblies/Unity.Timeline.dll</HintPath>
  </Reference>
   </ItemGroup>
   <ItemGroup>
