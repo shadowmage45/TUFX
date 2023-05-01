@@ -19,7 +19,7 @@
 
             CGPROGRAM
 
-			#include "../LightingKSP.cginc"
+			#include "LightingKSP.cginc"
             #pragma surface surf Lambert alphatest:_Cutoff keepalpha
 			#pragma target 3.0
 
@@ -37,7 +37,7 @@
             void surf(Input IN, inout SurfaceOutput o)
             {
                 float4 tex = tex2D(_MainTex, IN.uv_MainTex);
-                float4 col = tex *  IN.color;
+                float4 col = tex * IN.color;
 
 				float4 fog = UnderwaterFog(IN.worldPos, col);
 

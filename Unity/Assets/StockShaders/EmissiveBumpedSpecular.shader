@@ -29,7 +29,7 @@ Shader "KSP/Emissive/Bumped Specular"
 		Blend SrcAlpha OneMinusSrcAlpha 
 
 		CGPROGRAM		
-        #include "../LightingKSP.cginc"
+        #include "LightingKSP.cginc"
         #pragma surface surf BlinnPhongSmooth keepalpha
 		#pragma target 3.0
 		
@@ -53,12 +53,12 @@ Shader "KSP/Emissive/Bumped Specular"
 			float2 uv_Emissive;
 			float3 viewDir;
 			float3 worldPos;
-			float4 color : COLOR;
+			// float4 color : COLOR;
 		};
 
 		void surf (Input IN, inout SurfaceOutput o)
 		{
-			float4 color = tex2D(_MainTex,(IN.uv_MainTex)) * _BurnColor * _Color * IN.color;
+			float4 color = tex2D(_MainTex, (IN.uv_MainTex)) * _BurnColor * _Color; // *IN.color;
 			float3 emissive = tex2D(_Emissive, (IN.uv_Emissive));
 			float3 normal = UnpackNormalDXT5nm(tex2D(_BumpMap, IN.uv_BumpMap));
 

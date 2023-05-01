@@ -34,7 +34,7 @@ Shader "KSP/FX/ScrollingUnlit"
 
 		CGPROGRAM
 
-        #include "../LightingKSP.cginc"
+        #include "LightingKSP.cginc"
 		#pragma surface surf Unlit noforwardadd noshadow noambient novertexlights alpha:fade
 		#pragma target 3.0
         #pragma multi_compile _TEXCOORD_UV _TEXCOORD_SCREEN_SPACE

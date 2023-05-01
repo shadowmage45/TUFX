@@ -37,7 +37,7 @@ Shader "KSP/Alpha/CutoffBackground"
 				#include "UnityCG.cginc"
 				#include "AutoLight.cginc"
 				#include "Lighting.cginc"
-				#include "../LightingKSP.cginc"					
+				#include "LightingKSP.cginc"					
 				#pragma target 3.0					
 				uniform sampler2D _BackTex;
 				uniform float4 _BackTex_ST;
@@ -232,7 +232,7 @@ Shader "KSP/Alpha/CutoffBackground"
 				#include "UnityCG.cginc"
 				#include "AutoLight.cginc"
 				#include "Lighting.cginc"
-				#include "../LightingKSP.cginc"					
+				#include "LightingKSP.cginc"					
 				#pragma target 3.0					
 				uniform sampler2D _BackTex;
 				uniform float4 _BackTex_ST;
@@ -369,7 +369,7 @@ Shader "KSP/Alpha/CutoffBackground"
 				#include "UnityCG.cginc"
 				#include "AutoLight.cginc"
 				#include "Lighting.cginc"
-				#include "../LightingKSP.cginc"		
+				#include "LightingKSP.cginc"		
 				#include "UnityMetaPass.cginc"
 				#pragma target 3.0					
 				uniform sampler2D _BackTex;
@@ -504,7 +504,7 @@ Shader "KSP/Alpha/CutoffBackground"
 				#include "UnityCG.cginc"
 				#include "AutoLight.cginc"
 				#include "Lighting.cginc"
-				#include "../LightingKSP.cginc"					
+				#include "LightingKSP.cginc"					
 				#pragma target 3.0					
 				uniform sampler2D _MainTex;
 				uniform float4 _MainTex_ST;
@@ -698,7 +698,7 @@ Shader "KSP/Alpha/CutoffBackground"
 				#include "UnityCG.cginc"
 				#include "AutoLight.cginc"
 				#include "Lighting.cginc"
-				#include "../LightingKSP.cginc"					
+				#include "LightingKSP.cginc"					
 				#pragma target 3.0					
 				uniform sampler2D _MainTex;
 				uniform float4 _MainTex_ST;
@@ -831,7 +831,7 @@ Shader "KSP/Alpha/CutoffBackground"
 				#include "UnityCG.cginc"
 				#include "AutoLight.cginc"
 				#include "Lighting.cginc"
-				#include "../LightingKSP.cginc"		
+				#include "LightingKSP.cginc"		
 				#include "UnityMetaPass.cginc"
 				#pragma target 3.0					
 				uniform sampler2D _MainTex;

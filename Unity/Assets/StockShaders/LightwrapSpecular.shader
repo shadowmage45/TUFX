@@ -22,7 +22,7 @@ Shader "KSP/Lightwrapped/Specular"
 
 		CGPROGRAM
 
-        #include "../LightingKSP.cginc"
+        #include "LightingKSP.cginc"
 		#pragma surface surf LightWrapped
 		#pragma target 3.0
 

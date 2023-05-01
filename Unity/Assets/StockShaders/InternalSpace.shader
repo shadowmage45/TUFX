@@ -28,7 +28,7 @@ Shader "KSP/InternalSpace"
 
 		CGPROGRAM
 
-        #include "../LightingKSP.cginc"
+        #include "LightingKSP.cginc"
 
         #pragma surface surf BlinnPhongSmooth
 		#pragma target 3.0
@@ -48,7 +48,7 @@ Shader "KSP/InternalSpace"
 		struct Input
 		{
 			float2 uv_MainTex;
-            float4 color : COLOR;   //vertex color
+            // float4 color : COLOR;   //vertex color
 			float2 uv_BumpMap;
 			float2 uv2_LightMap;
 		};
@@ -67,7 +67,7 @@ Shader "KSP/InternalSpace"
 			float3 AO = lerp(pow(lightmap.a, _Occlusion), 1, light1 + light2);
             float3 finalLight = (light1 + light2 + light3) * c.rgb * AO;
 
-			o.Albedo = c.rgb * IN.color.rgb * AO;
+			o.Albedo = c.rgb * AO; // * IN.color.rgb
 			o.Gloss = c.a * _SpecColor * 2;
 			o.Specular = _Shininess;
 			o.Normal = normal;

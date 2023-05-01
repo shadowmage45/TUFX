@@ -31,7 +31,7 @@ Shader "KSP/Alpha/Translucent"
 		Blend SrcAlpha OneMinusSrcAlpha 
 
 		CGPROGRAM
-        #include "../LightingKSP.cginc"
+        #include "LightingKSP.cginc"
 		#pragma surface surf BlinnPhongSmooth alpha:fade
 		#pragma target 3.0
 

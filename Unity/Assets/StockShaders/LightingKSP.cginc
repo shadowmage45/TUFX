@@ -10,7 +10,7 @@ inline fixed4 LightingBlinnPhongSmooth(SurfaceOutput s, fixed3 lightDir, half3 v
 
 	fixed4 c;
 	c.rgb = (s.Albedo * _LightColor0.rgb * diff + _LightColor0.rgb * _SpecColor.rgb * spec) * (atten);
-	c.a = s.Alpha + _LightColor0.a * _SpecColor.a * spec * atten;
+	c.a = clamp(s.Alpha + _LightColor0.a * _SpecColor.a * spec * atten, 0, 1);
 	return c;
 }
 
@@ -63,7 +63,7 @@ half4 LightingLightWrapped(SurfaceOutput s, half3 lightDir, half3 viewDir, half 
 	half3 diff = NdotL * (1 - w) + w;
 	half4 c;
 	c.rgb = ((s.Albedo * _LightColor0.rgb * diff) + (specColor * spec)) * (atten * _LightBoost);
-	c.a = s.Alpha + (_LightColor0.a * _SpecColor.a * spec * atten);
+	c.a = clamp(s.Alpha + (_LightColor0.a * _SpecColor.a * spec * atten), 0, 1);
 	return c;
 }
 

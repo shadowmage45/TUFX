@@ -29,7 +29,7 @@ Shader "KSP/Specular (Cutoff)"
 
 
 
-#include "../LightingKSP.cginc"
+#include "LightingKSP.cginc"
 #pragma surface surf BlinnPhongSmooth  alphatest:_Cutoff
 #pragma target 3.0
 

@@ -22,7 +22,7 @@ Shader "KSP/Alpha/Translucent Additive"
 
 		CGPROGRAM
 
-        #include "../LightingKSP.cginc"
+        #include "LightingKSP.cginc"
 		#pragma surface surf NoLighting noshadow noambient novertexlights nolightmap
 		#pragma target 3.0
 

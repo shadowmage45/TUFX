@@ -34,7 +34,7 @@ Shader "KSP/Alpha/Unlit Transparent"
 
 		CGPROGRAM
 
-        #include "../LightingKSP.cginc"
+        #include "LightingKSP.cginc"
 		#pragma surface surf Unlit noforwardadd noshadow noambient novertexlights alpha:fade
 		#pragma target 3.0
 

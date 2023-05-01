@@ -18,7 +18,7 @@ Shader "KSP/Alpha/Cutoff Bumped"
         LOD 300
 
         CGPROGRAM		
-		#include "../LightingKSP.cginc"
+		#include "LightingKSP.cginc"
         #pragma surface surf Lambert alphatest:_Cutoff
 		#pragma target 3.0
 

@@ -22,7 +22,7 @@ Shader "KSP/Unlit"
 		Blend SrcAlpha OneMinusSrcAlpha 
 
 		CGPROGRAM
-        #include "../LightingKSP.cginc"
+        #include "LightingKSP.cginc"
 		#pragma surface surf Unlit noforwardadd noshadow noambient novertexlights keepalpha
 		#pragma target 3.0
 

@@ -31,7 +31,7 @@ Shader "KSP/Emissive/Bumped Specular (Mapped)"
 		ColorMask RGBA
 
 		CGPROGRAM		
-        #include "../LightingKSP.cginc"
+        #include "LightingKSP.cginc"
         #pragma surface surf  StandardSpecular keepalpha
 		#pragma target 3.0
 		
@@ -63,12 +63,12 @@ Shader "KSP/Emissive/Bumped Specular (Mapped)"
 			float2 uv_SpecMap;
 			float3 viewDir;
 			float3 worldPos;
-			float4 color : COLOR;
+			// float4 color : COLOR;
 		};
 
 		void surf (Input IN, inout SurfaceOutputStandardSpecular o)
 		{
-			float4 color = tex2D(_MainTex, (IN.uv_MainTex)) * _BurnColor * IN.color;
+			float4 color = tex2D(_MainTex, (IN.uv_MainTex)) * _BurnColor; // *IN.color;
 			color = color + color * _SpecularAmbientBoostDiffuse * _AmbientMultiplier;
 			float3 emissive = tex2D(_Emissive, (IN.uv_Emissive));
 			float3 normal = UnpackNormalDXT5nm(tex2D(_BumpMap, IN.uv_BumpMap));

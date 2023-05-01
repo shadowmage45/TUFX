@@ -28,7 +28,7 @@ Shader "KSP/Specular"
 
 
 
-        #include "../LightingKSP.cginc"
+        #include "LightingKSP.cginc"
 		#pragma surface surf BlinnPhongSmooth keepalpha
 		#pragma target 3.0
 
@@ -48,12 +48,12 @@ Shader "KSP/Specular"
 			float2 uv_MainTex;
 			float3 viewDir;
 			float3 worldPos;
-			float4 color : COLOR;
+			// float4 color : COLOR;
 		};
 
 		void surf (Input IN, inout SurfaceOutput o)
 		{
-			float4 color = tex2D(_MainTex,(IN.uv_MainTex)) * _BurnColor * _Color * IN.color;
+			float4 color = tex2D(_MainTex, (IN.uv_MainTex)) * _BurnColor * _Color; // *IN.color;
 			float3 normal = float3(0,0,1);
 
 			half rim = 1.0 - saturate(dot (normalize(IN.viewDir), normal));
