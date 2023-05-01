@@ -611,14 +611,17 @@
  <Reference Include="UnityEngine.TestRunner">
  <HintPath>C:/Users/Jon/source/repos/TUFX/Unity/Library/ScriptAssemblies/UnityEngine.TestRunner.dll</HintPath>
  </Reference>
+ <Reference Include="Unity.Timeline.Editor">
+ <HintPath>C:/Users/Jon/source/repos/TUFX/Unity/Library/ScriptAssemblies/Unity.Timeline.Editor.dll</HintPath>
+ </Reference>
  <Reference Include="Unity.VSCode.Editor">
  <HintPath>C:/Users/Jon/source/repos/TUFX/Unity/Library/ScriptAssemblies/Unity.VSCode.Editor.dll</HintPath>
  </Reference>
- <Reference Include="Unity.TextMeshPro.Editor">
- <HintPath>C:/Users/Jon/source/repos/TUFX/Unity/Library/ScriptAssemblies/Unity.TextMeshPro.Editor.dll</HintPath>
- </Reference>
  <Reference Include="UnityEngine.UI">
  <HintPath>C:/Users/Jon/source/repos/TUFX/Unity/Library/ScriptAssemblies/UnityEngine.UI.dll</HintPath>
+ </Reference>
+ <Reference Include="Unity.Timeline">
+ <HintPath>C:/Users/Jon/source/repos/TUFX/Unity/Library/ScriptAssemblies/Unity.Timeline.dll</HintPath>
  </Reference>
  <Reference Include="Unity.CollabProxy.Editor">
  <HintPath>C:/Users/Jon/source/repos/TUFX/Unity/Library/ScriptAssemblies/Unity.CollabProxy.Editor.dll</HintPath>
@@ -632,17 +635,8 @@
  <Reference Include="Unity.Postprocessing.Runtime">
  <HintPath>C:/Users/Jon/source/repos/TUFX/Unity/Library/ScriptAssemblies/Unity.Postprocessing.Runtime.dll</HintPath>
  </Reference>
- <Reference Include="Unity.TextMeshPro">
- <HintPath>C:/Users/Jon/source/repos/TUFX/Unity/Library/ScriptAssemblies/Unity.TextMeshPro.dll</HintPath>
- </Reference>
  <Reference Include="UnityEditor.UI">
  <HintPath>C:/Users/Jon/source/repos/TUFX/Unity/Library/ScriptAssemblies/UnityEditor.UI.dll</HintPath>
- </Reference>
- <Reference Include="Unity.Timeline.Editor">
- <HintPath>C:/Users/Jon/source/repos/TUFX/Unity/Library/ScriptAssemblies/Unity.Timeline.Editor.dll</HintPath>
- </Reference>
- <Reference Include="Unity.Timeline">
- <HintPath>C:/Users/Jon/source/repos/TUFX/Unity/Library/ScriptAssemblies/Unity.Timeline.dll</HintPath>
  </Reference>
   </ItemGroup>
   <ItemGroup>
