@@ -26,22 +26,22 @@ namespace TUFX
         public string WarningLabel = string.Empty;
 
         [GameParameters.CustomStringParameterUI("Flight Scene Profile: ", gameMode = GameParameters.GameMode.ANY, lines = 1, toolTip = "Active Profile in the Flight Scene")]
-        public string FlightSceneProfile = "Default-Flight";
+        public string FlightSceneProfile = string.Empty;
 
         [GameParameters.CustomStringParameterUI("Flight Scene Profile: ", gameMode = GameParameters.GameMode.ANY, lines = 1, toolTip = "Active Profile when in IVA")]
-        public string IVAProfile = "Default-Flight";
+        public string IVAProfile = string.Empty;
 
         [GameParameters.CustomStringParameterUI("Map Scene Profile: ", gameMode = GameParameters.GameMode.ANY, lines = 1, toolTip = "Active Profile in the Map Scene")]
-        public string MapSceneProfile = "Default-Tracking";
+        public string MapSceneProfile = string.Empty;
 
         [GameParameters.CustomStringParameterUI("Editor Scene Profile: ", gameMode = GameParameters.GameMode.ANY, lines = 1, toolTip = "Active Profile in the Editor Scene")]
-        public string EditorSceneProfile = "Default-Editor";
+        public string EditorSceneProfile = string.Empty;
 
         [GameParameters.CustomStringParameterUI("Space Center Profile: ", gameMode = GameParameters.GameMode.ANY, lines = 1, toolTip = "Active Profile in the Space Center Scene")]
-        public string SpaceCenterSceneProfile = "Default-KSC";
+        public string SpaceCenterSceneProfile = string.Empty;
 
         [GameParameters.CustomStringParameterUI("Tracking Station Profile: ", gameMode = GameParameters.GameMode.ANY, lines = 1, toolTip = "Active Profile in the Tracking Station Scene")]
-        public string TrackingStationProfile = "Default-Tracking";
+        public string TrackingStationProfile = string.Empty;
 
     }
 

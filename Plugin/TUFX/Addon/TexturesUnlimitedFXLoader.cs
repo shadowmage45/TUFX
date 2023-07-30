@@ -38,6 +38,12 @@ namespace TUFX
         public class Configuration
         {
             [Persistent] public string MainMenuProfile = "Default-MainMenu";
+            [Persistent] public string SpaceCenterSceneProfile = "Default-KSC";
+            [Persistent] public string EditorSceneProfile = "Default-Editor";
+            [Persistent] public string FlightSceneProfile = "Default-Flight";
+            [Persistent] public string MapSceneProfile = "Default-Tracking";
+            [Persistent] public string IVAProfile = "Default-Flight";
+            [Persistent] public string TrackingStationProfile = "Default-Tracking";
             [Persistent] public bool ShowToolbarButton = true;
         }
 
@@ -62,6 +68,12 @@ namespace TUFX
         internal string CurrentProfileName => currentProfile==null ? string.Empty : currentProfile.ProfileName;
 
         /// <summary>
+        /// Whether the default profiles should be read from config after scene load.
+        /// Set to true when a new game has just been created.
+        /// </summary>
+        private bool setDefaultProfilesOnNextLoad = false;
+
+        /// <summary>
         /// Reference to the Unity Post Processing 'Resources' class.  Used to store references to the shaders and textures used by the post-processing system internals.
         /// Does not include references to the 'included' but 'external' resources such as the built-in lens-dirt textures or any custom LUTs.
         /// </summary>
@@ -72,6 +84,7 @@ namespace TUFX
             MonoBehaviour.print("TUFXLoader - Start()");
             INSTANCE = this;
             DontDestroyOnLoad(this);
+            GameEvents.onGameNewStart.Add(new EventVoid.OnEvent(onGameNewStart));
             GameEvents.onLevelWasLoaded.Add(new EventData<GameScenes>.OnEvent(onLevelLoaded));
             GameEvents.OnCameraChange.Add(new EventData<CameraManager.CameraMode>.OnEvent(cameraChange));
         }
@@ -362,12 +375,26 @@ namespace TUFX
         }
 
         /// <summary>
+        /// Callback for when a new game is created.
+        /// </summary>
+        private void onGameNewStart()
+        {
+            setDefaultProfilesOnNextLoad = true;
+        }
+
+        /// <summary>
         /// Callback for when a scene has been fully loaded.
         /// </summary>
         /// <param name="scene"></param>
         private void onLevelLoaded(GameScenes scene)
         {
             Log.debug("TUFXLoader - onLevelLoaded( "+scene+" )");
+
+            if (setDefaultProfilesOnNextLoad)
+            {
+                setDefaultProfiles();
+                setDefaultProfilesOnNextLoad = false;
+            }
 
             if (scene == GameScenes.FLIGHT || scene == GameScenes.SPACECENTER || scene == GameScenes.EDITOR || scene == GameScenes.TRACKSTATION)
             {
@@ -422,14 +449,27 @@ namespace TUFX
         }
 
         /// <summary>
+        /// Set default TUFX profiles for a new game, as specified in config.
+        /// </summary>
+        private void setDefaultProfiles()
+        {
+            setProfileForScene(configuration.FlightSceneProfile, GameScenes.FLIGHT, false, CameraManager.CameraMode.Flight);
+            setProfileForScene(configuration.IVAProfile, GameScenes.FLIGHT, false, CameraManager.CameraMode.IVA);
+            setProfileForScene(configuration.MapSceneProfile, GameScenes.FLIGHT, false, CameraManager.CameraMode.Map);
+            setProfileForScene(configuration.EditorSceneProfile, GameScenes.EDITOR);
+            setProfileForScene(configuration.SpaceCenterSceneProfile, GameScenes.SPACECENTER);
+            setProfileForScene(configuration.TrackingStationProfile, GameScenes.TRACKSTATION);
+        }
+
+        /// <summary>
         /// Public method to specify a new profile name for the input game scene (and map view setting, in the case of flight-scene).
         /// This will udpate the game persistence data with the name specified, and optionally enable the profile now.
         /// </summary>
         /// <param name="profile"></param>
         /// <param name="scene">the game scene to which the new profile should be applied</param>
-        /// <param name="isMapScene">Update the 'flight map scene' if this is true and scene==flight</param>
         /// <param name="enableNow">True to enable the profile for the current scene</param>
-        internal void setProfileForScene(string profile, GameScenes scene, bool enableNow = false)
+        /// <param name="flightSceneMode">Specify which flight scene mode is being updated. If null and in flight scene, the active mode will be queried.</param>
+        internal void setProfileForScene(string profile, GameScenes scene, bool enableNow = false, CameraManager.CameraMode? flightSceneMode = null)
         {
             switch (scene)
             {
@@ -443,7 +483,13 @@ namespace TUFX
                     HighLogic.CurrentGame.Parameters.CustomParams<TUFXGameSettings>().EditorSceneProfile = profile;
                     break;
                 case GameScenes.FLIGHT:
-                    switch (CameraManager.Instance.currentCameraMode)
+                    if (flightSceneMode == null && scene != HighLogic.LoadedScene)
+                    {
+                        Log.exception("Attempted to set flight scene profile based on active mode, but the current scene is not flight.");
+                        break;
+                    }
+                    CameraManager.CameraMode mode = flightSceneMode ?? CameraManager.Instance.currentCameraMode;
+                    switch (mode)
                     {
                         case CameraManager.CameraMode.Flight:
                             HighLogic.CurrentGame.Parameters.CustomParams<TUFXGameSettings>().FlightSceneProfile = profile;
