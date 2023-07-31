@@ -513,6 +513,34 @@ namespace TUFX
             }
         }
 
+        public string GetDefaultProfileNameForCurrentScene()
+        {
+            switch (HighLogic.LoadedScene)
+            {
+                case GameScenes.MAINMENU:
+                    return configuration.MainMenuProfile;
+                case GameScenes.SPACECENTER:
+                    return configuration.SpaceCenterSceneProfile;
+                case GameScenes.EDITOR:
+                    return configuration.EditorSceneProfile;
+                case GameScenes.FLIGHT:
+                    switch (CameraManager.Instance.currentCameraMode)
+                    {
+                        case CameraManager.CameraMode.Flight:
+                            return configuration.FlightSceneProfile;
+                        case CameraManager.CameraMode.Map:
+                            return configuration.MapSceneProfile;
+                        case CameraManager.CameraMode.IVA:
+                        case CameraManager.CameraMode.Internal:
+                            return configuration.IVAProfile;
+                    }
+                    break;
+                case GameScenes.TRACKSTATION:
+                    return configuration.TrackingStationProfile;
+            }
+            return string.Empty;
+        }
+
 		public string GetProfileNameForCurrentScene(TUFXGameSettings gameSettings)
 		{
 			string profileName = string.Empty;
@@ -559,8 +587,7 @@ namespace TUFX
             if (string.IsNullOrEmpty(profileName) || !Profiles.ContainsKey(profileName))
             {
                 Log.debug($"TUFX - game settings for scene {HighLogic.LoadedScene} named {profileName} not found; falling back to defaults");
-                var defaultSettings = new TUFXGameSettings();
-                profileName = GetProfileNameForCurrentScene(defaultSettings);
+                profileName = GetDefaultProfileNameForCurrentScene();
             }
 
             Log.debug("TUFX - Enabling profile for current scene: " + HighLogic.LoadedScene + " profile: " + profileName);
