@@ -22,13 +22,24 @@ namespace TUFX
 
         public override bool HasPresets => false;
 
+        public TUFXGameSettings()
+        {
+            var defaults = TexturesUnlimitedFXLoader.defaultConfiguration;
+            FlightSceneProfile = defaults.FlightSceneProfile;
+            IVAProfile = defaults.IVAProfile;
+            MapSceneProfile = defaults.MapSceneProfile;
+            EditorSceneProfile = defaults.EditorSceneProfile;
+            SpaceCenterSceneProfile = defaults.SpaceCenterSceneProfile;
+            TrackingStationProfile = defaults.TrackingStationProfile;
+        }
+
         [GameParameters.CustomStringParameterUI("TUFX Profiles - Must be selected through in-game profile editor.", gameMode = GameParameters.GameMode.ANY, lines = 3, toolTip = "Profiles only shown here to enable per-save-game persistence.")]
         public string WarningLabel = string.Empty;
 
         [GameParameters.CustomStringParameterUI("Flight Scene Profile: ", gameMode = GameParameters.GameMode.ANY, lines = 1, toolTip = "Active Profile in the Flight Scene")]
         public string FlightSceneProfile = string.Empty;
 
-        [GameParameters.CustomStringParameterUI("Flight Scene Profile: ", gameMode = GameParameters.GameMode.ANY, lines = 1, toolTip = "Active Profile when in IVA")]
+        [GameParameters.CustomStringParameterUI("IVA Profile: ", gameMode = GameParameters.GameMode.ANY, lines = 1, toolTip = "Active Profile when in IVA")]
         public string IVAProfile = string.Empty;
 
         [GameParameters.CustomStringParameterUI("Map Scene Profile: ", gameMode = GameParameters.GameMode.ANY, lines = 1, toolTip = "Active Profile in the Map Scene")]
