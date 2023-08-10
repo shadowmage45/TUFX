@@ -541,6 +541,14 @@ namespace TUFX
 			{
 				ApplyProfileToCamera(Camera.main, currentProfile);
 			}
+			if (HighLogic.LoadedScene == GameScenes.EDITOR)
+			{
+				var editorCameras = EditorCamera.Instance.cam.gameObject.GetComponentsInChildren<Camera>();
+				foreach (var cam in editorCameras)
+				{
+					ApplyProfileToCamera(cam, currentProfile);
+				}
+			}
 			ApplyProfileToCamera(PlanetariumCamera.Camera, currentProfile);
 			ApplyProfileToCamera(InternalCamera.Instance?.GetComponent<Camera>(), currentProfile);
 			ApplyProfileToCamera(ScaledCamera.Instance?.cam, currentProfile);
