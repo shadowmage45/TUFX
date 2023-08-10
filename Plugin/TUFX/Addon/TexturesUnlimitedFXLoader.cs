@@ -38,10 +38,16 @@ namespace TUFX
         public class Configuration
         {
             [Persistent] public string MainMenuProfile = "Default-MainMenu";
+            [Persistent] public string SpaceCenterSceneProfile = "Default-KSC";
+            [Persistent] public string EditorSceneProfile = "Default-Editor";
+            [Persistent] public string FlightSceneProfile = "Default-Flight";
+            [Persistent] public string MapSceneProfile = "Default-Tracking";
+            [Persistent] public string IVAProfile = "Default-Flight";
+            [Persistent] public string TrackingStationProfile = "Default-Tracking";
             [Persistent] public bool ShowToolbarButton = true;
         }
 
-		internal Configuration configuration = new Configuration();
+		internal static readonly Configuration defaultConfiguration = new Configuration();
 
         private PostProcessVolume volume;
 
@@ -315,7 +321,7 @@ namespace TUFX
             ConfigNode config = GameDatabase.Instance.GetConfigNodes("TUFX_CONFIGURATION").FirstOrDefault(m=>m.GetValue("name")=="Default");
             if (config != null)
             {
-                ConfigNode.LoadObjectFromConfig(configuration, config);
+                ConfigNode.LoadObjectFromConfig(defaultConfiguration, config);
             }
         }
 
@@ -374,7 +380,7 @@ namespace TUFX
             {
                 Log.debug("TUFX - Updating AppLauncher button...");
                 Texture2D tex;
-                if (configAppButton == null && configuration.ShowToolbarButton)//static reference; track if the button was EVER created, as KSP keeps them even if the addon is destroyed
+                if (configAppButton == null && defaultConfiguration.ShowToolbarButton)//static reference; track if the button was EVER created, as KSP keeps them even if the addon is destroyed
                 {
                     //Create a new button
                     tex = GameDatabase.Instance.GetTexture("TUFX/Assets/TUFX-Icon1", false);
@@ -411,7 +417,7 @@ namespace TUFX
                 }
 #endif
             }
-            
+
             configGuiDisable();
             //finally, enable the profile for the current scene
             enableProfileForCurrentScene();
@@ -435,7 +441,7 @@ namespace TUFX
             switch (scene)
             {
                 case GameScenes.MAINMENU:
-                    configuration.MainMenuProfile = profile;
+                    Log.exception("The main menu profile must be set via config!");
                     break;
                 case GameScenes.SPACECENTER:
                     HighLogic.CurrentGame.Parameters.CustomParams<TUFXGameSettings>().SpaceCenterSceneProfile = profile;
@@ -474,7 +480,7 @@ namespace TUFX
 			switch (HighLogic.LoadedScene)
 			{
 				case GameScenes.MAINMENU:
-					profileName = configuration.MainMenuProfile;
+					profileName = defaultConfiguration.MainMenuProfile;
 					break;
 				case GameScenes.SPACECENTER:
 					profileName = gameSettings.SpaceCenterSceneProfile;
