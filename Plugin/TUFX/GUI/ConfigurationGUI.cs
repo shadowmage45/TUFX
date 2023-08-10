@@ -271,21 +271,14 @@ namespace TUFX
             GUILayout.BeginHorizontal();
             GUILayout.Label("HDR", GUILayout.Width(200));
             bool enabled = TexturesUnlimitedFXLoader.INSTANCE.CurrentProfile.HDREnabled;
-            if (enabled) //if it is enabled, draw button to disable it
-            {
-                if (GUILayout.Button("Disable", GUILayout.Width(100)))
-                {
-                    TexturesUnlimitedFXLoader.INSTANCE.onHDRToggled();
-                }
-            }
-            else //else draw the button to enable it
-            {
-                if (GUILayout.Button("Enable", GUILayout.Width(100)))
-                {
-                    TexturesUnlimitedFXLoader.INSTANCE.onHDRToggled();
-                }
-            }
-            GUILayout.EndHorizontal();
+            string buttonText = enabled ? "Disable" : "Enable";
+			if (GUILayout.Button(buttonText, GUILayout.Width(100)))
+			{
+                TexturesUnlimitedFXLoader.INSTANCE.CurrentProfile.HDREnabled = !enabled;
+				TexturesUnlimitedFXLoader.INSTANCE.RefreshCameras();
+			}
+
+			GUILayout.EndHorizontal();
         }
 
         private void renderAntialiasingSettings()
@@ -294,7 +287,8 @@ namespace TUFX
             AddEnumField("AntiAliasing Mode", ref mode);
             if (mode != TexturesUnlimitedFXLoader.INSTANCE.CurrentProfile.AntiAliasing)
             {
-                TexturesUnlimitedFXLoader.INSTANCE.onAntiAliasingSelected(mode, true);
+                TexturesUnlimitedFXLoader.INSTANCE.CurrentProfile.AntiAliasing = mode;
+				TexturesUnlimitedFXLoader.INSTANCE.RefreshCameras();
             }
             //TODO -- add parameters for the AA modes
             //if (mode == PostProcessLayer.Antialiasing.FastApproximateAntialiasing)

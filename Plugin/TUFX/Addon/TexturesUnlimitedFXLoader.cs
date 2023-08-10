@@ -43,10 +43,7 @@ namespace TUFX
 
 		internal Configuration configuration = new Configuration();
 
-        private PostProcessLayer layer;
         private PostProcessVolume volume;
-        private GameScenes previousScene=GameScenes.LOADING;
-        private Camera previousCamera;
 
         /// <summary>
         /// The currently active profile.  Private field to enforce use of the 'setProfileForScene' method.
@@ -74,9 +71,13 @@ namespace TUFX
             DontDestroyOnLoad(this);
             GameEvents.onLevelWasLoaded.Add(new EventData<GameScenes>.OnEvent(onLevelLoaded));
             GameEvents.OnCameraChange.Add(new EventData<CameraManager.CameraMode>.OnEvent(cameraChange));
-        }
 
-        public void ModuleManagerPostLoad()
+            volume = gameObject.AddComponent<PostProcessVolume>();
+			volume.isGlobal = true;
+			volume.priority = 100;
+		}
+
+		public void ModuleManagerPostLoad()
         {
             Log.log("TUFXLoader - MMPostLoad()");
 
@@ -463,7 +464,7 @@ namespace TUFX
             }
             if (enableNow)
             {
-                enableProfile(profile);
+                SetCurrentProfile(profile);
             }
         }
 
@@ -518,151 +519,51 @@ namespace TUFX
             }
 
             Log.debug("TUFX - Enabling profile for current scene: " + HighLogic.LoadedScene + " profile: " + profileName);
-            enableProfile(profileName);
+            SetCurrentProfile(profileName);
         }
 
-        /// <summary>
-        /// Helper method to return a reference to the active camera object.
-        /// </summary>
-        /// <returns></returns>
-        internal Camera getActiveCamera()
+        private void ApplyProfileToCamera(Camera camera, TUFXProfile profile)
         {
-            Camera activeCam = null;
-            if (HighLogic.LoadedScene == GameScenes.MAINMENU) { activeCam = Camera.main; }
-            else if (HighLogic.LoadedScene == GameScenes.TRACKSTATION) { activeCam = PlanetariumCamera.Camera; }
-            //else if (HighLogic.LoadedScene == GameScenes.EDITOR) { activeCam = null; }// EditorCamera.Instance.cam; } // TODO simply referencing this camera screws up the editor scene... (incorrect matrix? wrong camera ref? is this a UI camera?)
-            //else if (HighLogic.LoadedScene == GameScenes.EDITOR) { activeCam = null; }// Camera.main; }//TODO -- this one isn't the right camera either....
-            else if (HighLogic.LoadedScene == GameScenes.SPACECENTER) { activeCam = Camera.main; }
-            else if (HighLogic.LoadedScene == GameScenes.FLIGHT)
-            {
-                if (InternalCamera.Instance.isActive)
-                {
-                    activeCam = InternalCamera.Instance.GetComponent<Camera>();
-                }
-                else if (CameraManager.Instance.currentCameraMode == CameraManager.CameraMode.Map)
-                {
-                    activeCam = ScaledCamera.Instance.cam;
-                }
-                else
-                {
-                    activeCam = CameraManager.GetCurrentCamera(); // NOTE: this will return one of EditorLogic.fetch.editorCamera, PlanetariumCamera.Camera, or FlightCamera.fetch.mainCamera
-                }
-            }
-            else { Log.exception("Could not locate camera for scene: " + HighLogic.LoadedScene); }
-            return activeCam;
+            if (camera == null) return;
+
+            camera.allowHDR = profile.HDREnabled;
+            var layer = camera.gameObject.AddOrGetComponent<PostProcessLayer>();
+            layer.Init(Resources);
+            layer.volumeLayer = ~0; // is this necessary?
+            layer.antialiasingMode = profile.AntiAliasing;
         }
+
+        private  void ApplyCurrentProfile()
+        {
+			volume.sharedProfile = currentProfile.GetPostProcessProfile();
+
+			if (HighLogic.LoadedScene == GameScenes.MAINMENU || HighLogic.LoadedScene == GameScenes.SPACECENTER)
+			{
+				ApplyProfileToCamera(Camera.main, currentProfile);
+			}
+			ApplyProfileToCamera(PlanetariumCamera.Camera, currentProfile);
+			ApplyProfileToCamera(InternalCamera.Instance?.GetComponent<Camera>(), currentProfile);
+			ApplyProfileToCamera(ScaledCamera.Instance?.cam, currentProfile);
+			ApplyProfileToCamera(CameraManager.GetCurrentCamera(), currentProfile);
+		}
 
         /// <summary>
         /// Enables the input profile for the currently rendering scene (menu, ksc, editor, tracking, flight, flight-map)
         /// </summary>
         /// <param name="profileName"></param>
-        internal void enableProfile(string profileName)
+        internal void SetCurrentProfile(string profileName)
         {
-            currentProfile = null;
-            Camera activeCam = getActiveCamera();
-            
-            
-            Log.debug("TUFX: enableProfile( " + profileName + " )  scene: ( "+HighLogic.LoadedScene+" ) camera: ( "+activeCam?.name+" )");
-            Log.debug(System.Environment.StackTrace);
-            if (previousCamera != activeCam)
+			if (Profiles.TryGetValue(profileName, out TUFXProfile profile))
             {
-                Log.log("Detected change of active camera; recreating post-process objects.");
-                if (volume != null)
-                {
-                    Log.log("Destroying existing PostProcessVolume (from previous camera).");
-                    Component.DestroyImmediate(layer);
-                    UnityEngine.Object.DestroyImmediate(volume.sharedProfile);
-                    UnityEngine.Object.DestroyImmediate(volume);
-                    layer = null;
-                    volume = null;
-                }
-                previousScene = HighLogic.LoadedScene;
-                previousCamera = activeCam;
+                currentProfile = profile;
+                ApplyCurrentProfile();
             }
+		}
 
-            Log.debug("Active Camera (hashcode): " + activeCam?.GetHashCode());
-            if (activeCam == null)
-            {
-                Log.log("Active camera was null.  Skipping profile setup for scene: " + HighLogic.LoadedScene);
-            }
-            else if (!string.IsNullOrEmpty(profileName) && Profiles.ContainsKey(profileName))
-            {
-                Log.log("Enabling profile: " + profileName + ".  Current GameScene: " + HighLogic.LoadedScene);
-                TUFXProfile tufxProfile = Profiles[profileName];
-                currentProfile = tufxProfile;
-                Log.debug("Profile (hashcode): " + tufxProfile?.GetHashCode() + " :: "+tufxProfile?.ProfileName);
-                Log.log("Setting HDR for camera: " + activeCam.name + " to: " + tufxProfile.HDREnabled);
-                activeCam.allowHDR = tufxProfile.HDREnabled;
-                layer = activeCam.gameObject.AddOrGetComponent<PostProcessLayer>();
-                layer.Init(Resources);
-                layer.volumeLayer = ~0;//everything //TODO -- fix layer assignment...
-                Log.debug("Layer: " + layer?.GetHashCode());
-                onAntiAliasingSelected(tufxProfile.AntiAliasing, false);
-                volume = activeCam.gameObject.AddOrGetComponent<PostProcessVolume>();
-                volume.isGlobal = true;
-                volume.priority = 100;
-                Log.debug("Volume: " + volume.GetHashCode());
-                if (volume.sharedProfile == null)
-                {
-                    volume.sharedProfile = tufxProfile.GetPostProcessProfile();
-                }
-                else
-                {
-                    volume.sharedProfile.settings.Clear();
-                    tufxProfile.Enable(volume);
-                }
-                Log.log("Profile enabled: " + profileName);
-                TUFXScatteringManager.INSTANCE.debugProfileSetup(volume, layer);
-            }
-            else if (string.IsNullOrEmpty(profileName))
-            {
-                Log.log("Clearing current profile for scene: " + HighLogic.LoadedScene);
-            }
-            else
-            {
-                Log.exception("Profile load was requested for: " + profileName + ", but no profile exists for that name.");
-            }
-            
-        }
-
-        /// <summary>
-        /// Internal method to toggle the HDR setting on the current profile, and apply it to the active camera for the scene
-        /// </summary>
-        internal void onHDRToggled()
+        // called from the UI when HDR or antialiasing settings have changed; which need to change settings on the camera itself
+        internal void RefreshCameras()
         {
-            Camera activeCam = getActiveCamera();
-            if (CurrentProfile != null && activeCam != null)
-            {
-                CurrentProfile.HDREnabled = !CurrentProfile.HDREnabled;
-                activeCam.allowHDR = CurrentProfile.HDREnabled;
-                Log.log("Toggled HDR for camera: " + activeCam.name + " to: " + CurrentProfile.HDREnabled);
-            }
-            else
-            {
-                Log.exception("Attempted to toggle HDR while either the profile or camera were null.  Profile: " + CurrentProfile?.ProfileName + " camera: " + activeCam?.name);
-            }
-        }
-
-        internal void onAntiAliasingSelected(PostProcessLayer.Antialiasing mode, bool updateProfile)
-        {
-            if (updateProfile && CurrentProfile != null)
-            {
-                Log.debug("Updated profile AA value to: " + mode);
-                CurrentProfile.AntiAliasing = mode;
-            }
-            else if(updateProfile)
-            {
-                Log.exception("Profile was null when attempting to update AA mode.");
-            }
-            if (layer != null)
-            {
-                Log.debug("Updated post process layer AA value to: " + mode);
-                layer.antialiasingMode = mode;
-            }
-            else
-            {
-                Log.exception("Layer was null when attempting to update AA mode.");
-            }
+            ApplyCurrentProfile();
         }
 
         /// <summary>

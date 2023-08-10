@@ -21,7 +21,7 @@ namespace TUFX
 
         public void Start()
         {
-            camera = TexturesUnlimitedFXLoader.INSTANCE.getActiveCamera();
+            camera = Camera.main;
             int mask = camera.cullingMask;
             for (int i = 0; i < 32; i++)
             {
