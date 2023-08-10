@@ -37,22 +37,22 @@ namespace TUFX
         public string WarningLabel = string.Empty;
 
         [GameParameters.CustomStringParameterUI("Flight Scene Profile: ", gameMode = GameParameters.GameMode.ANY, lines = 1, toolTip = "Active Profile in the Flight Scene")]
-        public string FlightSceneProfile = string.Empty;
+        public string FlightSceneProfile;
 
         [GameParameters.CustomStringParameterUI("IVA Profile: ", gameMode = GameParameters.GameMode.ANY, lines = 1, toolTip = "Active Profile when in IVA")]
-        public string IVAProfile = string.Empty;
+        public string IVAProfile;
 
         [GameParameters.CustomStringParameterUI("Map Scene Profile: ", gameMode = GameParameters.GameMode.ANY, lines = 1, toolTip = "Active Profile in the Map Scene")]
-        public string MapSceneProfile = string.Empty;
+        public string MapSceneProfile;
 
         [GameParameters.CustomStringParameterUI("Editor Scene Profile: ", gameMode = GameParameters.GameMode.ANY, lines = 1, toolTip = "Active Profile in the Editor Scene")]
-        public string EditorSceneProfile = string.Empty;
+        public string EditorSceneProfile;
 
         [GameParameters.CustomStringParameterUI("Space Center Profile: ", gameMode = GameParameters.GameMode.ANY, lines = 1, toolTip = "Active Profile in the Space Center Scene")]
-        public string SpaceCenterSceneProfile = string.Empty;
+        public string SpaceCenterSceneProfile;
 
         [GameParameters.CustomStringParameterUI("Tracking Station Profile: ", gameMode = GameParameters.GameMode.ANY, lines = 1, toolTip = "Active Profile in the Tracking Station Scene")]
-        public string TrackingStationProfile = string.Empty;
+        public string TrackingStationProfile;
 
     }
 

@@ -47,7 +47,7 @@ namespace TUFX
             [Persistent] public bool ShowToolbarButton = true;
         }
 
-		public static readonly Configuration defaultConfiguration = new Configuration();
+		internal static readonly Configuration defaultConfiguration = new Configuration();
 
         private PostProcessLayer layer;
         private PostProcessVolume volume;
@@ -416,7 +416,7 @@ namespace TUFX
                 }
 #endif
             }
-            
+
             configGuiDisable();
             //finally, enable the profile for the current scene
             enableProfileForCurrentScene();
@@ -566,8 +566,8 @@ namespace TUFX
         {
             currentProfile = null;
             Camera activeCam = getActiveCamera();
-            
-            
+
+
             Log.debug("TUFX: enableProfile( " + profileName + " )  scene: ( "+HighLogic.LoadedScene+" ) camera: ( "+activeCam?.name+" )");
             Log.debug(System.Environment.StackTrace);
             if (previousCamera != activeCam)
@@ -628,7 +628,7 @@ namespace TUFX
             {
                 Log.exception("Profile load was requested for: " + profileName + ", but no profile exists for that name.");
             }
-            
+
         }
 
         /// <summary>
