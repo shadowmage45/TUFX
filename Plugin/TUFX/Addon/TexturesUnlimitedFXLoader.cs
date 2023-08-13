@@ -49,7 +49,8 @@ namespace TUFX
 
 		internal static readonly Configuration defaultConfiguration = new Configuration();
 
-        private PostProcessVolume volume;
+        private PostProcessVolume mainVolume;
+        private PostProcessVolume scaledSpaceVolume;
 
         /// <summary>
         /// The currently active profile.  Private field to enforce use of the 'setProfileForScene' method.
@@ -70,6 +71,16 @@ namespace TUFX
         /// </summary>
         public static PostProcessResources Resources { get; private set; }
 
+        private PostProcessVolume CreateVolume(int layer)
+        {
+            var childObject = new GameObject();
+            childObject.layer = layer;
+            childObject.transform.SetParent(transform, false);
+            var volume = childObject.AddComponent<PostProcessVolume>();
+            volume.isGlobal = true;
+            return volume;
+        }
+
         public void Start()
         {
             MonoBehaviour.print("TUFXLoader - Start()");
@@ -78,10 +89,9 @@ namespace TUFX
             GameEvents.onLevelWasLoaded.Add(new EventData<GameScenes>.OnEvent(onLevelLoaded));
             GameEvents.OnCameraChange.Add(new EventData<CameraManager.CameraMode>.OnEvent(cameraChange));
 
-            volume = gameObject.AddComponent<PostProcessVolume>();
-			volume.isGlobal = true;
-			volume.priority = 100;
-		}
+            mainVolume = CreateVolume(0);
+            scaledSpaceVolume = CreateVolume(1);
+        }
 
 		public void ModuleManagerPostLoad()
         {
@@ -528,20 +538,39 @@ namespace TUFX
             SetCurrentProfile(profileName);
         }
 
-        private void ApplyProfileToCamera(Camera camera, TUFXProfile profile)
+        private void ApplyProfileToCamera(Camera camera, TUFXProfile tufxProfile)
         {
             if (camera == null) return;
 
-            camera.allowHDR = profile.HDREnabled;
             var layer = camera.gameObject.AddOrGetComponent<PostProcessLayer>();
             layer.Init(Resources);
-            layer.volumeLayer = ~0; // is this necessary?
-            layer.antialiasingMode = profile.AntiAliasing;
+            camera.allowHDR = tufxProfile.HDREnabled;
+
+            // if this is the scaled camera, don't allow TAA because it makes clouds flicker
+            if (camera == ScaledCamera.Instance?.cam)
+            {
+                layer.antialiasingMode = tufxProfile.AntiAliasing == PostProcessLayer.Antialiasing.TemporalAntialiasing ? PostProcessLayer.Antialiasing.None : tufxProfile.AntiAliasing;
+                layer.volumeLayer = 1 << scaledSpaceVolume.gameObject.layer;
+            }
+            else
+            {
+                layer.antialiasingMode = tufxProfile.AntiAliasing;
+                layer.volumeLayer = 1 << mainVolume.gameObject.layer;
+            }
         }
 
         private  void ApplyCurrentProfile()
         {
-			volume.sharedProfile = currentProfile.GetPostProcessProfile();
+            mainVolume.sharedProfile = currentProfile.CreatePostProcessProfile();
+            // clear the copied profile and reset the sharedProfile so we can make a new copy
+            scaledSpaceVolume.profile = null;
+            scaledSpaceVolume.sharedProfile = mainVolume.sharedProfile;
+
+            // disallow DoF for the scaledspace camera (note using the `profile` property will clone the sharedProfile into a new copy that we can modify individually)
+            if (scaledSpaceVolume.profile.TryGetSettings<DepthOfField>(out var dofSettings))
+            {
+                dofSettings.enabled.Override(false);
+            }
 
 			if (HighLogic.LoadedScene == GameScenes.MAINMENU || HighLogic.LoadedScene == GameScenes.SPACECENTER)
 			{

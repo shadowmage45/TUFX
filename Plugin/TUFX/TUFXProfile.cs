@@ -217,7 +217,7 @@ namespace TUFX
         /// <summary>
         /// Returns a Unity PostProcessProfile instance with the settings contained in this TUFXProfile
         /// </summary>
-        public PostProcessProfile GetPostProcessProfile()
+        public PostProcessProfile CreatePostProcessProfile()
         {
             PostProcessProfile profile = ScriptableObject.CreateInstance<PostProcessProfile>();
             int len = Settings.Count;
