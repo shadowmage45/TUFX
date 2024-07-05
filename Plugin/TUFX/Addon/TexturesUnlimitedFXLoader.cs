@@ -561,9 +561,15 @@ namespace TUFX
 
         private  void ApplyCurrentProfile()
         {
+            if (currentProfile.HDREnabled && currentProfile.GetSettingsFor<Bloom>().active)
+            {
+                QualitySettings.antiAliasing = 0;
+            }
+
             mainVolume.sharedProfile = currentProfile.CreatePostProcessProfile();
-            // clear the copied profile and reset the sharedProfile so we can make a new copy
-            scaledSpaceVolume.profile = null;
+
+				// clear the copied profile and reset the sharedProfile so we can make a new copy
+				scaledSpaceVolume.profile = null;
             scaledSpaceVolume.sharedProfile = mainVolume.sharedProfile;
 
             // disallow DoF for the scaledspace camera (note using the `profile` property will clone the sharedProfile into a new copy that we can modify individually)
