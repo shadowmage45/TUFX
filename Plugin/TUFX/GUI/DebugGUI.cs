@@ -1,4 +1,5 @@
-﻿using System;
+﻿using ClickThroughFix;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -32,7 +33,7 @@ namespace TUFX
 
         public void OnGUI()
         {
-            GUI.Window(windowID, windowRect, renderWindow, "TUFX-Debug");
+            ClickThruBlocker.GUIWindow(windowID, windowRect, renderWindow, "TUFX-Debug");
         }
 
         private void renderWindow(int id)

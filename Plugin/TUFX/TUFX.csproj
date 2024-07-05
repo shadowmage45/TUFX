@@ -77,6 +77,9 @@
     <Reference Include="$(ManagedPath)\UnityEngine.VRModule.dll">
       <Private>false</Private>
     </Reference>
+    <Reference Include="$(ReferencePath)\GameData\000_ClickThroughBlocker\Plugins\ClickThroughBlocker.dll">
+      <Private>false</Private>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Addon\TexturesUnlimitedFXLoader.cs" />

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using ClickThroughFix;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -56,7 +57,7 @@ namespace TUFX
         {
             try
             {
-                windowRect = GUI.Window(windowID, windowRect, updateWindow, "TUFXSettings");
+                windowRect = ClickThruBlocker.GUIWindow(windowID, windowRect, updateWindow, "TUFXSettings");
             }
             catch (Exception e)
             {
