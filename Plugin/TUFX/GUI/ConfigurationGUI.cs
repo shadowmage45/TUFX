@@ -116,6 +116,10 @@ namespace TUFX
                 TexturesUnlimitedFXLoader.INSTANCE.exportAllProfiles();
                 ScreenMessages.PostScreenMessage("<color=orange>Exported all profiles to KSP.log</color>", 5f, ScreenMessageStyle.UPPER_LEFT);
             }
+            if (GUILayout.Button("Close Window"))
+            {
+                TexturesUnlimitedFXLoader.INSTANCE.configGuiDisable();
+            }
             GUILayout.EndHorizontal();
             if (selectionMode == 0)
             {
