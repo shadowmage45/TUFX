@@ -10,8 +10,6 @@ developers (exception: minor helper methods added).
 * No exceptions.  No OpenGL.  No DirectX12.  Definitely not DirectX9.
 * Any other requirements of the Unity Post Process package (look them up if interested)
 * KS3P will cause conflicts.  Choose one or the other.
-* Scatterer currently unsupported (it is not yet available for KSP 1.9+)
-* EVE currently unsupported (it is not yet available for KSP 1.9+)
 
 ## Installation:
 From the distributed .zip package, extract the contents of the 'GameData/' subfolder, and place 
