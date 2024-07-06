@@ -112,9 +112,9 @@ namespace TUFX
         /// Profile constructor, takes a ConfigNode containing the profile configuration.
         /// </summary>
         /// <param name="node"></param>
-        public TUFXProfile(ConfigNode node)
+        public TUFXProfile(UrlDir.UrlConfig config)
         {
-            LoadProfile(node);
+            LoadProfile(config.config);
         }
 
         /// <summary>

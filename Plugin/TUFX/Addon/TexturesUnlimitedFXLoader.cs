@@ -313,11 +313,9 @@ namespace TUFX
             //clear profiles in case of in-game reload
             Profiles.Clear();
             //grab all profiles detected in global scope config nodes, load them into local storage
-            ConfigNode[] profileConfigs = GameDatabase.Instance.GetConfigNodes("TUFX_PROFILE");
-            int len = profileConfigs.Length;
-            for (int i = 0; i < len; i++)
+            foreach (var profileConfig in GameDatabase.Instance.root.GetConfigs("TUFX_PROFILE"))
             {
-                TUFXProfile profile = new TUFXProfile(profileConfigs[i]);
+                TUFXProfile profile = new TUFXProfile(profileConfig);
                 if (!Profiles.ContainsKey(profile.ProfileName))
                 {
                     Profiles.Add(profile.ProfileName, profile);
