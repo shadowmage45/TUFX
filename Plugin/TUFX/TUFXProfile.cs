@@ -103,6 +103,8 @@ namespace TUFX
         /// </summary>
         public PostProcessLayer.Antialiasing AntiAliasing { get; set; }
 
+        private UrlDir.UrlConfig urlConfig;
+
         /// <summary>
         /// List of the override settings currently configured for this profile
         /// </summary>
@@ -114,6 +116,7 @@ namespace TUFX
         /// <param name="node"></param>
         public TUFXProfile(UrlDir.UrlConfig config)
         {
+            urlConfig = config;
             LoadProfile(config.config);
         }
 
@@ -153,6 +156,29 @@ namespace TUFX
                 }
             }
         }
+
+        public void SaveProfile()
+        {
+            try
+            {
+                ConfigNode node = new ConfigNode("TUFX_PROFILE");
+				SaveProfile(node);
+                urlConfig.config = node;
+				urlConfig.parent.SaveConfigs();
+            }
+            catch (Exception e)
+            {
+                Debug.LogException(e);
+            }
+        }
+
+        public void Export(StringBuilder builder)
+        {
+			ConfigNode node = new ConfigNode("TUFX_PROFILE");
+			SaveProfile(node);
+			builder.Append(node.ToString());
+			builder.AppendLine();
+		}
 
         /// <summary>
         /// Saves the Unity PostProcessProfile into the input config node.<para/>

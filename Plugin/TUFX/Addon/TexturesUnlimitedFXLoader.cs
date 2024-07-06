@@ -670,8 +670,7 @@ namespace TUFX
         {
             if (currentProfile != null)
             {
-                StringBuilder builder = exportProfile(currentProfile);
-                Log.log("Export of profile: " + CurrentProfileName + "\n" + builder.ToString());
+                currentProfile.SaveProfile();
             }
         }
 
@@ -686,27 +685,10 @@ namespace TUFX
             int len = profiles.Length;
             for (int i = 0; i < len; i++)
             {
-                exportProfile(profiles[i], builder);
+                profiles[i].Export(builder);
             }
             Log.log(builder.ToString());
         }
-
-        /// <summary>
-        /// Adds the config-node string representation to the input string builder, and returns the builder when finished.  If the input builder is null, a new instance will be created and returned.
-        /// </summary>
-        /// <param name="profile"></param>
-        /// <param name="builder"></param>
-        /// <returns></returns>
-        private StringBuilder exportProfile(TUFXProfile profile, StringBuilder builder = null)
-        {
-            if (builder == null) { builder = new StringBuilder(); }
-            ConfigNode node = new ConfigNode("TUFX_PROFILE");
-            profile.SaveProfile(node);
-            builder.Append(node.ToString());
-            builder.AppendLine();
-            return builder;
-        }
-
     }
 
 }
