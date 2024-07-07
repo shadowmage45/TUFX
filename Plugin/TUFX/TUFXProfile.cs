@@ -122,11 +122,7 @@ namespace TUFX
             LoadProfile(config.config);
         }
 
-        /// <summary>
-        /// Saves the profile into the input configuration node.
-        /// </summary>
-        /// <param name="node"></param>
-        public ConfigNode SaveProfile()
+        ConfigNode SaveToNode()
         {
 			ConfigNode node = new ConfigNode("TUFX_PROFILE");
 			node.SetValue("name", ProfileName, true);
@@ -147,11 +143,11 @@ namespace TUFX
             return node;
         }
 
-        public bool SaveProfileToDisk()
+        public bool SaveToDisk()
         {
             try
             {
-                urlConfig.config = SaveProfile();
+                urlConfig.config = SaveToNode();
 				urlConfig.parent.SaveConfigs();
                 return true;
 			}
@@ -163,11 +159,16 @@ namespace TUFX
             return false;
         }
 
+        public void ReloadFromNode()
+        {
+            LoadProfile(urlConfig.config);
+        }
+
         /// <summary>
         /// Loads the profile from the input configuration node.
         /// </summary>
         /// <param name="node"></param>
-        public void LoadProfile(ConfigNode node)
+        void LoadProfile(ConfigNode node)
         {
             ProfileName = node.GetStringValue("name");
             HDREnabled = node.GetBoolValue("hdr", false);

@@ -662,28 +662,6 @@ namespace TUFX
                 debugAppButton.toggleButton.Value = false;
             }
         }
-
-        /// <summary>
-        /// Exports the current/active profile to the log in KSP-CFG format.
-        /// </summary>
-        internal void saveCurrentProfile()
-        {
-            if (currentProfile != null)
-            {
-                currentProfile.SaveProfileToDisk();
-            }
-        }
-
-        /// <summary>
-        /// Exports all of the loaded profiles to the log in KSP-CFG format.
-        /// </summary>
-        internal void saveAllProfiles()
-        {
-            foreach (var profile in Profiles.Values)
-            {
-                profile.SaveProfileToDisk();
-            }
-        }
     }
 
 }

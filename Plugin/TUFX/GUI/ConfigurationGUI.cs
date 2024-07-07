@@ -82,53 +82,89 @@ namespace TUFX
             GUILayout.EndHorizontal();
         }
 
-        private void updateWindow(int id)
+        void DrawHeader()
         {
-            GUILayout.BeginHorizontal();
-            GUILayout.Label("Mode: ", GUILayout.Width(100));
-            GUIMode selectionMode = this.selectionMode;
-            if (selectionMode==GUIMode.SelectProfile)
-            {
-                GUILayout.Label("Selection", GUILayout.Width(100));
-                if (GUILayout.Button("Change to Edit Mode", GUILayout.Width(200)))
-                {
-                    this.selectionMode = GUIMode.EditProfile;
-                }
-            }
-            else if (selectionMode==GUIMode.EditProfile)
-            {
-                GUILayout.Label("Edit", GUILayout.Width(100));
-                if (GUILayout.Button("Change to Select Mode", GUILayout.Width(200)))
-                {
-                    this.selectionMode = GUIMode.SelectProfile;
-                }
-            }
-            else //texture or spline edit modes
-            {
-                GUILayout.Label("Parameter", GUILayout.Width(100));
-                if (GUILayout.Button("Return to Edit Mode", GUILayout.Width(200)))
-                {
-                    this.selectionMode = GUIMode.EditProfile;
-                    this.textures.Clear();
-                    this.effect = this.property = this.texture = string.Empty;
-                    textureUpdateCallback = null;
-                }
-            }
-            if (GUILayout.Button("Save Selected", GUILayout.Width(170)))
-            {
-                TexturesUnlimitedFXLoader.INSTANCE.saveCurrentProfile();
-				ScreenMessages.PostScreenMessage("<color=orange>Saved selected profile to cfg</color>", 5f, ScreenMessageStyle.UPPER_LEFT);
+            var currentProfile = TexturesUnlimitedFXLoader.INSTANCE.CurrentProfile;
+            var allProfilers = TexturesUnlimitedFXLoader.INSTANCE.Profiles;
+
+			GUILayout.BeginHorizontal();
+			GUILayout.Label("Mode: ", GUILayout.Width(100));
+			GUIMode selectionMode = this.selectionMode;
+			if (selectionMode == GUIMode.SelectProfile)
+			{
+				GUILayout.Label("Selection", GUILayout.Width(100));
+				if (GUILayout.Button("Change to Edit Mode"))
+				{
+					this.selectionMode = GUIMode.EditProfile;
+				}
 			}
-            if (GUILayout.Button("Save All"))
+			else if (selectionMode == GUIMode.EditProfile)
+			{
+				GUILayout.Label("Edit", GUILayout.Width(100));
+				if (GUILayout.Button("Change to Select Mode", GUILayout.Width(200)))
+				{
+					this.selectionMode = GUIMode.SelectProfile;
+				}
+			}
+			else //texture or spline edit modes
+			{
+				GUILayout.Label("Parameter", GUILayout.Width(100));
+				if (GUILayout.Button("Return to Edit Mode", GUILayout.Width(200)))
+				{
+					this.selectionMode = GUIMode.EditProfile;
+					this.textures.Clear();
+					this.effect = this.property = this.texture = string.Empty;
+					textureUpdateCallback = null;
+				}
+			}
+
+            // save current / reload current
+            if (selectionMode <= GUIMode.EditProfile && currentProfile != null)
             {
-                TexturesUnlimitedFXLoader.INSTANCE.saveAllProfiles();
-                ScreenMessages.PostScreenMessage("<color=orange>Saved all profiles to cfg files</color>", 5f, ScreenMessageStyle.UPPER_LEFT);
+                if (GUILayout.Button("Save Selected"))
+                {
+                    currentProfile.SaveToDisk();
+                    ScreenMessages.PostScreenMessage("<color=orange>Saved selected profile to cfg</color>", 5f, ScreenMessageStyle.UPPER_LEFT);
+                }
+                if (GUILayout.Button("Reload Selected"))
+                {
+                    currentProfile.ReloadFromNode();
+                    TexturesUnlimitedFXLoader.INSTANCE.RefreshCameras();
+                }
             }
-            if (GUILayout.Button("Close Window"))
+
+            if (selectionMode == GUIMode.SelectProfile)
             {
-                TexturesUnlimitedFXLoader.INSTANCE.configGuiDisable();
+                if (GUILayout.Button("Save All"))
+                {
+					foreach (var profile in allProfilers.Values)
+					{
+						profile.SaveToDisk();
+					}
+                    ScreenMessages.PostScreenMessage("<color=orange>Saved all profiles to cfg files</color>", 5f, ScreenMessageStyle.UPPER_LEFT);
+                }
+                if (GUILayout.Button("Reload All"))
+                {
+                    foreach (var profile in allProfilers.Values)
+                    {
+                        profile.ReloadFromNode();
+                    }
+					TexturesUnlimitedFXLoader.INSTANCE.RefreshCameras();
+				}
             }
-            GUILayout.EndHorizontal();
+
+			if (GUILayout.Button("Close Window"))
+			{
+				TexturesUnlimitedFXLoader.INSTANCE.configGuiDisable();
+			}
+			GUILayout.EndHorizontal();
+
+		}
+
+		private void updateWindow(int id)
+        {
+            DrawHeader();
+
             if (selectionMode == 0)
             {
                 renderSelectionWindow();
@@ -183,13 +219,6 @@ namespace TUFX
                 GUILayout.EndHorizontal();
                 return;
             }
-            //display big ugly warning that changes made here are NOT permanent
-            Color c = GUI.contentColor;
-            GUI.contentColor = Color.red;
-            GUILayout.BeginHorizontal();
-            GUILayout.Label("Changes made in-game are not persistent.  You must export the profile and update the config files to make the changes permanent.");
-            GUILayout.EndHorizontal();
-            GUI.contentColor = c;
             editScrollPos = GUILayout.BeginScrollView(editScrollPos, false, true, (GUILayoutOption[])null);
             renderGeneralSettings();
             renderAmbientOcclusionSettings();
