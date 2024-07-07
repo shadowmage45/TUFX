@@ -670,7 +670,7 @@ namespace TUFX
         {
             if (currentProfile != null)
             {
-                currentProfile.SaveProfile();
+                currentProfile.SaveProfileToDisk();
             }
         }
 
@@ -681,7 +681,7 @@ namespace TUFX
         {
             foreach (var profile in Profiles.Values)
             {
-                profile.SaveProfile();
+                profile.SaveProfileToDisk();
             }
         }
     }

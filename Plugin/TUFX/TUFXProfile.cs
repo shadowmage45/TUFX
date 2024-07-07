@@ -123,20 +123,13 @@ namespace TUFX
         }
 
         /// <summary>
-        /// Profile constructor for a blank and empty profile -- no settings
-        /// </summary>
-        public TUFXProfile()
-        {
-
-        }
-
-        /// <summary>
         /// Saves the profile into the input configuration node.
         /// </summary>
         /// <param name="node"></param>
-        public void SaveProfile(ConfigNode node)
+        public ConfigNode SaveProfile()
         {
-            node.SetValue("name", ProfileName, true);
+			ConfigNode node = new ConfigNode("TUFX_PROFILE");
+			node.SetValue("name", ProfileName, true);
             node.SetValue("hdr", HDREnabled, true);
             node.SetValue("antialiasing", AntiAliasing.ToString(), true);
             int len = Settings.Count;
@@ -150,15 +143,15 @@ namespace TUFX
                     node.AddNode(effectNode);
                 }
             }
+
+            return node;
         }
 
-        public bool SaveProfile()
+        public bool SaveProfileToDisk()
         {
             try
             {
-                ConfigNode node = new ConfigNode("TUFX_PROFILE");
-				SaveProfile(node);
-                urlConfig.config = node;
+                urlConfig.config = SaveProfile();
 				urlConfig.parent.SaveConfigs();
                 return true;
 			}
@@ -190,20 +183,6 @@ namespace TUFX
                 set.Load(effectNodes[i]);
                 Settings.Add(set);
             }
-        }
-
-        /// <summary>
-        /// Adds the settings from this profile to the input PostProcessVolume
-        /// </summary>
-        /// <param name="volume"></param>
-        public void Enable(PostProcessVolume volume)
-        {
-            int len = Settings.Count;
-            for (int i = 0; i < len; i++)
-            {
-                volume.sharedProfile.settings.Add(Settings[i]);
-            }
-            volume.sharedProfile.isDirty = true;
         }
 
         /// <summary>
