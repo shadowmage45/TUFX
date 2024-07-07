@@ -44,7 +44,15 @@ namespace TUFX
         /// </summary>
         private Action<Texture2D> textureUpdateCallback = null;
 
-        private int selectionMode = 0;
+        enum GUIMode
+        {
+            SelectProfile,
+            EditProfile,
+            SelectTexture,
+            EditSpline,
+        }
+
+        private GUIMode selectionMode = 0;
 
         public void Awake()
         {
@@ -78,29 +86,29 @@ namespace TUFX
         {
             GUILayout.BeginHorizontal();
             GUILayout.Label("Mode: ", GUILayout.Width(100));
-            int selectionMode = this.selectionMode;
-            if (selectionMode==0)
+            GUIMode selectionMode = this.selectionMode;
+            if (selectionMode==GUIMode.SelectProfile)
             {
                 GUILayout.Label("Selection", GUILayout.Width(100));
                 if (GUILayout.Button("Change to Edit Mode", GUILayout.Width(200)))
                 {
-                    this.selectionMode = 1;
+                    this.selectionMode = GUIMode.EditProfile;
                 }
             }
-            else if(selectionMode==1)
+            else if (selectionMode==GUIMode.EditProfile)
             {
                 GUILayout.Label("Edit", GUILayout.Width(100));
                 if (GUILayout.Button("Change to Select Mode", GUILayout.Width(200)))
                 {
-                    this.selectionMode = 0;
+                    this.selectionMode = GUIMode.SelectProfile;
                 }
             }
-            else if (selectionMode >=2)//texture or spline edit modes
+            else //texture or spline edit modes
             {
                 GUILayout.Label("Parameter", GUILayout.Width(100));
                 if (GUILayout.Button("Return to Edit Mode", GUILayout.Width(200)))
                 {
-                    this.selectionMode = 1;
+                    this.selectionMode = GUIMode.EditProfile;
                     this.textures.Clear();
                     this.effect = this.property = this.texture = string.Empty;
                     textureUpdateCallback = null;
@@ -110,7 +118,7 @@ namespace TUFX
             {
                 TexturesUnlimitedFXLoader.INSTANCE.saveCurrentProfile();
 				ScreenMessages.PostScreenMessage("<color=orange>Saved selected profile to cfg</color>", 5f, ScreenMessageStyle.UPPER_LEFT);
-            }
+			}
             if (GUILayout.Button("Save All"))
             {
                 TexturesUnlimitedFXLoader.INSTANCE.saveAllProfiles();
@@ -125,15 +133,15 @@ namespace TUFX
             {
                 renderSelectionWindow();
             }
-            else if (selectionMode == 1)
+            else if (selectionMode == GUIMode.EditProfile)
             {
                 renderConfigurationWindow();
             }
-            else if (selectionMode == 2)
+            else if (selectionMode == GUIMode.SelectTexture)
             {
                 renderTextureSelectWindow();
             }
-            else if (selectionMode == 3)
+            else if (selectionMode == GUIMode.EditSpline)
             {
                 renderSplineConfigurationWindow();
             }
@@ -233,7 +241,7 @@ namespace TUFX
             TUFXEffectTextureList list;
             if (!TexturesUnlimitedFXLoader.INSTANCE.EffectTextureLists.TryGetValue(effectName, out list))
             {
-                this.selectionMode = 1;
+                this.selectionMode = GUIMode.EditProfile;
                 return;
             }
             textures.AddRange(list.GetTextures(propertyName));
@@ -943,7 +951,7 @@ namespace TUFX
                 string texLabel = param.value == null ? "Nothing selected" : param.value.name;
                 if (GUILayout.Button(texLabel, GUILayout.Width(440)))
                 {
-                    this.selectionMode = 2;
+                    this.selectionMode = GUIMode.SelectTexture;
                     this.texScrollPos = new Vector2();
                     Action<Texture2D> update = (a) => 
                     {
