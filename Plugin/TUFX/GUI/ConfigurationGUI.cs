@@ -59,6 +59,8 @@ namespace TUFX
             windowID = GetInstanceID();
             profileNames.Clear();
             profileNames.AddRange(TexturesUnlimitedFXLoader.INSTANCE.Profiles.Keys);
+            settingsStyle = new GUIStyle();
+            settingsStyle.border = new RectOffset(1, 1, 1, 1);
         }
 
         public void OnGUI()
@@ -284,7 +286,7 @@ namespace TUFX
 
         private void renderGeneralSettings()
         {
-            string hash = this.GetHashCode().ToString();
+            string hash = "GeneralSettings";
             if (!effectBoolStorage.TryGetValue(hash, out bool showProps))
             {
                 showProps = true;
@@ -359,9 +361,7 @@ namespace TUFX
                 AddFloatParameter("DirectLightStr", ao.directLightingStrength, 0, 1);
                 AddFloatParameter("Radius", ao.radius, 0, 1);
             }
-            GUILayout.BeginHorizontal();
-            GUILayout.Label("---------------------------------------");
-            GUILayout.EndHorizontal();
+            GUILayout.EndVertical();
         }
 
         private void renderAutoExposureSettings()
@@ -379,9 +379,7 @@ namespace TUFX
                 AddFloatParameter("Speed Up", ae.speedUp, 0, 10);
                 AddFloatParameter("Speed Down", ae.speedDown, 0, 10);
             }
-            GUILayout.BeginHorizontal();
-            GUILayout.Label("---------------------------------------");
-            GUILayout.EndHorizontal();
+            GUILayout.EndVertical();
         }
 
         private void renderBloomSettings()
@@ -402,9 +400,7 @@ namespace TUFX
                 AddTextureParameter("Dirt Texture", bl.dirtTexture, BuiltinEffect.Bloom.ToString(), "DirtTexture");
                 AddFloatParameter("Dirt Intensity", bl.dirtIntensity, 0, 2);
             }
-            GUILayout.BeginHorizontal();
-            GUILayout.Label("---------------------------------------");
-            GUILayout.EndHorizontal();
+            GUILayout.EndVertical();
         }
 
         private void renderChromaticAberrationSettings()
@@ -418,9 +414,7 @@ namespace TUFX
                 AddFloatParameter("Intensity", ca.intensity, 0, 1);
                 AddBoolParameter("Fast Mode", ca.fastMode);
             }
-            GUILayout.BeginHorizontal();
-            GUILayout.Label("---------------------------------------");
-            GUILayout.EndHorizontal();
+            GUILayout.EndVertical();
         }
 
         private void renderColorGradingSettings()
@@ -489,9 +483,7 @@ namespace TUFX
                 AddSplineParameter("SatVsSatCurve", cg.satVsSatCurve);
                 AddSplineParameter("LumVsSatCurve", cg.lumVsSatCurve);
             }
-            GUILayout.BeginHorizontal();
-            GUILayout.Label("---------------------------------------");
-            GUILayout.EndHorizontal();
+            GUILayout.EndVertical();
         }
 
         private void renderDepthOfFieldSettings()
@@ -507,9 +499,7 @@ namespace TUFX
                 AddEnumParameter("Kernel Size", df.kernelSize);
                 AddBoolParameter("Use Camera Fov", df.useCameraFov);
             }
-            GUILayout.BeginHorizontal();
-            GUILayout.Label("---------------------------------------");
-            GUILayout.EndHorizontal();
+            GUILayout.EndVertical();
         }
 
         private void renderGrainSettings()
@@ -524,9 +514,7 @@ namespace TUFX
                 AddFloatParameter("Size", gr.size, 0.3f, 3f);
                 AddFloatParameter("Lum. Contrib", gr.lumContrib, 0, 1);
             }
-            GUILayout.BeginHorizontal();
-            GUILayout.Label("---------------------------------------");
-            GUILayout.EndHorizontal();
+            GUILayout.EndVertical();
         }
 
         private void renderLensDistortionSettings()
@@ -543,9 +531,7 @@ namespace TUFX
                 AddFloatParameter("CenterY", ld.centerY, -1, 1);
                 AddFloatParameter("Scale", ld.scale, 0.01f, 5f);
             }
-            GUILayout.BeginHorizontal();
-            GUILayout.Label("---------------------------------------");
-            GUILayout.EndHorizontal();
+            GUILayout.EndVertical();
         }
 
         private void renderMotionBlurSettings()
@@ -558,9 +544,7 @@ namespace TUFX
                 AddFloatParameter("Shutter Angle", mb.shutterAngle, 0f, 360f);
                 AddIntParameter("Sample Count", mb.sampleCount, 4, 32);
             }
-            GUILayout.BeginHorizontal();
-            GUILayout.Label("---------------------------------------");
-            GUILayout.EndHorizontal();
+            GUILayout.EndVertical();
         }
 
         private void renderScatteringSettings()
@@ -577,9 +561,7 @@ namespace TUFX
             {
                 AddFloatParameter("Exposure", sc.Exposure, 0f, 50f);
             }
-            GUILayout.BeginHorizontal();
-            GUILayout.Label("---------------------------------------");
-            GUILayout.EndHorizontal();
+            GUILayout.EndVertical();
             //Log.debug("SC end");
         }
 
@@ -600,55 +582,47 @@ namespace TUFX
                 AddTextureParameter("Mask", vg.mask, BuiltinEffect.Vignette.ToString(), "Mask");
                 AddFloatParameter("Opacity", vg.opacity, 0, 1);
             }
-            GUILayout.BeginHorizontal();
-            GUILayout.Label("---------------------------------------");
-            GUILayout.EndHorizontal();
+            GUILayout.EndVertical();
         }
 
         #endregion
 
         #region REGION - Parameter Rendering Methods
 
+        GUIStyle settingsStyle;
+
         private bool AddEffectHeader<T>(string label, T effect) where T : PostProcessEffectSettings
         {
+            GUILayout.BeginVertical(settingsStyle);
             GUILayout.BeginHorizontal();
             GUILayout.Label("----- " + label, GUILayout.Width(200));
-            bool enabled = effect != null && effect.enabled;
+            bool wasEnabled = effect != null && effect.enabled;
             bool showProps = true;
-            if (enabled) //if it is enabled, draw button to disable it
+
+            bool enabled = GUILayout.Toggle(wasEnabled, "Enabled");
+
+            if (enabled && !wasEnabled && effect == null)
             {
-                if (GUILayout.Button("Disable", GUILayout.Width(100)))
-                {
-                    effect.enabled.Override(false);
-                }
-                string hash = effect.GetHashCode().ToString();
+                effect = ScriptableObject.CreateInstance<T>();
+                TexturesUnlimitedFXLoader.INSTANCE.CurrentProfile.Settings.Add(effect);
+				TexturesUnlimitedFXLoader.INSTANCE.enableProfileForCurrentScene();
+			}
+
+            if (effect)
+            {
+                effect.enabled.Override(enabled);
+            }
+
+            if (enabled)
+            {
+                string hash = effect.GetType().Name;
                 if (!effectBoolStorage.TryGetValue(hash, out showProps))
                 {
                     showProps = true;
-                    effectBoolStorage.Add(hash, true);
+					effectBoolStorage.Add(hash, true);
                 }
-                if (GUILayout.Button((showProps ? "Hide Props" : "Show Props"), GUILayout.Width(110)))
-                {
-                    showProps = !showProps;
-                    effectBoolStorage[hash] = showProps;
-                }
-            }
-            else //else draw the button to enable it
-            {
-                if (GUILayout.Button("Enable", GUILayout.Width(100)))
-                {
-                    if (effect != null)
-                    {
-                        effect.enabled.Override(true);
-                    }
-                    else
-                    {
-                        effect = ScriptableObject.CreateInstance<T>();
-                        effect.enabled.Override(true);
-                        TexturesUnlimitedFXLoader.INSTANCE.CurrentProfile.Settings.Add(effect);
-                        TexturesUnlimitedFXLoader.INSTANCE.enableProfileForCurrentScene();
-                    }
-                }
+                showProps = GUILayout.Toggle(showProps, "Show Props");
+                effectBoolStorage[hash] = showProps;
             }
             GUILayout.EndHorizontal();
             return showProps;
