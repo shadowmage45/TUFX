@@ -106,15 +106,15 @@ namespace TUFX
                     textureUpdateCallback = null;
                 }
             }
-            if (GUILayout.Button("Export Selected", GUILayout.Width(170)))
+            if (GUILayout.Button("Save Selected", GUILayout.Width(170)))
             {
-                TexturesUnlimitedFXLoader.INSTANCE.exportCurrentProfile();
-                ScreenMessages.PostScreenMessage("<color=orange>Exported selected profile to KSP.log</color>", 5f, ScreenMessageStyle.UPPER_LEFT);
+                TexturesUnlimitedFXLoader.INSTANCE.saveCurrentProfile();
+				ScreenMessages.PostScreenMessage("<color=orange>Saved selected profile to cfg</color>", 5f, ScreenMessageStyle.UPPER_LEFT);
             }
-            if (GUILayout.Button("Export All"))
+            if (GUILayout.Button("Save All"))
             {
-                TexturesUnlimitedFXLoader.INSTANCE.exportAllProfiles();
-                ScreenMessages.PostScreenMessage("<color=orange>Exported all profiles to KSP.log</color>", 5f, ScreenMessageStyle.UPPER_LEFT);
+                TexturesUnlimitedFXLoader.INSTANCE.saveAllProfiles();
+                ScreenMessages.PostScreenMessage("<color=orange>Saved all profiles to cfg files</color>", 5f, ScreenMessageStyle.UPPER_LEFT);
             }
             if (GUILayout.Button("Close Window"))
             {

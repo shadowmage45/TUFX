@@ -105,6 +105,8 @@ namespace TUFX
 
         private UrlDir.UrlConfig urlConfig;
 
+        public string CfgPath => urlConfig.parent.url;
+
         /// <summary>
         /// List of the override settings currently configured for this profile
         /// </summary>
@@ -134,14 +136,7 @@ namespace TUFX
         /// <param name="node"></param>
         public void SaveProfile(ConfigNode node)
         {
-            if (ProfileName.StartsWith("Default-"))//provide in-config file warning for people to not trample on the default configs...
-            {
-                node.SetValue("name", ProfileName, "Current profile name.  Please make copies of the default profiles and specify new names if you wish to change settings.", true);
-            }
-            else
-            {
-                node.SetValue("name", ProfileName, true);
-            }
+            node.SetValue("name", ProfileName, true);
             node.SetValue("hdr", HDREnabled, true);
             node.SetValue("antialiasing", AntiAliasing.ToString(), true);
             int len = Settings.Count;
@@ -157,7 +152,7 @@ namespace TUFX
             }
         }
 
-        public void SaveProfile()
+        public bool SaveProfile()
         {
             try
             {
@@ -165,43 +160,14 @@ namespace TUFX
 				SaveProfile(node);
                 urlConfig.config = node;
 				urlConfig.parent.SaveConfigs();
-            }
+                return true;
+			}
             catch (Exception e)
             {
                 Debug.LogException(e);
             }
-        }
 
-        public void Export(StringBuilder builder)
-        {
-			ConfigNode node = new ConfigNode("TUFX_PROFILE");
-			SaveProfile(node);
-			builder.Append(node.ToString());
-			builder.AppendLine();
-		}
-
-        /// <summary>
-        /// Saves the Unity PostProcessProfile into the input config node.<para/>
-        /// It may or may not have a valid 'name' field, depending upon the name of the input profile.
-        /// </summary>
-        /// <param name="profile"></param>
-        /// <param name="node"></param>
-        public static void SaveProfile(PostProcessProfile profile, ConfigNode node)
-        {
-            node.SetValue("name", profile.name, true);
-            node.SetValue("hdr", false, true);
-            node.SetValue("antialiasing", PostProcessLayer.Antialiasing.None.ToString());
-            int len = profile.settings.Count;
-            for (int i = 0; i < len; i++)
-            {
-                if (profile.settings[i].enabled)
-                {
-                    ConfigNode effectNode = new ConfigNode("EFFECT");
-                    effectNode.SetValue("name", TUFXProfileManager.GetBuiltinEffect(profile.settings[i]).ToString(), true);
-                    profile.settings[i].Save(effectNode);
-                    node.AddNode(effectNode);
-                }
-            }
+            return false;
         }
 
         /// <summary>

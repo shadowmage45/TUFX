@@ -666,7 +666,7 @@ namespace TUFX
         /// <summary>
         /// Exports the current/active profile to the log in KSP-CFG format.
         /// </summary>
-        internal void exportCurrentProfile()
+        internal void saveCurrentProfile()
         {
             if (currentProfile != null)
             {
@@ -677,17 +677,12 @@ namespace TUFX
         /// <summary>
         /// Exports all of the loaded profiles to the log in KSP-CFG format.
         /// </summary>
-        internal void exportAllProfiles()
+        internal void saveAllProfiles()
         {
-            StringBuilder builder = new StringBuilder();
-            builder.AppendLine("Export of all profiles:");
-            TUFXProfile[] profiles = Profiles.Values.ToArray();
-            int len = profiles.Length;
-            for (int i = 0; i < len; i++)
+            foreach (var profile in Profiles.Values)
             {
-                profiles[i].Export(builder);
+                profile.SaveProfile();
             }
-            Log.log(builder.ToString());
         }
     }
 
