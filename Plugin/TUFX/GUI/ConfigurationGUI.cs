@@ -59,8 +59,6 @@ namespace TUFX
             windowID = GetInstanceID();
             profileNames.Clear();
             profileNames.AddRange(TexturesUnlimitedFXLoader.INSTANCE.Profiles.Keys);
-            settingsStyle = new GUIStyle();
-            settingsStyle.border = new RectOffset(1, 1, 1, 1);
         }
 
         public void OnGUI()
@@ -331,8 +329,7 @@ namespace TUFX
 
         private void renderAmbientOcclusionSettings()
         {
-            AmbientOcclusion ao = TexturesUnlimitedFXLoader.INSTANCE.CurrentProfile.GetSettingsFor<AmbientOcclusion>();
-            bool showProps = AddEffectHeader("Ambient Occlusion", ao);
+            bool showProps = AddEffectHeader("Ambient Occlusion", out AmbientOcclusion ao);
             if (showProps)
             {
                 AddEnumParameter("Mode", ao.mode);
@@ -352,8 +349,7 @@ namespace TUFX
 
         private void renderAutoExposureSettings()
         {
-            AutoExposure ae = TexturesUnlimitedFXLoader.INSTANCE.CurrentProfile.GetSettingsFor<AutoExposure>();
-            bool showProps = AddEffectHeader("Auto Exposure", ae);
+            bool showProps = AddEffectHeader("Auto Exposure", out AutoExposure ae);
             if (showProps)
             {
                 AddVector2Parameter("Filtering", ae.filtering);
@@ -369,8 +365,7 @@ namespace TUFX
 
         private void renderBloomSettings()
         {
-            Bloom bl = TexturesUnlimitedFXLoader.INSTANCE.CurrentProfile.GetSettingsFor<Bloom>();
-            bool showProps = AddEffectHeader("Bloom", bl);
+            bool showProps = AddEffectHeader("Bloom", out Bloom bl);
             if (showProps)
             {
                 AddFloatParameter("Intensity", bl.intensity, 0, 10);
@@ -389,8 +384,7 @@ namespace TUFX
 
         private void renderChromaticAberrationSettings()
         {
-            ChromaticAberration ca = TexturesUnlimitedFXLoader.INSTANCE.CurrentProfile.GetSettingsFor<ChromaticAberration>();
-            bool showProps = AddEffectHeader("Chromatic Aberration", ca);
+            bool showProps = AddEffectHeader("Chromatic Aberration", out ChromaticAberration ca);
             if (showProps)
             {
                 AddTextureParameter("Spectral LUT", ca.spectralLut, BuiltinEffect.ChromaticAberration.ToString(), "SpectralLut");
@@ -402,8 +396,7 @@ namespace TUFX
 
         private void renderColorGradingSettings()
         {
-            ColorGrading cg = TexturesUnlimitedFXLoader.INSTANCE.CurrentProfile.GetSettingsFor<ColorGrading>();
-            bool showProps = AddEffectHeader("Color Grading", cg);
+            bool showProps = AddEffectHeader("Color Grading", out ColorGrading cg);
             if (showProps)
             {
                 AddEnumParameter("Mode", cg.gradingMode);
@@ -470,8 +463,7 @@ namespace TUFX
 
         private void renderDepthOfFieldSettings()
         {
-            DepthOfField df = TexturesUnlimitedFXLoader.INSTANCE.CurrentProfile.GetSettingsFor<DepthOfField>();
-            bool showProps = AddEffectHeader("Depth Of Field", df);
+            bool showProps = AddEffectHeader("Depth Of Field", out DepthOfField df);
             if (showProps)
             {
                 AddFloatParameter("Focus Distance", df.focusDistance, 0.1f, 64000);
@@ -485,8 +477,7 @@ namespace TUFX
 
         private void renderGrainSettings()
         {
-            Grain gr = TexturesUnlimitedFXLoader.INSTANCE.CurrentProfile.GetSettingsFor<Grain>();
-            bool showProps = AddEffectHeader("Grain", gr);
+            bool showProps = AddEffectHeader("Grain", out Grain gr);
             if (showProps)
             {
                 AddBoolParameter("Colored", gr.colored);
@@ -499,8 +490,7 @@ namespace TUFX
 
         private void renderLensDistortionSettings()
         {
-            LensDistortion ld = TexturesUnlimitedFXLoader.INSTANCE.CurrentProfile.GetSettingsFor<LensDistortion>();
-            bool showProps = AddEffectHeader("Lens Distortion", ld);
+            bool showProps = AddEffectHeader("Lens Distortion", out LensDistortion ld);
             if (showProps)
             {
                 AddFloatParameter("Intensity", ld.intensity, -100, 100);
@@ -515,8 +505,7 @@ namespace TUFX
 
         private void renderMotionBlurSettings()
         {
-            MotionBlur mb = TexturesUnlimitedFXLoader.INSTANCE.CurrentProfile.GetSettingsFor<MotionBlur>();
-            bool showProps = AddEffectHeader("Motion Blur", mb);
+            bool showProps = AddEffectHeader("Motion Blur", out MotionBlur mb);
             if (showProps)
             {
                 AddFloatParameter("Shutter Angle", mb.shutterAngle, 0f, 360f);
@@ -528,8 +517,7 @@ namespace TUFX
         private void renderScatteringSettings()
         {
             //Log.debug("SC start");
-            TUBISEffect sc = TexturesUnlimitedFXLoader.INSTANCE.CurrentProfile.GetSettingsFor<TUBISEffect>();
-            bool showProps = AddEffectHeader("Scattering", sc);
+            bool showProps = AddEffectHeader("Scattering", out TUBISEffect sc);
             //if (enabled != sc.enabled)
             //{
             //    //TODO
@@ -544,8 +532,7 @@ namespace TUFX
 
         private void renderVignetteSettings()
         {
-            Vignette vg = TexturesUnlimitedFXLoader.INSTANCE.CurrentProfile.GetSettingsFor<Vignette>();
-            bool showProps = AddEffectHeader("Vignette", vg);
+            bool showProps = AddEffectHeader("Vignette", out Vignette vg);
             if (showProps)
             {
                 AddEnumParameter("Mode", vg.mode);
@@ -564,8 +551,6 @@ namespace TUFX
         #endregion
 
         #region REGION - Parameter Rendering Methods
-
-        GUIStyle settingsStyle;
 
         private bool DrawGroupHeader(string label, ref bool enabled)
         {
@@ -591,8 +576,10 @@ namespace TUFX
             return showProps && enabled;
         }
 
-		private bool AddEffectHeader<T>(string label, T effect) where T : PostProcessEffectSettings
+		private bool AddEffectHeader<T>(string label, out T effect) where T : PostProcessEffectSettings
         {
+            effect = TexturesUnlimitedFXLoader.INSTANCE.CurrentProfile.GetSettingsFor<T>();
+
             bool effectEnabled = effect != null && effect.enabled;
             bool showProps = DrawGroupHeader(label, ref effectEnabled);
 
@@ -612,27 +599,22 @@ namespace TUFX
             return showProps;
         }
 
-        /// <summary>
-        /// Fun with generics...
-        /// </summary>
-        /// <typeparam name="Tenum"></typeparam>
-        /// <param name="label"></param>
-        /// <param name="param"></param>
-        private void AddEnumParameter<Tenum>(string label, ParameterOverride<Tenum> param)
+        bool DrawParamToggle(string label, ParameterOverride param)
+        {
+			param.overrideState = GUILayout.Toggle(param.overrideState, label, GUILayout.Width(200), GUILayout.Height(22));
+            return param.overrideState;
+		}
+
+		private void AddEnumParameter<Tenum>(string label, ParameterOverride<Tenum> param)
         {
             Tenum value = param.value;
             Type type = value.GetType();
             Tenum[] values = (Tenum[])Enum.GetValues(type);
             int index = values.IndexOf(value);
+
             GUILayout.BeginHorizontal();
-            GUILayout.Label(label, GUILayout.Width(200));
-            bool enabled = param.overrideState;
-            if (enabled)
+			if (DrawParamToggle(label, param))
             {
-                if (GUILayout.Button("Disable", GUILayout.Width(100)))
-                {
-                    param.overrideState = false;
-                }
                 if (GUILayout.Button("<", GUILayout.Width(110)))
                 {
                     index--;
@@ -647,13 +629,7 @@ namespace TUFX
                     param.Override(values[index]);
                 }
             }
-            else
-            {
-                if (GUILayout.Button("Enable", GUILayout.Width(100)))
-                {
-                    param.overrideState = true;
-                }
-            }
+            
             GUILayout.EndHorizontal();
         }
 
@@ -684,24 +660,12 @@ namespace TUFX
         private void AddBoolParameter(string label, ParameterOverride<bool> param)
         {
             GUILayout.BeginHorizontal();
-            GUILayout.Label(label, GUILayout.Width(200));
-            bool enabled = param.overrideState;
-            if (enabled)
+
+            if (DrawParamToggle(label, param))
             {
-                if (GUILayout.Button("Disable", GUILayout.Width(100)))
-                {
-                    param.overrideState = false;
-                }
                 if (GUILayout.Button(param.value.ToString(), GUILayout.Width(110)))
                 {
                     param.value = !param.value;
-                }
-            }
-            else
-            {
-                if (GUILayout.Button("Enable", GUILayout.Width(100)))
-                {
-                    param.overrideState = true;
                 }
             }
             GUILayout.EndHorizontal();
@@ -710,15 +674,9 @@ namespace TUFX
         private void AddIntParameter(string label, ParameterOverride<int> param, int min, int max)
         {
             GUILayout.BeginHorizontal();
-            GUILayout.Label(label, GUILayout.Width(200));
-            bool enabled = param.overrideState;
-            if (enabled)
+            if (DrawParamToggle(label, param))
             {
                 string hash = param.GetHashCode().ToString();
-                if (GUILayout.Button("Disable", GUILayout.Width(100)))
-                {
-                    param.overrideState = false;
-                }
                 string textValue = string.Empty;
                 if (propertyStringStorage.ContainsKey(hash))
                 {
@@ -753,28 +711,15 @@ namespace TUFX
                     propertyFloatStorage[hash] = sliderValue2;
                 }
             }
-            else
-            {
-                if (GUILayout.Button("Enable", GUILayout.Width(100)))
-                {
-                    param.overrideState = true;
-                }
-            }
             GUILayout.EndHorizontal();
         }
 
         private void AddFloatParameter(string label, ParameterOverride<float> param, float min, float max)
         {
             GUILayout.BeginHorizontal();
-            GUILayout.Label(label, GUILayout.Width(200));
-            bool enabled = param.overrideState;
-            if (enabled)
+            if (DrawParamToggle(label, param))
             {
                 string hash = param.GetHashCode().ToString();
-                if (GUILayout.Button("Disable", GUILayout.Width(100)))
-                {
-                    param.overrideState = false;
-                }
                 string textValue = string.Empty;
                 if (propertyStringStorage.ContainsKey(hash))
                 {
@@ -803,39 +748,19 @@ namespace TUFX
                     propertyStringStorage[hash] = textValue;
                 }
             }
-            else
-            {
-                if (GUILayout.Button("Enable", GUILayout.Width(100)))
-                {
-                    param.overrideState = true;
-                }
-            }
             GUILayout.EndHorizontal();
         }
 
         private void AddColorParameter(string label, ParameterOverride<Color> param)
         {
             GUILayout.BeginHorizontal();
-            GUILayout.Label(label, GUILayout.Width(200));
-            bool enabled = param.overrideState;
-            if (enabled)
+            if (DrawParamToggle(label, param))
             {
                 string hash = param.GetHashCode().ToString();
-                if (GUILayout.Button("Disable", GUILayout.Width(100)))
-                {
-                    param.overrideState = false;
-                }
                 AddColorInput("Red", hash, ref param.value.r);
                 AddColorInput("Green", hash, ref param.value.g);
                 AddColorInput("Blue", hash, ref param.value.b);
                 AddColorInput("Alpha", hash, ref param.value.a);
-            }
-            else
-            {
-                if (GUILayout.Button("Enable", GUILayout.Width(100)))
-                {
-                    param.overrideState = true;
-                }
             }
             GUILayout.EndHorizontal();
         }
@@ -868,24 +793,11 @@ namespace TUFX
         private void AddVector2Parameter(string label, ParameterOverride<Vector2> param)
         {
             GUILayout.BeginHorizontal();
-            GUILayout.Label(label, GUILayout.Width(200));
-            bool enabled = param.overrideState;
-            if (enabled)
+            if (DrawParamToggle(label, param))
             {
                 string hash = param.GetHashCode().ToString();
-                if (GUILayout.Button("Disable", GUILayout.Width(100)))
-                {
-                    param.overrideState = false;
-                }
                 AddColorInput("X", hash, ref param.value.x);
                 AddColorInput("Y", hash, ref param.value.y);
-            }
-            else
-            {
-                if (GUILayout.Button("Enable", GUILayout.Width(100)))
-                {
-                    param.overrideState = true;
-                }
             }
             GUILayout.EndHorizontal();
         }
@@ -893,26 +805,13 @@ namespace TUFX
         private void AddVector4Parameter(string label, ParameterOverride<Vector4> param)
         {
             GUILayout.BeginHorizontal();
-            GUILayout.Label(label, GUILayout.Width(200));
-            bool enabled = param.overrideState;
-            if (enabled)
+            if (DrawParamToggle(label, param))
             {
                 string hash = param.GetHashCode().ToString();
-                if (GUILayout.Button("Disable", GUILayout.Width(100)))
-                {
-                    param.overrideState = false;
-                }
                 AddColorInput("X", hash, ref param.value.x);
                 AddColorInput("Y", hash, ref param.value.y);
                 AddColorInput("Z", hash, ref param.value.z);
                 AddColorInput("W", hash, ref param.value.w);
-            }
-            else
-            {
-                if (GUILayout.Button("Enable", GUILayout.Width(100)))
-                {
-                    param.overrideState = true;
-                }
             }
             GUILayout.EndHorizontal();
         }
@@ -927,14 +826,8 @@ namespace TUFX
         private void AddTextureParameter(string label, ParameterOverride<Texture> param, string effect, string paramName)
         {
             GUILayout.BeginHorizontal();
-            GUILayout.Label(label, GUILayout.Width(200));
-            bool enabled = param.overrideState;
-            if (enabled)
+            if (DrawParamToggle(label, param))
             {
-                if (GUILayout.Button("Disable", GUILayout.Width(100)))
-                {
-                    param.overrideState = false;
-                }
                 string texLabel = param.value == null ? "Nothing selected" : param.value.name;
                 if (GUILayout.Button(texLabel, GUILayout.Width(440)))
                 {
@@ -945,13 +838,6 @@ namespace TUFX
                         param.Override(a);
                     };
                     initializeTextureSelectMode(effect, paramName, texLabel, update);
-                }
-            }
-            else
-            {
-                if (GUILayout.Button("Enable", GUILayout.Width(100)))
-                {
-                    param.overrideState = true;
                 }
             }
             GUILayout.EndHorizontal();
