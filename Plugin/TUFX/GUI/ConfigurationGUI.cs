@@ -286,28 +286,15 @@ namespace TUFX
 
         private void renderGeneralSettings()
         {
-            string hash = "GeneralSettings";
-            if (!effectBoolStorage.TryGetValue(hash, out bool showProps))
-            {
-                showProps = true;
-                effectBoolStorage.Add(hash, true);
-            }
-            GUILayout.BeginHorizontal();
-            GUILayout.Label("----- General Settings", GUILayout.Width(300));
-            if (GUILayout.Button((showProps ? "Hide Props" : "Show Props"), GUILayout.Width(110)))
-            {
-                showProps = !showProps;
-                effectBoolStorage[hash] = showProps;
-            }
-            GUILayout.EndHorizontal();
+            bool enabled = true;
+            bool showProps = DrawGroupHeader("General Settings", ref enabled);
+
             if (showProps)
             {
                 renderHDRSettings();
                 renderAntialiasingSettings();
             }
-            GUILayout.BeginHorizontal();
-            GUILayout.Label("---------------------------------------");
-            GUILayout.EndHorizontal();
+            GUILayout.EndVertical();
         }
 
         private void renderHDRSettings()
@@ -345,9 +332,8 @@ namespace TUFX
         private void renderAmbientOcclusionSettings()
         {
             AmbientOcclusion ao = TexturesUnlimitedFXLoader.INSTANCE.CurrentProfile.GetSettingsFor<AmbientOcclusion>();
-            bool enabled = ao != null && ao.enabled;
             bool showProps = AddEffectHeader("Ambient Occlusion", ao);
-            if (enabled && showProps)
+            if (showProps)
             {
                 AddEnumParameter("Mode", ao.mode);
                 AddFloatParameter("Intensity", ao.intensity, 0, 10);
@@ -367,9 +353,8 @@ namespace TUFX
         private void renderAutoExposureSettings()
         {
             AutoExposure ae = TexturesUnlimitedFXLoader.INSTANCE.CurrentProfile.GetSettingsFor<AutoExposure>();
-            bool enabled = ae != null && ae.enabled;
             bool showProps = AddEffectHeader("Auto Exposure", ae);
-            if (enabled && showProps)
+            if (showProps)
             {
                 AddVector2Parameter("Filtering", ae.filtering);
                 AddFloatParameter("Min Luminance", ae.minLuminance, -9, 9);
@@ -385,9 +370,8 @@ namespace TUFX
         private void renderBloomSettings()
         {
             Bloom bl = TexturesUnlimitedFXLoader.INSTANCE.CurrentProfile.GetSettingsFor<Bloom>();
-            bool enabled = bl != null && bl.enabled;
             bool showProps = AddEffectHeader("Bloom", bl);
-            if (enabled && showProps)
+            if (showProps)
             {
                 AddFloatParameter("Intensity", bl.intensity, 0, 10);
                 AddFloatParameter("Threshold", bl.threshold, 0, 2);
@@ -406,9 +390,8 @@ namespace TUFX
         private void renderChromaticAberrationSettings()
         {
             ChromaticAberration ca = TexturesUnlimitedFXLoader.INSTANCE.CurrentProfile.GetSettingsFor<ChromaticAberration>();
-            bool enabled = ca != null && ca.enabled;
             bool showProps = AddEffectHeader("Chromatic Aberration", ca);
-            if (enabled && showProps)
+            if (showProps)
             {
                 AddTextureParameter("Spectral LUT", ca.spectralLut, BuiltinEffect.ChromaticAberration.ToString(), "SpectralLut");
                 AddFloatParameter("Intensity", ca.intensity, 0, 1);
@@ -420,9 +403,8 @@ namespace TUFX
         private void renderColorGradingSettings()
         {
             ColorGrading cg = TexturesUnlimitedFXLoader.INSTANCE.CurrentProfile.GetSettingsFor<ColorGrading>();
-            bool enabled = cg != null && cg.enabled;
             bool showProps = AddEffectHeader("Color Grading", cg);
-            if (enabled && showProps)
+            if (showProps)
             {
                 AddEnumParameter("Mode", cg.gradingMode);
                 if (cg.gradingMode == GradingMode.External)
@@ -489,9 +471,8 @@ namespace TUFX
         private void renderDepthOfFieldSettings()
         {
             DepthOfField df = TexturesUnlimitedFXLoader.INSTANCE.CurrentProfile.GetSettingsFor<DepthOfField>();
-            bool enabled = df != null && df.enabled;
             bool showProps = AddEffectHeader("Depth Of Field", df);
-            if (enabled && showProps)
+            if (showProps)
             {
                 AddFloatParameter("Focus Distance", df.focusDistance, 0.1f, 64000);
                 AddFloatParameter("Aperture", df.aperture, 0.05f, 32f);
@@ -505,9 +486,8 @@ namespace TUFX
         private void renderGrainSettings()
         {
             Grain gr = TexturesUnlimitedFXLoader.INSTANCE.CurrentProfile.GetSettingsFor<Grain>();
-            bool enabled = gr != null && gr.enabled;
             bool showProps = AddEffectHeader("Grain", gr);
-            if (enabled && showProps)
+            if (showProps)
             {
                 AddBoolParameter("Colored", gr.colored);
                 AddFloatParameter("Intensity", gr.intensity, 0, 1);
@@ -520,9 +500,8 @@ namespace TUFX
         private void renderLensDistortionSettings()
         {
             LensDistortion ld = TexturesUnlimitedFXLoader.INSTANCE.CurrentProfile.GetSettingsFor<LensDistortion>();
-            bool enabled = ld != null && ld.enabled;
             bool showProps = AddEffectHeader("Lens Distortion", ld);
-            if (enabled && showProps)
+            if (showProps)
             {
                 AddFloatParameter("Intensity", ld.intensity, -100, 100);
                 AddFloatParameter("IntensityX", ld.intensityX, 0, 1);
@@ -537,9 +516,8 @@ namespace TUFX
         private void renderMotionBlurSettings()
         {
             MotionBlur mb = TexturesUnlimitedFXLoader.INSTANCE.CurrentProfile.GetSettingsFor<MotionBlur>();
-            bool enabled = mb != null && mb.enabled;
             bool showProps = AddEffectHeader("Motion Blur", mb);
-            if (enabled && showProps)
+            if (showProps)
             {
                 AddFloatParameter("Shutter Angle", mb.shutterAngle, 0f, 360f);
                 AddIntParameter("Sample Count", mb.sampleCount, 4, 32);
@@ -551,13 +529,12 @@ namespace TUFX
         {
             //Log.debug("SC start");
             TUBISEffect sc = TexturesUnlimitedFXLoader.INSTANCE.CurrentProfile.GetSettingsFor<TUBISEffect>();
-            bool enabled = sc != null && sc.enabled;
             bool showProps = AddEffectHeader("Scattering", sc);
             //if (enabled != sc.enabled)
             //{
             //    //TODO
             //}
-            if (enabled && showProps)
+            if (showProps)
             {
                 AddFloatParameter("Exposure", sc.Exposure, 0f, 50f);
             }
@@ -568,9 +545,8 @@ namespace TUFX
         private void renderVignetteSettings()
         {
             Vignette vg = TexturesUnlimitedFXLoader.INSTANCE.CurrentProfile.GetSettingsFor<Vignette>();
-            bool enabled = vg != null && vg.enabled;
             bool showProps = AddEffectHeader("Vignette", vg);
-            if (enabled && showProps)
+            if (showProps)
             {
                 AddEnumParameter("Mode", vg.mode);
                 AddColorParameter("Color", vg.color);
@@ -591,17 +567,35 @@ namespace TUFX
 
         GUIStyle settingsStyle;
 
-        private bool AddEffectHeader<T>(string label, T effect) where T : PostProcessEffectSettings
+        private bool DrawGroupHeader(string label, ref bool enabled)
         {
-            GUILayout.BeginVertical(settingsStyle);
-            GUILayout.BeginHorizontal();
-            GUILayout.Label("----- " + label, GUILayout.Width(200));
-            bool wasEnabled = effect != null && effect.enabled;
-            bool showProps = true;
+			GUILayout.BeginVertical(HighLogic.Skin.box);
+			GUILayout.BeginHorizontal();
 
-            bool enabled = GUILayout.Toggle(wasEnabled, "Enabled");
+			bool showProps = false;
 
-            if (enabled && !wasEnabled && effect == null)
+			enabled = GUILayout.Toggle(enabled, label);
+
+			if (enabled)
+			{
+				if (!effectBoolStorage.TryGetValue(label, out showProps))
+				{
+					showProps = true;
+					effectBoolStorage.Add(label, true);
+				}
+				showProps = GUILayout.Toggle(showProps, "Show Props");
+				effectBoolStorage[label] = showProps;
+			}
+			GUILayout.EndHorizontal();
+            return showProps;
+        }
+
+		private bool AddEffectHeader<T>(string label, T effect) where T : PostProcessEffectSettings
+        {
+            bool effectEnabled = effect != null && effect.enabled;
+            bool showProps = DrawGroupHeader(label, ref effectEnabled);
+
+            if (effectEnabled && effect == null)
             {
                 effect = ScriptableObject.CreateInstance<T>();
                 TexturesUnlimitedFXLoader.INSTANCE.CurrentProfile.Settings.Add(effect);
@@ -610,21 +604,10 @@ namespace TUFX
 
             if (effect)
             {
-                effect.enabled.Override(enabled);
+                effect.enabled.Override(effectEnabled);
             }
 
-            if (enabled)
-            {
-                string hash = effect.GetType().Name;
-                if (!effectBoolStorage.TryGetValue(hash, out showProps))
-                {
-                    showProps = true;
-					effectBoolStorage.Add(hash, true);
-                }
-                showProps = GUILayout.Toggle(showProps, "Show Props");
-                effectBoolStorage[hash] = showProps;
-            }
-            GUILayout.EndHorizontal();
+            
             return showProps;
         }
 
