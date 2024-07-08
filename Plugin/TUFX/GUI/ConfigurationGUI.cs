@@ -570,24 +570,25 @@ namespace TUFX
         private bool DrawGroupHeader(string label, ref bool enabled)
         {
 			GUILayout.BeginVertical(HighLogic.Skin.box);
-			GUILayout.BeginHorizontal();
+            GUILayout.BeginVertical(HighLogic.Skin.box);
+            GUILayout.BeginHorizontal();
 
-			bool showProps = false;
+			if (!effectBoolStorage.TryGetValue(label, out bool showProps))
+            {
+                effectBoolStorage.Add(label, showProps = true);
+            }
+
+            if (GUILayout.Button(showProps ? "v" : ">", GUILayout.Width(20)))
+            {
+                showProps = !showProps;
+				effectBoolStorage[label] = showProps;
+			}
 
 			enabled = GUILayout.Toggle(enabled, label);
 
-			if (enabled)
-			{
-				if (!effectBoolStorage.TryGetValue(label, out showProps))
-				{
-					showProps = true;
-					effectBoolStorage.Add(label, true);
-				}
-				showProps = GUILayout.Toggle(showProps, "Show Props");
-				effectBoolStorage[label] = showProps;
-			}
 			GUILayout.EndHorizontal();
-            return showProps;
+            GUILayout.EndVertical();
+            return showProps && enabled;
         }
 
 		private bool AddEffectHeader<T>(string label, T effect) where T : PostProcessEffectSettings
