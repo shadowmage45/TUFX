@@ -50,7 +50,6 @@ namespace TUFX
 		internal static readonly Configuration defaultConfiguration = new Configuration();
 
         private PostProcessVolume mainVolume;
-        private PostProcessVolume scaledSpaceVolume;
 
         /// <summary>
         /// The currently active profile.  Private field to enforce use of the 'setProfileForScene' method.
@@ -90,7 +89,6 @@ namespace TUFX
             GameEvents.OnCameraChange.Add(new EventData<CameraManager.CameraMode>.OnEvent(cameraChange));
 
             mainVolume = CreateVolume(0);
-            scaledSpaceVolume = CreateVolume(1);
         }
 
 		public void ModuleManagerPostLoad()
@@ -536,7 +534,7 @@ namespace TUFX
             SetCurrentProfile(profileName);
         }
 
-        private void ApplyProfileToCamera(Camera camera, TUFXProfile tufxProfile)
+        private void ApplyProfileToCamera(Camera camera, TUFXProfile tufxProfile, bool isFinalCamera)
         {
             if (camera == null) return;
 
@@ -544,18 +542,28 @@ namespace TUFX
             layer.Init(Resources);
             camera.allowHDR = tufxProfile.HDREnabled;
 
-            // if this is the scaled camera, don't allow TAA because it makes clouds flicker
-            if (camera == ScaledCamera.Instance?.cam)
+            // this seems to work for bloom and color grading, but in IVA using SMAA or FXAA affects the terrain while TAA does not
+            // haven't tested orbit or map yet
+            layer.volumeLayer = isFinalCamera ? 1 : 0;
+            layer.antialiasingMode = isFinalCamera ? tufxProfile.AntiAliasing : PostProcessLayer.Antialiasing.None;
+            layer.enabled = isFinalCamera;
+
+            /*
+            if (isFinalCamera)
             {
-                layer.antialiasingMode = tufxProfile.AntiAliasing == PostProcessLayer.Antialiasing.TemporalAntialiasing ? PostProcessLayer.Antialiasing.None : tufxProfile.AntiAliasing;
-                layer.volumeLayer = 1 << scaledSpaceVolume.gameObject.layer;
+                layer.breakBeforeColorGrading = false;
+                layer.antialiasingMode = tufxProfile.AntiAliasing;
             }
             else
             {
-                layer.antialiasingMode = tufxProfile.AntiAliasing;
-                layer.volumeLayer = 1 << mainVolume.gameObject.layer;
-            }
-        }
+				layer.breakBeforeColorGrading = true;
+				layer.antialiasingMode = tufxProfile.AntiAliasing == PostProcessLayer.Antialiasing.TemporalAntialiasing
+                    ? PostProcessLayer.Antialiasing.None 
+                    : tufxProfile.AntiAliasing;
+
+			}
+            */
+		}
 
         private  void ApplyCurrentProfile()
         {
@@ -566,33 +574,27 @@ namespace TUFX
 
             mainVolume.sharedProfile = currentProfile.CreatePostProcessProfile();
 
-				// clear the copied profile and reset the sharedProfile so we can make a new copy
-				scaledSpaceVolume.profile = null;
-            scaledSpaceVolume.sharedProfile = mainVolume.sharedProfile;
-
-            // disallow DoF for the scaledspace camera (note using the `profile` property will clone the sharedProfile into a new copy that we can modify individually)
-            if (scaledSpaceVolume.profile.TryGetSettings<DepthOfField>(out var dofSettings))
-            {
-                dofSettings.enabled.Override(false);
-            }
-
-			if (HighLogic.LoadedScene == GameScenes.MAINMENU || HighLogic.LoadedScene == GameScenes.SPACECENTER)
+            if (HighLogic.LoadedScene == GameScenes.MAINMENU || HighLogic.LoadedScene == GameScenes.SPACECENTER)
 			{
-				ApplyProfileToCamera(Camera.main, currentProfile);
+				ApplyProfileToCamera(Camera.main, currentProfile, true);
 			}
 			if (HighLogic.LoadedScene == GameScenes.EDITOR)
 			{
 				var editorCameras = EditorCamera.Instance.cam.gameObject.GetComponentsInChildren<Camera>();
 				foreach (var cam in editorCameras)
 				{
-					ApplyProfileToCamera(cam, currentProfile);
+					ApplyProfileToCamera(cam, currentProfile, false);
 				}
 			}
-			ApplyProfileToCamera(PlanetariumCamera.Camera, currentProfile);
-			ApplyProfileToCamera(InternalCamera.Instance?.GetComponent<Camera>(), currentProfile);
-			ApplyProfileToCamera(ScaledCamera.Instance?.cam, currentProfile);
-			ApplyProfileToCamera(CameraManager.GetCurrentCamera(), currentProfile);
-		}
+			ApplyProfileToCamera(PlanetariumCamera.Camera, currentProfile, MapView.MapIsEnabled);
+			ApplyProfileToCamera(InternalCamera.Instance?.GetComponent<Camera>(), currentProfile, true);
+			ApplyProfileToCamera(ScaledCamera.Instance?.cam, currentProfile, false);
+            // ApplyProfileToCamera(CameraManager.GetCurrentCamera(), currentProfile, false);
+            if (HighLogic.LoadedScene == GameScenes.FLIGHT)
+            {
+                ApplyProfileToCamera(FlightCamera.fetch?.mainCamera, currentProfile, CameraManager.Instance?.currentCameraMode == CameraManager.CameraMode.Flight);
+            }
+        }
 
         /// <summary>
         /// Enables the input profile for the currently rendering scene (menu, ksc, editor, tracking, flight, flight-map)
