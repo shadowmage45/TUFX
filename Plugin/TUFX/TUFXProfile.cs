@@ -101,7 +101,9 @@ namespace TUFX
         /// <summary>
         /// Configured AntiAliasing setting for the profile.
         /// </summary>
-        public PostProcessLayer.Antialiasing AntiAliasing { get; set; }
+        public PostProcessLayer.Antialiasing AntiAliasing;
+
+        public PostProcessLayer.Antialiasing SecondaryCameraAntialiasing;
 
         private UrlDir.UrlConfig urlConfig;
 
@@ -128,6 +130,7 @@ namespace TUFX
 			node.SetValue("name", ProfileName, true);
             node.SetValue("hdr", HDREnabled, true);
             node.SetValue("antialiasing", AntiAliasing.ToString(), true);
+            node.SetValue("secondaryAntialiasing", SecondaryCameraAntialiasing.ToString(), true);
             int len = Settings.Count;
             for (int i = 0; i < len; i++)
             {
@@ -173,6 +176,7 @@ namespace TUFX
             ProfileName = node.GetStringValue("name");
             HDREnabled = node.GetBoolValue("hdr", false);
             AntiAliasing = node.GetEnumValue("antialiasing", PostProcessLayer.Antialiasing.None);
+            SecondaryCameraAntialiasing = node.GetEnumValue("secondaryAntialiasing", PostProcessLayer.Antialiasing.None);
             Settings.Clear();
             ConfigNode[] effectNodes = node.GetNodes("EFFECT");
             int len = effectNodes.Length;

@@ -538,31 +538,17 @@ namespace TUFX
         {
             if (camera == null) return;
 
+            bool isPrimaryCamera = object.ReferenceEquals(camera, Camera.main);
+
             var layer = camera.gameObject.AddOrGetComponent<PostProcessLayer>();
             layer.Init(Resources);
             camera.allowHDR = tufxProfile.HDREnabled;
 
-            // this seems to work for bloom and color grading, but in IVA using SMAA or FXAA affects the terrain while TAA does not
-            // haven't tested orbit or map yet
-            layer.volumeLayer = isFinalCamera ? 1 : 0;
-            layer.antialiasingMode = isFinalCamera ? tufxProfile.AntiAliasing : PostProcessLayer.Antialiasing.None;
-            layer.enabled = isFinalCamera;
-
-            /*
-            if (isFinalCamera)
-            {
-                layer.breakBeforeColorGrading = false;
-                layer.antialiasingMode = tufxProfile.AntiAliasing;
-            }
-            else
-            {
-				layer.breakBeforeColorGrading = true;
-				layer.antialiasingMode = tufxProfile.AntiAliasing == PostProcessLayer.Antialiasing.TemporalAntialiasing
-                    ? PostProcessLayer.Antialiasing.None 
-                    : tufxProfile.AntiAliasing;
-
-			}
-            */
+			// In general all postprocessing should be done on the "final" camera - local when in flight, internal when in IVA, etc.
+			// But we don't want to apply TAA (and possibly motion blur and DoF) to anything but the local space camera since 
+			// motion vectors aren't shared between cameras, and applying TAA on multiple cameras will produce smearing
+			layer.volumeLayer = isFinalCamera ? 1 : 0;
+            layer.antialiasingMode = isPrimaryCamera ? tufxProfile.AntiAliasing : tufxProfile.SecondaryCameraAntialiasing;
 		}
 
         private  void ApplyCurrentProfile()

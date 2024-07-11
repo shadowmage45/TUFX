@@ -312,12 +312,12 @@ namespace TUFX
 
         private void renderAntialiasingSettings()
         {
-            PostProcessLayer.Antialiasing mode = TexturesUnlimitedFXLoader.INSTANCE.CurrentProfile.AntiAliasing;
-            AddEnumField("AntiAliasing Mode", ref mode);
-            if (mode != TexturesUnlimitedFXLoader.INSTANCE.CurrentProfile.AntiAliasing)
+            bool primaryChanged = AddEnumField("Primary Camera Antialiasing", ref TexturesUnlimitedFXLoader.INSTANCE.CurrentProfile.AntiAliasing);
+            bool secondaryChanged = AddEnumField("Secondary Camera Antialiasing", ref TexturesUnlimitedFXLoader.INSTANCE.CurrentProfile.SecondaryCameraAntialiasing);
+
+			if (primaryChanged || secondaryChanged)
             {
-                TexturesUnlimitedFXLoader.INSTANCE.CurrentProfile.AntiAliasing = mode;
-				TexturesUnlimitedFXLoader.INSTANCE.RefreshCameras();
+                TexturesUnlimitedFXLoader.INSTANCE.RefreshCameras();
             }
             //TODO -- add parameters for the AA modes
             //if (mode == PostProcessLayer.Antialiasing.FastApproximateAntialiasing)
@@ -633,7 +633,7 @@ namespace TUFX
             GUILayout.EndHorizontal();
         }
 
-        private void AddEnumField<Tenum>(string label, ref Tenum param)
+        private bool AddEnumField<Tenum>(string label, ref Tenum param)
         {
             Tenum value = param;
             Type type = value.GetType();
@@ -641,11 +641,13 @@ namespace TUFX
             int index = values.IndexOf(value);
             GUILayout.BeginHorizontal();
             GUILayout.Label(label, GUILayout.Width(300));
+            bool changed = false;
             if (GUILayout.Button("<", GUILayout.Width(110)))
             {
                 index--;
                 if (index < 0) { index = values.Length - 1; }
                 param = (values[index]);
+                changed = true;
             }
             GUILayout.Label(value.ToString(), GUILayout.Width(220));
             if (GUILayout.Button(">", GUILayout.Width(110)))
@@ -653,8 +655,10 @@ namespace TUFX
                 index++;
                 if (index >= values.Length) { index = 0; }
                 param = (values[index]);
+                changed = true;
             }
             GUILayout.EndHorizontal();
+            return changed;
         }
 
         private void AddBoolParameter(string label, ParameterOverride<bool> param)
