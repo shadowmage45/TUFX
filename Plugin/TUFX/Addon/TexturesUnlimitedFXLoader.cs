@@ -22,7 +22,9 @@ namespace TUFX
         private ConfigurationGUI configGUI;
         private DebugGUI debugGUI;
 
-        private Dictionary<string, Shader> shaders = new Dictionary<string, Shader>();
+        private ToolbarControl mainToolbarControl;
+
+		private Dictionary<string, Shader> shaders = new Dictionary<string, Shader>();
         private Dictionary<string, ComputeShader> computeShaders = new Dictionary<string, ComputeShader>();
         private Dictionary<string, Texture2D> textures = new Dictionary<string, Texture2D>();
 
@@ -95,7 +97,7 @@ namespace TUFX
 
                 ToolbarControl.RegisterMod(toolbarMainName);
 
-                var mainToolbarControl = gameObject.AddComponent<ToolbarControl>();
+                mainToolbarControl = gameObject.AddComponent<ToolbarControl>();
 				mainToolbarControl.AddToAllToolbars(
                     configGuiEnable,
                     configGuiDisable,
@@ -108,8 +110,8 @@ namespace TUFX
 
 #if DEBUG
                 ToolbarControl.RegisterMod(toolbarDebugName);
-                var debugToolbacControl = gameObject.AddComponent<ToolbarControl>();
-                debugToolbacControl.AddToAllToolbars(
+                var debugToolbarControl = gameObject.AddComponent<ToolbarControl>();
+                debugToolbaControl.AddToAllToolbars(
                     debugGuiEnable,
                     debugGuiDisable,
                     ApplicationLauncher.AppScenes.ALWAYS,
@@ -413,7 +415,7 @@ namespace TUFX
         {
             Log.debug("TUFXLoader - onLevelLoaded( "+scene+" )");
 
-            configGuiDisable();
+            CloseConfigGui();
             //finally, enable the profile for the current scene
             enableProfileForCurrentScene();
         }
@@ -604,13 +606,18 @@ namespace TUFX
         /// <summary>
         /// Callback for when the ApplicationLauncher button is clicked.  Can also be called from within the GUI itself from a 'Close' button.
         /// </summary>
-        internal void configGuiDisable()
+        private void configGuiDisable()
         {
             if (configGUI != null)
             {
-                GameObject.Destroy(configGUI);
-                configGUI = null;
-            }
+			    GameObject.Destroy(configGUI);
+			    configGUI = null;
+		    }
+        }
+
+        internal void CloseConfigGui()
+        {
+            mainToolbarControl.SetFalse(true);
         }
 
         private void debugGuiEnable()
@@ -626,11 +633,13 @@ namespace TUFX
 
         internal void debugGuiDisable()
         {
+#if DEBUG
             if (debugGUI != null)
             {
                 GameObject.Destroy(debugGUI);
                 debugGUI = null;
             }
-        }
-    }
+#endif
+		}
+	}
 }

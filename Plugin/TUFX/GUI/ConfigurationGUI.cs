@@ -155,7 +155,7 @@ namespace TUFX
 
 			if (GUILayout.Button("Close Window"))
 			{
-				TexturesUnlimitedFXLoader.INSTANCE.configGuiDisable();
+				TexturesUnlimitedFXLoader.INSTANCE.CloseConfigGui();
 			}
 			GUILayout.EndHorizontal();
 
