@@ -103,6 +103,7 @@ namespace UnityEngine.Rendering.PostProcessing
             loadFloatParameter(config, "Threshold", threshold);
             loadFloatParameter(config, "SoftKnee", softKnee);
             loadFloatParameter(config, "Clamp", clamp);
+            loadFloatParameter(config, "Diffusion", diffusion);
             loadFloatParameter(config, "AnamorphicRatio", anamorphicRatio);
             loadColorParameter(config, "Color", color);
             loadBoolParameter(config, "FastMode", fastMode);
