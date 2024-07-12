@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using ToolbarControl_NS;
 using UnityEngine;
 using UnityEngine.Rendering.PostProcessing;
 
@@ -18,8 +19,6 @@ namespace TUFX
     {
 
         internal static TexturesUnlimitedFXLoader INSTANCE;
-        private static ApplicationLauncherButton configAppButton;
-        private static ApplicationLauncherButton debugAppButton;
         private ConfigurationGUI configGUI;
         private DebugGUI debugGUI;
 
@@ -88,14 +87,46 @@ namespace TUFX
             GameEvents.onLevelWasLoaded.Add(new EventData<GameScenes>.OnEvent(onLevelLoaded));
             GameEvents.OnCameraChange.Add(new EventData<CameraManager.CameraMode>.OnEvent(cameraChange));
 
-            mainVolume = CreateVolume(0);
-        }
+			// set up toolbar
+			if (defaultConfiguration.ShowToolbarButton)
+            {
+                const string toolbarMainName = "TUFX";
+                const string toolbarDebugName = "TUFX-Debug";
 
+                ToolbarControl.RegisterMod(toolbarMainName);
+
+                var mainToolbarControl = gameObject.AddComponent<ToolbarControl>();
+				mainToolbarControl.AddToAllToolbars(
+                    configGuiEnable,
+                    configGuiDisable,
+                    ApplicationLauncher.AppScenes.ALWAYS,
+					toolbarMainName,
+                    toolbarMainName,
+                    "TUFX/Assets/TUFX-Icon1",
+                    "TUFX/Assets/TUFX-Icon1",
+                    toolbarMainName);
+
+#if DEBUG
+                ToolbarControl.RegisterMod(toolbarDebugName);
+                var debugToolbacControl = gameObject.AddComponent<ToolbarControl>();
+                debugToolbacControl.AddToAllToolbars(
+                    debugGuiEnable,
+                    debugGuiDisable,
+                    ApplicationLauncher.AppScenes.ALWAYS,
+					toolbarDebugName,
+                    toolbarDebugName,
+                    "TUFX/Assets/TUFX-Icon2",
+                    "TUFX/Assets/TUFX-Icon2",
+                    toolbarDebugName);
+#endif
+			}
+			mainVolume = CreateVolume(0);
+		}
 		public void ModuleManagerPostLoad()
-        {
-            Log.log("TUFXLoader - MMPostLoad()");
+		{
+			Log.log("TUFXLoader - MMPostLoad()");
 
-            //only load resources once.  In case of MM reload...
+			//only load resources once.  In case of MM reload...
             if (Resources == null)
             {
                 loadResources();
@@ -382,48 +413,6 @@ namespace TUFX
         {
             Log.debug("TUFXLoader - onLevelLoaded( "+scene+" )");
 
-            if (scene == GameScenes.FLIGHT || scene == GameScenes.SPACECENTER || scene == GameScenes.EDITOR || scene == GameScenes.TRACKSTATION)
-            {
-                Log.debug("TUFX - Updating AppLauncher button...");
-                Texture2D tex;
-                if (configAppButton == null && defaultConfiguration.ShowToolbarButton)//static reference; track if the button was EVER created, as KSP keeps them even if the addon is destroyed
-                {
-                    //Create a new button
-                    tex = GameDatabase.Instance.GetTexture("TUFX/Assets/TUFX-Icon1", false);
-                    configAppButton = ApplicationLauncher.Instance.AddModApplication(configGuiEnable, configGuiDisable, null, null, null, null, ApplicationLauncher.AppScenes.FLIGHT | ApplicationLauncher.AppScenes.SPH | ApplicationLauncher.AppScenes.VAB | ApplicationLauncher.AppScenes.SPACECENTER | ApplicationLauncher.AppScenes.TRACKSTATION | ApplicationLauncher.AppScenes.MAPVIEW, tex);
-                }
-                else if (configAppButton != null)
-                {
-                    //Reseat the buttons' callback method references.  Should not be needed for this implementation, as this is a persistent AddOn.
-                    configAppButton.onTrue = configGuiEnable;
-                    configAppButton.onFalse = configGuiDisable;
-                }
-#if DEBUG
-                if (debugAppButton == null)
-                {
-                    tex = GameDatabase.Instance.GetTexture("TUFX/Assets/TUFX-Icon2", false);
-                    debugAppButton = ApplicationLauncher.Instance.AddModApplication(debugGuiEnable, debugGuiDisable, null, null, null, null, ApplicationLauncher.AppScenes.FLIGHT | ApplicationLauncher.AppScenes.SPH | ApplicationLauncher.AppScenes.VAB | ApplicationLauncher.AppScenes.SPACECENTER | ApplicationLauncher.AppScenes.TRACKSTATION | ApplicationLauncher.AppScenes.MAPVIEW, tex);
-                }
-                else if (debugAppButton != null)
-                {
-                    debugAppButton.onTrue = debugGuiEnable;
-                    debugAppButton.onFalse = debugGuiDisable;
-                }
-#endif
-            }
-            else if (configAppButton != null)
-            {
-                Log.debug("TUFX - Removing AppLauncher button...");
-                ApplicationLauncher.Instance.RemoveModApplication(configAppButton);
-#if DEBUG
-                if (debugAppButton != null)
-                {
-                    Log.debug("TUFX - Removing DebugLauncher button...");
-                    ApplicationLauncher.Instance.RemoveModApplication(debugAppButton);
-                }
-#endif
-            }
-
             configGuiDisable();
             //finally, enable the profile for the current scene
             enableProfileForCurrentScene();
@@ -622,10 +611,6 @@ namespace TUFX
                 GameObject.Destroy(configGUI);
                 configGUI = null;
             }
-            if (configAppButton != null && configAppButton.toggleButton != null)
-            {
-                configAppButton.toggleButton.Value = false;
-            }
         }
 
         private void debugGuiEnable()
@@ -644,12 +629,8 @@ namespace TUFX
             if (debugGUI != null)
             {
                 GameObject.Destroy(debugGUI);
-            }
-            if (debugAppButton != null && debugAppButton.toggleButton != null)
-            {
-                debugAppButton.toggleButton.Value = false;
+                debugGUI = null;
             }
         }
     }
-
 }
