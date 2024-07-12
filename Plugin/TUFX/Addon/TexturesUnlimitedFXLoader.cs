@@ -542,9 +542,12 @@ namespace TUFX
             layer.antialiasingMode = isPrimaryCamera ? tufxProfile.AntiAliasing : tufxProfile.SecondaryCameraAntialiasing;
 		}
 
-        private  void ApplyCurrentProfile()
+        private void ApplyCurrentProfile()
         {
-            if (currentProfile.HDREnabled && currentProfile.GetSettingsFor<Bloom>().active)
+            if (currentProfile == null) return;
+
+            var bloomSettings = currentProfile.GetSettingsFor<Bloom>();
+			if (currentProfile.HDREnabled && bloomSettings != null && bloomSettings.active)
             {
                 QualitySettings.antiAliasing = 0;
             }
