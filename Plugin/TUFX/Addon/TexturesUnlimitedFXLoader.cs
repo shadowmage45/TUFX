@@ -73,7 +73,7 @@ namespace TUFX
 
         private PostProcessVolume CreateVolume(int layer)
         {
-            var childObject = new GameObject();
+            var childObject = new GameObject("Postprocessing Volume");
             childObject.layer = layer;
             childObject.transform.SetParent(transform, false);
             var volume = childObject.AddComponent<PostProcessVolume>();
@@ -525,11 +525,9 @@ namespace TUFX
             SetCurrentProfile(profileName);
         }
 
-        private void ApplyProfileToCamera(Camera camera, TUFXProfile tufxProfile, bool isFinalCamera)
+        private void ApplyProfileToCamera(Camera camera, TUFXProfile tufxProfile, bool isFinalCamera, bool isPrimaryCamera)
         {
             if (camera == null) return;
-
-            bool isPrimaryCamera = object.ReferenceEquals(camera, Camera.main);
 
             var layer = camera.gameObject.AddOrGetComponent<PostProcessLayer>();
             layer.Init(Resources);
@@ -554,25 +552,26 @@ namespace TUFX
 
             mainVolume.sharedProfile = currentProfile.CreatePostProcessProfile();
 
-            if (HighLogic.LoadedScene == GameScenes.MAINMENU || HighLogic.LoadedScene == GameScenes.SPACECENTER)
+			if (HighLogic.LoadedScene == GameScenes.MAINMENU || HighLogic.LoadedScene == GameScenes.SPACECENTER)
 			{
-				ApplyProfileToCamera(Camera.main, currentProfile, true);
+				ApplyProfileToCamera(Camera.main, currentProfile, true, true);
 			}
 			if (HighLogic.LoadedScene == GameScenes.EDITOR)
 			{
 				var editorCameras = EditorCamera.Instance.cam.gameObject.GetComponentsInChildren<Camera>();
 				foreach (var cam in editorCameras)
 				{
-					ApplyProfileToCamera(cam, currentProfile, false);
+					ApplyProfileToCamera(cam, currentProfile, false, false);
 				}
 			}
-			ApplyProfileToCamera(PlanetariumCamera.Camera, currentProfile, MapView.MapIsEnabled);
-			ApplyProfileToCamera(InternalCamera.Instance?.GetComponent<Camera>(), currentProfile, true);
-			ApplyProfileToCamera(ScaledCamera.Instance?.cam, currentProfile, false);
-            // ApplyProfileToCamera(CameraManager.GetCurrentCamera(), currentProfile, false);
+            bool scaledCameraIsPrimary = HighLogic.LoadedScene == GameScenes.TRACKSTATION || MapView.MapIsEnabled;
+            bool internalCameraIsFinal = CameraManager.Instance?.currentCameraMode != CameraManager.CameraMode.Flight;
+
+			ApplyProfileToCamera(InternalCamera.Instance?.GetComponent<Camera>(), currentProfile, internalCameraIsFinal, false);
+			ApplyProfileToCamera(ScaledCamera.Instance?.cam, currentProfile, scaledCameraIsPrimary, scaledCameraIsPrimary);
             if (HighLogic.LoadedScene == GameScenes.FLIGHT)
             {
-                ApplyProfileToCamera(FlightCamera.fetch?.mainCamera, currentProfile, CameraManager.Instance?.currentCameraMode == CameraManager.CameraMode.Flight);
+                ApplyProfileToCamera(FlightCamera.fetch?.mainCamera, currentProfile, !internalCameraIsFinal, true);
             }
         }
 
