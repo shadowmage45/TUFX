@@ -233,7 +233,7 @@ namespace UnityEngine.Rendering.PostProcessing
 
         internal void saveTextureParameter(ConfigNode node, string name, ParameterOverride<Texture> param)
         {
-            if (!param.overrideState) { return; }
+            if (!param.overrideState || param.value == null ) { return; }
             Texture2D tex = (Texture2D)param.value;
             string texName = string.Empty;
             if (TexturesUnlimitedFXLoader.INSTANCE.isBuiltinTexture(tex))
