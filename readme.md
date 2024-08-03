@@ -1,4 +1,8 @@
-﻿# TexturesUnlimited Special Effects (TUFX)
+# *** NOTICE ***
+
+TUFX developmemt has migrated to https://github.com/KSPModStewards/TUFX
+ 
+# TexturesUnlimited Special Effects (TUFX)
 
 Brings the Unity Post Process Package (v2) into KSP, un-touched and as provided by the package 
 developers (exception: minor helper methods added).
